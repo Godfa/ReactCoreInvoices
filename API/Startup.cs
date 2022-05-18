@@ -34,8 +34,8 @@ namespace API
 
             services.AddControllers(opt=>
             {
-                var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
-                opt.Filters.Add(new AuthorizeFilter(policy));
+                // var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+                // opt.Filters.Add(new AuthorizeFilter(policy));
             });
             services.AddSwaggerGen(c =>
             {
@@ -46,6 +46,13 @@ namespace API
                 opt.UseSqlite(_config.GetConnectionString("DefaultConnection"));
                 
             }); 
+            services.AddCors(opt =>
+            {
+                opt.AddPolicy("CorsPolicy", policy =>
+                {
+                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:3000");
+                });
+            });
             services.AddIdentityServices(_config);
         }
 
@@ -62,6 +69,8 @@ namespace API
             // app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors("CorsPolicy");
 
             app.UseCors("CorsPolicy");
 
