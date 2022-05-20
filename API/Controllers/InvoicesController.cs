@@ -1,34 +1,43 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Application.Invoices;
 using Domain;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Persistence;
 
 namespace API.Controllers
 {
     public class InvoicesController : BaseApiController
     {
-        private readonly DataContext _context;
-        public InvoicesController(DataContext context)
-        {
-            _context = context;
-        }
+        
 
         [HttpGet]
         public async Task<ActionResult<List<Invoice>>> GetInvoices()
         {
-            return await _context.Invoices.ToListAsync();
+            return await Mediator.Send(new List.Query());
         }
 
         
         [HttpGet("{Id}")]
         public async Task<ActionResult<Invoice>> GetInvoice(Guid id)
         {
-            return await _context.Invoices.FindAsync(id);
+            return await Mediator.Send(new Details.Query{Id = id});
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateInvoice(Invoice invoice)
+        {
+            return Ok(await Mediator.Send(new Create.Command {Invoice = invoice}));
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditActivity(Guid id, Invoice invoice)
+        {
+            invoice.Id = id;
+            return Ok(await Mediator.Send(new Edit.Command{Invoice = invoice}));
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteActivity(Guid id)
+        {
+            return Ok(await Mediator.Send(new Delete.Command{Id = id}));
         }
     }
 }

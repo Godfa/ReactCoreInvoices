@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using API.Extensions;
+using Application.Core;
+using Application.Invoices;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -37,23 +40,8 @@ namespace API
                 // var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
                 // opt.Filters.Add(new AuthorizeFilter(policy));
             });
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPIv5", Version = "v1" });
-            });
-            services.AddDbContext<DataContext>(opt => 
-            {
-                opt.UseSqlite(_config.GetConnectionString("DefaultConnection"));
-                
-            }); 
-            services.AddCors(opt =>
-            {
-                opt.AddPolicy("CorsPolicy", policy =>
-                {
-                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:3000");
-                });
-            });
-            services.AddIdentityServices(_config);
+            services.AddApplicationServices(_config);
+           
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -70,9 +58,7 @@ namespace API
 
             app.UseRouting();
 
-            app.UseCors("CorsPolicy");
-
-            app.UseCors("CorsPolicy");
+            app.UseCors("CorsPolicy");           
 
             app.UseAuthentication();
             app.UseAuthorization();
