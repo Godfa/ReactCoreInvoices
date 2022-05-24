@@ -6,9 +6,10 @@ interface Props {
     invoice: Invoice | undefined;
     closeForm: () => void;
     createOrEdit: (invoice: Invoice) => void;
+    submitting: boolean;
 }
 
-export default function InvoiceForm({invoice: selectedInvoice, closeForm, createOrEdit}: Props) {
+export default function InvoiceForm({invoice: selectedInvoice, closeForm, createOrEdit, submitting}: Props) {
 
     const initialState = selectedInvoice ?? {
         id: '',
@@ -41,7 +42,7 @@ export default function InvoiceForm({invoice: selectedInvoice, closeForm, create
                 onChange={handleInputChange}/>
                 <Form.Input placeholder='Lan number' value={invoice.lanNumber} name='lanNumber' 
                 onChange={handleInputChange}/> 
-                <Button floated='right' positive type='submit' content='Submit' value={invoice.title} name='title' 
+                <Button loading={submitting} floated='right' positive type='submit' content='Submit' value={invoice.title} name='title' 
                 onChange={handleInputChange}/>
                 <Button onClick={closeForm} floated='right' type='button' content='Cancel'/>
             </Form>

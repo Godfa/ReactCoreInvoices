@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Container } from 'semantic-ui-react';
 import { Invoice } from 'Invoices';
 import NavBar from './NavBar';
 import InvoiceDashboard from '../../features/activities/dashboard/InvoiceDashboard';
-import {v4 as uuid} from 'uuid';
+import { v4 as uuid } from 'uuid';
+import agent from '../api/agent';
+import LoadingComponent from './LoadingComponent';
 
 
 function App() {
@@ -12,13 +13,17 @@ function App() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>(undefined);
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    axios.get<Invoice[]>('http://localhost:5000/api/invoices').then(response => {
-      console.log(response)
-      setInvoices(response.data);
+    agent.Invoices.list().then(response => {
+      setInvoices(response)
+      setLoading(false);
     })
-  }, [])
+  }, []
+  )
+
 
   function handleSelectInvoice(id: string) {
     setSelectedInvoice(invoices.find(x => x.id === id))
@@ -38,15 +43,36 @@ function App() {
   }
 
   function handleCreateOrEditInvoice(invoice: Invoice) {
-    invoice.id ? setInvoices([...invoices.filter(x => x.id !== invoice.id), invoice])
-    : setInvoices([...invoices, {...invoice, id: uuid()}]);
-    setEditMode(false);
-    setSelectedInvoice(invoice);
+    setSubmitting(true);
+    if (invoice.id) {
+      agent.Invoices.update(invoice).then(() => {
+        setInvoices([...invoices.filter(x => x.id !== invoice.id), invoice])
+        setSelectedInvoice(invoice);
+        setEditMode(false);
+        setSubmitting(false);
+      })
+    } else {
+      invoice.id = uuid();
+      agent.Invoices.create(invoice).then(() => {
+        setInvoices([...invoices, invoice])
+        setSelectedInvoice(invoice);
+        setEditMode(false);
+        setSubmitting(false);
+      })
+    }
+
   }
 
   function handleDeleteInvoice(id: string) {
-    setInvoices([...invoices.filter(x => x.id !== id)]);
+    setSubmitting(true);
+    agent.Invoices.delete(id).then(() => {
+      setInvoices([...invoices.filter(x => x.id !== id)]);
+      setSubmitting(false)
+    })
   }
+
+
+  if (loading) return <LoadingComponent content='Loading app' />
 
   return (
     <>
@@ -61,7 +87,8 @@ function App() {
           openForm={handleFormOpen}
           closeForm={handleFormClose}
           createOrEdit={handleCreateOrEditInvoice}
-          deleteInvoice={handleDeleteInvoice} />
+          deleteInvoice={handleDeleteInvoice}
+          submitting={submitting} />
       </Container>
     </>
   );

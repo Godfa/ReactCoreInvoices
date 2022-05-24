@@ -1,15 +1,22 @@
 import { Invoice } from "Invoices";
-import React from "react";
+import React, { SyntheticEvent, useState } from "react";
 import { Button, Item, ItemDescription, Segment } from "semantic-ui-react";
 
 interface Props {
     invoices: Invoice[];
     selectInvoice: (id: string) => void;
     deleteInvoice: (id: string) => void;
+    submitting: boolean;
      
 }
 
-export default function InvoiceList({invoices, selectInvoice, deleteInvoice}:Props) {
+export default function InvoiceList({invoices, selectInvoice, deleteInvoice, submitting}:Props) {
+    const [target, setTarget] = useState('');
+
+    function handleInvoiceDelete(e:SyntheticEvent<HTMLButtonElement>, id: string) {
+        setTarget(e.currentTarget.name);
+        deleteInvoice(id);
+    }
     return (
         <Segment>
             <Item.Group divided>
@@ -25,7 +32,11 @@ export default function InvoiceList({invoices, selectInvoice, deleteInvoice}:Pro
                             </ItemDescription>
                             <Item.Extra>
                                 <Button onClick={() => selectInvoice(invoice.id)} floated='right' content='View' color='blue' />
-                                <Button onClick={() => deleteInvoice(invoice.id)} floated='right' content='Delete' color='red' />
+                                <Button
+                                    name={invoice.id} 
+                                    loading={submitting && target === invoice.id} 
+                                    onClick={(e) => handleInvoiceDelete(e,invoice.id)} 
+                                    floated='right' content='Delete' color='red' />
                                 {/* <Label basic content={invoice.amount} /> */}
                             </Item.Extra>
                         </Item.Content>
