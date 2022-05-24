@@ -33,7 +33,9 @@ namespace Persistence
                 new Invoice
                 {
                     LanNumber = 68,
-                    Description = "Mökkilan 68", 
+                    Title = "Mökkilan 68", 
+                    Description = "Nousiaisissa",
+                    Image = null,
                     Amount = 415.24m,
                     ExpenseItems = new List<ExpenseItem>
                     {

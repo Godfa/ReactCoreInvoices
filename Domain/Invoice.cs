@@ -10,9 +10,14 @@ namespace Domain
     {
         public Guid Id { get; set; }
         public int LanNumber { get; set; }
+
+        public string Title { get; set; }
         public string Description { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Amount { get; set; }
+
+        public string Image { get; set; }
+
         public virtual List<ExpenseItem> ExpenseItems { get; set; }
         
 
