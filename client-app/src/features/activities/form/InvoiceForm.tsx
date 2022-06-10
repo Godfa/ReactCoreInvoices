@@ -1,15 +1,13 @@
-import { Invoice } from "Invoices";
+import { observer } from "mobx-react-lite";
 import React, { ChangeEvent, useState } from "react";
 import { Button, Form, Segment } from "semantic-ui-react";
+import { useStore } from "../../../app/stores/store";
 
-interface Props {
-    invoice: Invoice | undefined;
-    closeForm: () => void;
-    createOrEdit: (invoice: Invoice) => void;
-    submitting: boolean;
-}
 
-export default function InvoiceForm({invoice: selectedInvoice, closeForm, createOrEdit, submitting}: Props) {
+export default observer(function InvoiceForm() {
+
+    const {invoiceStore} = useStore();
+    const {selectedInvoice, closeForm, createInvoice, updateInvoice, loading} = invoiceStore;
 
     const initialState = selectedInvoice ?? {
         id: '',
@@ -24,7 +22,7 @@ export default function InvoiceForm({invoice: selectedInvoice, closeForm, create
     const [invoice, setInvoice] = useState(initialState);
 
     function handleSubmit() {
-       createOrEdit(invoice);
+        invoice.id ? updateInvoice(invoice): createInvoice(invoice);
     }
 
     function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
@@ -42,10 +40,10 @@ export default function InvoiceForm({invoice: selectedInvoice, closeForm, create
                 onChange={handleInputChange}/>
                 <Form.Input placeholder='Lan number' value={invoice.lanNumber} name='lanNumber' 
                 onChange={handleInputChange}/> 
-                <Button loading={submitting} floated='right' positive type='submit' content='Submit' value={invoice.title} name='title' 
+                <Button loading={loading} floated='right' positive type='submit' content='Submit' value={invoice.title} name='title' 
                 onChange={handleInputChange}/>
                 <Button onClick={closeForm} floated='right' type='button' content='Cancel'/>
             </Form>
         </Segment>
     )
-}
+})

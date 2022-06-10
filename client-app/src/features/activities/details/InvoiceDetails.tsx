@@ -1,14 +1,13 @@
-import { Invoice } from "Invoices";
 import React from "react";
 import { Button, Card, Image } from "semantic-ui-react";
+import LoadingComponent from "../../../app/layout/LoadingComponent";
+import { useStore } from "../../../app/stores/store";
 
+export default function InvoiceDetails() {
+    const {invoiceStore} = useStore();
+    const {selectedInvoice: invoice, openForm, cancelSelectedInvoice} = invoiceStore;
 
-interface Props {
-    invoice: Invoice;
-    cancelSelectInvoice: () => void;
-    openForm: (id: string) => void;
-}
-export default function InvoiceDetails({invoice, cancelSelectInvoice, openForm }: Props) {
+    if (!invoice) return <LoadingComponent />;
     return (
         <Card fluid>
             <Image src={`/assets/lanImages/${invoice.image}.jpg`} />
@@ -24,7 +23,7 @@ export default function InvoiceDetails({invoice, cancelSelectInvoice, openForm }
             <Card.Content extra>
                <Button.Group width='2'>
                    <Button onClick={() => openForm(invoice.id)} basic color='blue' content='Edit' />
-                   <Button onClick={cancelSelectInvoice} basic color='grey' content='Cancel' />
+                   <Button onClick={cancelSelectedInvoice} basic color='grey' content='Cancel' />
                </Button.Group>
             </Card.Content>
         </Card>
