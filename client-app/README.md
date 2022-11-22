@@ -49,4 +49,4 @@ dotnet watch run in /API
 
 npm start in client-app
 
-ctrl+p: sqlite - open database
+ctrl+p -> >sqlite - open database
