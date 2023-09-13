@@ -452,3 +452,6 @@ $RECYCLE.BIN/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+API/LanInvoices.db-shm
+API/LanInvoices.db-wal
+API/LanInvoices.db
