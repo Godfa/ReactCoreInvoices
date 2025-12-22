@@ -2,6 +2,7 @@ import React from "react";
 import { Button, Card, Image, List } from "semantic-ui-react";
 import LoadingComponent from "../../../app/layout/LoadingComponent";
 import { useStore } from "../../../app/stores/store";
+import ExpenseItemList from "./ExpenseItemList";
 
 export default function InvoiceDetails() {
     const { invoiceStore } = useStore();
@@ -23,24 +24,9 @@ export default function InvoiceDetails() {
                     {invoice.description}
                 </Card.Description>
             </Card.Content>
-            {invoice.expenseItems && invoice.expenseItems.length > 0 && (
-                <Card.Content>
-                    <Card.Header>Expense Items</Card.Header>
-                    <List divided relaxed>
-                        {invoice.expenseItems.map((item) => (
-                            <List.Item key={item.id}>
-                                <List.Icon name='dollar' size='large' verticalAlign='middle' />
-                                <List.Content>
-                                    <List.Header>{item.name}</List.Header>
-                                    <List.Description>
-                                        Creditor: {item.expenseCreditor} | Type: {item.expenseType}
-                                    </List.Description>
-                                </List.Content>
-                            </List.Item>
-                        ))}
-                    </List>
-                </Card.Content>
-            )}
+            <Card.Content>
+                <ExpenseItemList invoiceId={invoice.id} />
+            </Card.Content>
             <Card.Content extra>
                 <Button.Group width='2'>
                     <Button onClick={() => openForm(invoice.id)} basic color='blue' content='Edit' />

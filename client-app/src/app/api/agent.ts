@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { Invoice } from "Invoices";
+import { Invoice, ExpenseItem, ExpenseTypeOption } from "Invoices";
 import { toast } from 'react-toastify';
 
 const sleep = (delay: number) => {
@@ -58,8 +58,23 @@ const Invoices = {
     delete: (id: string) => requests.del<void>(`/invoices/${id}`)
 }
 
+const ExpenseItems = {
+    list: () => requests.get<ExpenseItem[]>('/expenseitems'),
+    details: (id: string) => requests.get<ExpenseItem>(`/expenseitems/${id}`),
+    create: (expenseItem: ExpenseItem) => requests.post<void>('/expenseitems', expenseItem),
+    createForInvoice: (invoiceId: string, expenseItem: ExpenseItem) => requests.post<void>(`/expenseitems/${invoiceId}`, expenseItem),
+    update: (expenseItem: ExpenseItem) => requests.put<void>(`/expenseitems/${expenseItem.id}`, expenseItem),
+    delete: (id: string) => requests.del<void>(`/expenseitems/${id}`)
+}
+
+const ExpenseTypes = {
+    list: () => requests.get<ExpenseTypeOption[]>('/expensetypes')
+}
+
 const agent = {
-    Invoices
+    Invoices,
+    ExpenseItems,
+    ExpenseTypes
 }
 
 export default agent;

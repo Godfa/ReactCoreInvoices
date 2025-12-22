@@ -1,4 +1,4 @@
-import { Invoice } from "Invoices";
+import { Invoice, ExpenseItem } from "Invoices";
 import { makeAutoObservable, runInAction } from "mobx";
 import agent from "../api/agent";
 import { v4 as uuid } from 'uuid';
@@ -91,6 +91,72 @@ export default class InvoiceStore {
             runInAction(() => {
                 this.loading = false;
             })
+        }
+    }
+
+    expenseTypeRegistry = new Map<number, string>();
+
+    get ExpenseTypes() {
+        return Array.from(this.expenseTypeRegistry.entries()).map(([key, value]) => ({ key, value }));
+    }
+
+    loadExpenseTypes = async () => {
+        if (this.expenseTypeRegistry.size > 0) return;
+        try {
+            const types = await agent.ExpenseTypes.list();
+            runInAction(() => {
+                types.forEach(type => {
+                    this.expenseTypeRegistry.set(type.key, type.value);
+                })
+            })
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    createExpenseItem = async (invoiceId: string, expenseItem: ExpenseItem) => {
+        this.loading = true;
+        try {
+            await agent.ExpenseItems.createForInvoice(invoiceId, expenseItem);
+            runInAction(() => {
+                const invoice = this.invoiceRegistry.get(invoiceId);
+                if (invoice) {
+                    if (!invoice.expenseItems) invoice.expenseItems = [];
+                    invoice.expenseItems.push(expenseItem);
+                    // Update registry
+                    this.invoiceRegistry.set(invoiceId, invoice);
+                    if (this.selectedInvoice?.id === invoiceId) {
+                        this.selectedInvoice = invoice;
+                    }
+                }
+                this.loading = false;
+            })
+            toast.success('Expense Item added');
+        } catch (error) {
+            console.log(error);
+            runInAction(() => this.loading = false);
+        }
+    }
+
+    deleteExpenseItem = async (invoiceId: string, itemId: string) => {
+        this.loading = true;
+        try {
+            await agent.ExpenseItems.delete(itemId);
+            runInAction(() => {
+                const invoice = this.invoiceRegistry.get(invoiceId);
+                if (invoice && invoice.expenseItems) {
+                    invoice.expenseItems = invoice.expenseItems.filter(i => i.id !== itemId);
+                    this.invoiceRegistry.set(invoiceId, invoice);
+                    if (this.selectedInvoice?.id === invoiceId) {
+                        this.selectedInvoice = invoice;
+                    }
+                }
+                this.loading = false;
+            })
+            toast.success('Expense Item deleted');
+        } catch (error) {
+            console.log(error);
+            runInAction(() => this.loading = false);
         }
     }
 

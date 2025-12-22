@@ -3,8 +3,13 @@ declare module "Invoices" {
     export interface ExpenseItem {
         id: string;
         expenseCreditor: number;
-        expenseType: number;
+        expenseType: number; // Enum value
         name: string;
+    }
+
+    export interface ExpenseTypeOption {
+        key: number;
+        value: string;
     }
 
     export interface Invoice {
@@ -16,6 +21,7 @@ declare module "Invoices" {
         amount: number;
         expenseItems: ExpenseItem[];
     }
+
 
 }
 
