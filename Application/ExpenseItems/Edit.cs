@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using FluentValidation;
 using Domain;
 using MediatR;
 using Persistence;
@@ -14,6 +15,14 @@ namespace Application.ExpenseItems
         public class Command : IRequest
         {
             public ExpenseItem ExpenseItem { get; set; }
+        }
+
+        public class CommandValidator : AbstractValidator<Command>
+        {
+            public CommandValidator()
+            {
+                RuleFor(x => x.ExpenseItem).SetValidator(new ExpenseItemValidator());
+            }
         }
 
         public class Handler : IRequestHandler<Command>
