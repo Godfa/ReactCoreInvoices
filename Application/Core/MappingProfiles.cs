@@ -12,6 +12,7 @@ namespace Application.Core
         public MappingProfiles()
         {
             CreateMap<Invoice, Invoice>();
+            CreateMap<ExpenseItem, ExpenseItem>();
         }
     }
 }

@@ -28,14 +28,14 @@ namespace API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> EditActivity(Guid id, Invoice invoice)
+        public async Task<IActionResult> EditInvoice(Guid id, Invoice invoice)
         {
             invoice.Id = id;
             return Ok(await Mediator.Send(new Edit.Command{Invoice = invoice}));
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteActivity(Guid id)
+        public async Task<IActionResult> DeleteInvoice(Guid id)
         {
             return Ok(await Mediator.Send(new Delete.Command{Id = id}));
         }
