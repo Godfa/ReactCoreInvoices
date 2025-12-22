@@ -9,7 +9,7 @@ declare module "Invoices" {
 
     export interface Invoice {
         id: string;
-        lanNumber: string;
+        lanNumber: number;
         description: string;
         title: string;
         image: string;

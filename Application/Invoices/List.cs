@@ -25,7 +25,9 @@ namespace Application.Invoices
 
             public async Task<List<Invoice>> Handle(Query request, CancellationToken cancellationToken)
             {
-                return await _context.Invoices.ToListAsync(cancellationToken);
+                return await _context.Invoices
+                    .Include(i => i.ExpenseItems)
+                    .ToListAsync(cancellationToken);
             }
 
         }

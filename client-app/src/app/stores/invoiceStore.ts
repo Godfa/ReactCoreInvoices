@@ -1,9 +1,10 @@
 import { Invoice } from "Invoices";
 import { makeAutoObservable, runInAction } from "mobx";
 import agent from "../api/agent";
-import {v4 as uuid} from 'uuid';
+import { v4 as uuid } from 'uuid';
+import { toast } from 'react-toastify';
 export default class InvoiceStore {
-    invoiceRegistry = new Map<string, Invoice>(); 
+    invoiceRegistry = new Map<string, Invoice>();
     selectedInvoice: Invoice | undefined = undefined;
     editMode = false;
     loading = false;
@@ -11,7 +12,7 @@ export default class InvoiceStore {
 
     constructor() {
         makeAutoObservable(this)
-        
+
     }
 
     get Invoices() {
@@ -22,27 +23,27 @@ export default class InvoiceStore {
         // this.loadingInitial = true;
         try {
             const invoices = await agent.Invoices.list();
-            invoices.forEach(invoice => {
+            invoices.forEach((invoice: Invoice) => {
                 this.invoiceRegistry.set(invoice.id, invoice);
 
             })
-            this.setLoadingInitial(false);          
+            this.setLoadingInitial(false);
         } catch (error) {
             console.log(error);
-            this.setLoadingInitial(false);    
+            this.setLoadingInitial(false);
         }
     }
 
-    setLoadingInitial = (state : boolean) => {
+    setLoadingInitial = (state: boolean) => {
         this.loadingInitial = state;
     }
-    
+
     selectInvoice = (id: string) => {
         this.selectedInvoice = this.invoiceRegistry.get(id);
     }
 
-    cancelSelectedInvoice = () =>  {
-        this.selectedInvoice = undefined;        
+    cancelSelectedInvoice = () => {
+        this.selectedInvoice = undefined;
     }
 
     openForm = (id?: string) => {
@@ -65,6 +66,7 @@ export default class InvoiceStore {
                 this.editMode = false;
                 this.loading = false;
             })
+            toast.success('Invoice created successfully');
         } catch (error) {
             console.log(error);
             runInAction(() => {
@@ -83,6 +85,7 @@ export default class InvoiceStore {
                 this.editMode = false;
                 this.loading = false;
             })
+            toast.success('Invoice updated successfully');
         } catch (error) {
             console.log(error);
             runInAction(() => {
@@ -100,6 +103,7 @@ export default class InvoiceStore {
                 if (this.selectedInvoice?.id === id) this.cancelSelectedInvoice();
                 this.loading = false;
             })
+            toast.success('Invoice deleted successfully');
         } catch (error) {
             console.log(error);
             runInAction(() => {

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Domain;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Persistence;
 
 namespace Application.Invoices
@@ -26,7 +27,9 @@ namespace Application.Invoices
 
             public async Task<Invoice> Handle(Query request, CancellationToken cancellationToken)
             {
-                return await _context.Invoices.FindAsync(request.Id);
+                return await _context.Invoices
+                    .Include(i => i.ExpenseItems)
+                    .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
             }
         }
     }

@@ -1,11 +1,11 @@
 import React from "react";
-import { Button, Card, Image } from "semantic-ui-react";
+import { Button, Card, Image, List } from "semantic-ui-react";
 import LoadingComponent from "../../../app/layout/LoadingComponent";
 import { useStore } from "../../../app/stores/store";
 
 export default function InvoiceDetails() {
-    const {invoiceStore} = useStore();
-    const {selectedInvoice: invoice, openForm, cancelSelectedInvoice} = invoiceStore;
+    const { invoiceStore } = useStore();
+    const { selectedInvoice: invoice, openForm, cancelSelectedInvoice } = invoiceStore;
 
     if (!invoice) return <LoadingComponent />;
     return (
@@ -14,17 +14,38 @@ export default function InvoiceDetails() {
             <Card.Content>
                 <Card.Header>{invoice.title}</Card.Header>
                 <Card.Meta>
-                    <span>{invoice.amount}€</span>
+                    <span>LAN #{invoice.lanNumber}</span>
+                </Card.Meta>
+                <Card.Meta>
+                    <span className="amount">{invoice.amount}€</span>
                 </Card.Meta>
                 <Card.Description>
-                   {invoice.description}
+                    {invoice.description}
                 </Card.Description>
             </Card.Content>
+            {invoice.expenseItems && invoice.expenseItems.length > 0 && (
+                <Card.Content>
+                    <Card.Header>Expense Items</Card.Header>
+                    <List divided relaxed>
+                        {invoice.expenseItems.map((item) => (
+                            <List.Item key={item.id}>
+                                <List.Icon name='dollar' size='large' verticalAlign='middle' />
+                                <List.Content>
+                                    <List.Header>{item.name}</List.Header>
+                                    <List.Description>
+                                        Creditor: {item.expenseCreditor} | Type: {item.expenseType}
+                                    </List.Description>
+                                </List.Content>
+                            </List.Item>
+                        ))}
+                    </List>
+                </Card.Content>
+            )}
             <Card.Content extra>
-               <Button.Group width='2'>
-                   <Button onClick={() => openForm(invoice.id)} basic color='blue' content='Edit' />
-                   <Button onClick={cancelSelectedInvoice} basic color='grey' content='Cancel' />
-               </Button.Group>
+                <Button.Group width='2'>
+                    <Button onClick={() => openForm(invoice.id)} basic color='blue' content='Edit' />
+                    <Button onClick={cancelSelectedInvoice} basic color='grey' content='Cancel' />
+                </Button.Group>
             </Card.Content>
         </Card>
     )

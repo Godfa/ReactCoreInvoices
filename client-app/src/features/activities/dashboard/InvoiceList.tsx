@@ -6,36 +6,36 @@ import { useStore } from "../../../app/stores/store";
 
 
 export default observer(function InvoiceList() {
-    const {invoiceStore} = useStore();
-    const {deleteInvoice, Invoices, loading} = invoiceStore;
+    const { invoiceStore } = useStore();
+    const { deleteInvoice, Invoices, loading } = invoiceStore;
 
     const [target, setTarget] = useState('');
 
-    function handleInvoiceDelete(e:SyntheticEvent<HTMLButtonElement>, id: string) {
+    function handleInvoiceDelete(e: SyntheticEvent<HTMLButtonElement>, id: string) {
         setTarget(e.currentTarget.name);
         deleteInvoice(id);
     }
 
-    
+
     return (
         <Segment>
             <Item.Group divided>
                 {Invoices.map(invoice => (
-                    <Item key= {invoice.id}>
+                    <Item key={invoice.id}>
                         <Item.Content>
                             <Item.Header as='a'>{invoice.title}</Item.Header>
-                            {/* <Item.Meta>
-                                {invoice.lanNumber}
-                            </Item.Meta> */}
+                            <Item.Meta>
+                                LAN #{invoice.lanNumber} • {invoice.amount}€
+                            </Item.Meta>
                             <ItemDescription>
                                 <div>{invoice.description}</div>
                             </ItemDescription>
                             <Item.Extra>
                                 <Button onClick={() => invoiceStore.selectInvoice(invoice.id)} floated='right' content='View' color='blue' />
                                 <Button
-                                    name={invoice.id} 
-                                    loading={loading && target === invoice.id} 
-                                    onClick={(e) => handleInvoiceDelete(e,invoice.id)} 
+                                    name={invoice.id}
+                                    loading={loading && target === invoice.id}
+                                    onClick={(e) => handleInvoiceDelete(e, invoice.id)}
                                     floated='right' content='Delete' color='red' />
                                 {/* <Label basic content={invoice.amount} /> */}
                             </Item.Extra>
