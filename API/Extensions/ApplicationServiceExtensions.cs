@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Core;
-using Application.Invoices;
+using Application.ExpenseItems;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -13,18 +15,18 @@ namespace API.Extensions
 {
     public static class ApplicationServiceExtensions
     {
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services, 
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services,
             IConfiguration config)
         {
              services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPIv5", Version = "v1" });
             });
-            services.AddDbContext<DataContext>(opt => 
+            services.AddDbContext<DataContext>(opt =>
             {
                 opt.UseSqlite(config.GetConnectionString("DefaultConnection"));
-                
-            }); 
+
+            });
             services.AddCors(opt =>
             {
                 opt.AddPolicy("CorsPolicy", policy =>
@@ -32,9 +34,11 @@ namespace API.Extensions
                     policy.AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:3000");
                 });
             });
-            services.AddMediatR(typeof(List.Handler).Assembly);
+            services.AddMediatR(typeof(Application.Invoices.List.Handler).Assembly);
             services.AddIdentityServices(config);
             services.AddAutoMapper(typeof(MappingProfiles).Assembly);
+            services.AddFluentValidationAutoValidation();
+            services.AddValidatorsFromAssemblyContaining<ExpenseItemValidator>();
 
             return services;
         }

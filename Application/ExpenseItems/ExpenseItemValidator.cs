@@ -1,14 +1,21 @@
-// // using Domain;
-// // using FluentValidation;
+using Domain;
+using FluentValidation;
 
-// namespace Application.ExpenseItems
-// {
-//     public class ExpenseItemValidator : AbstractValidator<ExpenseItem>
-//     {
-//         public ExpenseItemValidator()
-//         {
-//             RuleFor(x => x.Name).NotEmpty();
-//             RuleFor(x => x.ExpenseCreditor).NotEmpty();
-//         }
-//     }
-// }
+namespace Application.ExpenseItems
+{
+    public class ExpenseItemValidator : AbstractValidator<ExpenseItem>
+    {
+        public ExpenseItemValidator()
+        {
+            RuleFor(x => x.Name)
+                .NotEmpty().WithMessage("Name is required")
+                .MaximumLength(200).WithMessage("Name must not exceed 200 characters");
+
+            RuleFor(x => x.ExpenseCreditor)
+                .InclusiveBetween(1, 10).WithMessage("Expense Creditor must be between 1 and 10");
+
+            RuleFor(x => x.ExpenseType)
+                .IsInEnum().WithMessage("Invalid Expense Type");
+        }
+    }
+}
