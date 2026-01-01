@@ -38,7 +38,7 @@ namespace Application.UnitTests.ExpenseItems
             }
         }
 
-        [Fact(Skip = "Fails with DbUpdateConcurrencyException in InMemory provider linked to Shadow Property updates")]
+        [Fact]
         public async Task Handle_ShouldAddExpenseItemToInvoice_WhenInvoiceIdProvided()
         {
             // Arrange
@@ -47,6 +47,7 @@ namespace Application.UnitTests.ExpenseItems
                 .Options;
 
             var invoiceId = Guid.NewGuid();
+            var expenseItem = new ExpenseItem { Id = Guid.NewGuid(), Name = "Invoice Item" };
 
             using (var context = new DataContext(options))
             {
@@ -55,12 +56,10 @@ namespace Application.UnitTests.ExpenseItems
                 await context.SaveChangesAsync();
             }
 
+            // Act - use new context to avoid tracking issues
             using (var context = new DataContext(options))
             {
                 var handler = new Create.Handler(context);
-                var expenseItem = new ExpenseItem { Id = Guid.NewGuid(), Name = "Invoice Item" };
-
-                // Act
                 await handler.Handle(new Create.Command { ExpenseItem = expenseItem, InvoiceId = invoiceId }, CancellationToken.None);
             }
 

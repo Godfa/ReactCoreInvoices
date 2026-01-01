@@ -36,25 +36,18 @@ namespace Application.ExpenseItems
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
+                _context.ExpenseItems.Add(request.ExpenseItem);
+
                 if (request.InvoiceId != Guid.Empty)
                 {
-                    var invoice = await _context.Invoices.Include(i => i.ExpenseItems)
+                    var invoice = await _context.Invoices
                         .FirstOrDefaultAsync(x => x.Id == request.InvoiceId, cancellationToken);
-                    
+
                     if (invoice != null)
                     {
-                        invoice.ExpenseItems.Add(request.ExpenseItem);
+                        // Set the foreign key directly instead of modifying the collection
+                        _context.Entry(request.ExpenseItem).Property("InvoiceId").CurrentValue = request.InvoiceId;
                     }
-                    else
-                    {
-                         // If invoice not found, maybe just add as orphan? 
-                         // Or throw. For now, add as orphan to avoid data loss, but ideally should error.
-                         _context.ExpenseItems.Add(request.ExpenseItem);
-                    }
-                }
-                else
-                {
-                    _context.ExpenseItems.Add(request.ExpenseItem);
                 }
 
                 await _context.SaveChangesAsync(cancellationToken);
