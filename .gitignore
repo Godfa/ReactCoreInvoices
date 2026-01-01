@@ -455,3 +455,6 @@ $RECYCLE.BIN/
 API/LanInvoices.db-shm
 API/LanInvoices.db-wal
 API/LanInvoices.db
+
+# Claude Code local settings
+.claude/settings.local.json
