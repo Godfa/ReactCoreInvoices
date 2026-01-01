@@ -12,7 +12,27 @@ export default class InvoiceStore {
 
     constructor() {
         makeAutoObservable(this)
+        this.initializeCreditors();
+    }
 
+    // Creditor mapping
+    creditorRegistry = new Map<number, string>();
+
+    initializeCreditors = () => {
+        this.creditorRegistry.set(1, 'Epi');
+        this.creditorRegistry.set(2, 'Leivo');
+        this.creditorRegistry.set(3, 'Jaapu');
+        this.creditorRegistry.set(4, 'Timo');
+        this.creditorRegistry.set(5, 'JHattu');
+        this.creditorRegistry.set(6, 'Urpi');
+        this.creditorRegistry.set(7, 'Zeip');
+        this.creditorRegistry.set(8, 'Antti');
+        this.creditorRegistry.set(9, 'Sakke');
+        this.creditorRegistry.set(10, 'Lasse');
+    }
+
+    get Creditors() {
+        return Array.from(this.creditorRegistry.entries()).map(([key, value]) => ({ key, value }));
     }
 
     get Invoices() {
@@ -176,5 +196,38 @@ export default class InvoiceStore {
                 this.loading = false;
             })
         }
+    }
+
+    updateExpenseItem = async (invoiceId: string, expenseItem: ExpenseItem) => {
+        this.loading = true;
+        try {
+            await agent.ExpenseItems.update(expenseItem);
+            runInAction(() => {
+                const invoice = this.invoiceRegistry.get(invoiceId);
+                if (invoice && invoice.expenseItems) {
+                    const index = invoice.expenseItems.findIndex(i => i.id === expenseItem.id);
+                    if (index !== -1) {
+                        invoice.expenseItems[index] = expenseItem;
+                        this.invoiceRegistry.set(invoiceId, invoice);
+                        if (this.selectedInvoice?.id === invoiceId) {
+                            this.selectedInvoice = invoice;
+                        }
+                    }
+                }
+                this.loading = false;
+            })
+            toast.success('Expense Item updated');
+        } catch (error) {
+            console.log(error);
+            runInAction(() => this.loading = false);
+        }
+    }
+
+    getExpenseTypeName = (typeId: number): string => {
+        return this.expenseTypeRegistry.get(typeId) || typeId.toString();
+    }
+
+    getCreditorName = (creditorId: number): string => {
+        return this.creditorRegistry.get(creditorId) || creditorId.toString();
     }
 }
