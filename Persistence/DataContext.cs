@@ -16,5 +16,6 @@ namespace Persistence
 
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<ExpenseItem> ExpenseItems { get; set; }
+        public DbSet<Creditor> Creditors { get; set; }
     }
 }

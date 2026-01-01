@@ -12,6 +12,11 @@ declare module "Invoices" {
         value: string;
     }
 
+    export interface Creditor {
+        id: number;
+        name: string;
+    }
+
     export interface Invoice {
         id: string;
         lanNumber: number;

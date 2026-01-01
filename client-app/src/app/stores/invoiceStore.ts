@@ -1,4 +1,4 @@
-import { Invoice, ExpenseItem } from "Invoices";
+import { Invoice, ExpenseItem, Creditor } from "Invoices";
 import { makeAutoObservable, runInAction } from "mobx";
 import agent from "../api/agent";
 import { v4 as uuid } from 'uuid';
@@ -12,27 +12,27 @@ export default class InvoiceStore {
 
     constructor() {
         makeAutoObservable(this)
-        this.initializeCreditors();
     }
 
     // Creditor mapping
     creditorRegistry = new Map<number, string>();
 
-    initializeCreditors = () => {
-        this.creditorRegistry.set(1, 'Epi');
-        this.creditorRegistry.set(2, 'Leivo');
-        this.creditorRegistry.set(3, 'Jaapu');
-        this.creditorRegistry.set(4, 'Timo');
-        this.creditorRegistry.set(5, 'JHattu');
-        this.creditorRegistry.set(6, 'Urpi');
-        this.creditorRegistry.set(7, 'Zeip');
-        this.creditorRegistry.set(8, 'Antti');
-        this.creditorRegistry.set(9, 'Sakke');
-        this.creditorRegistry.set(10, 'Lasse');
-    }
-
     get Creditors() {
         return Array.from(this.creditorRegistry.entries()).map(([key, value]) => ({ key, value }));
+    }
+
+    loadCreditors = async () => {
+        if (this.creditorRegistry.size > 0) return;
+        try {
+            const creditors = await agent.Creditors.list();
+            runInAction(() => {
+                creditors.forEach(creditor => {
+                    this.creditorRegistry.set(creditor.id, creditor.name);
+                })
+            })
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     get Invoices() {

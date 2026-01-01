@@ -22,11 +22,12 @@ interface FormValues {
 
 export default observer(function ExpenseItemForm({ invoiceId, closeForm, expenseItem }: Props) {
     const { invoiceStore } = useStore();
-    const { createExpenseItem, updateExpenseItem, loading, loadExpenseTypes, ExpenseTypes, Creditors } = invoiceStore;
+    const { createExpenseItem, updateExpenseItem, loading, loadExpenseTypes, loadCreditors, ExpenseTypes, Creditors } = invoiceStore;
 
     useEffect(() => {
         loadExpenseTypes();
-    }, [loadExpenseTypes]);
+        loadCreditors();
+    }, [loadExpenseTypes, loadCreditors]);
 
     const validationSchema = Yup.object({
         name: Yup.string().required('The event name is required'),

@@ -26,6 +26,25 @@ namespace Persistence
                 }
             }
 
+            if (!context.Creditors.Any())
+            {
+                var creditors = new List<Creditor>
+                {
+                    new Creditor { Id = 1, Name = "Epi" },
+                    new Creditor { Id = 2, Name = "Leivo" },
+                    new Creditor { Id = 3, Name = "Jaapu" },
+                    new Creditor { Id = 4, Name = "Timo" },
+                    new Creditor { Id = 5, Name = "JHattu" },
+                    new Creditor { Id = 6, Name = "Urpi" },
+                    new Creditor { Id = 7, Name = "Zeip" },
+                    new Creditor { Id = 8, Name = "Antti" },
+                    new Creditor { Id = 9, Name = "Sakke" },
+                    new Creditor { Id = 10, Name = "Lasse" }
+                };
+                await context.Creditors.AddRangeAsync(creditors);
+                await context.SaveChangesAsync();
+            }
+
             if (context.Invoices.Any()) return;
 
             var invoices = new List<Invoice>

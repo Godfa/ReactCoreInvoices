@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { Invoice, ExpenseItem, ExpenseTypeOption } from "Invoices";
+import { Invoice, ExpenseItem, ExpenseTypeOption, Creditor } from "Invoices";
 import { toast } from 'react-toastify';
 
 const sleep = (delay: number) => {
@@ -71,10 +71,18 @@ const ExpenseTypes = {
     list: () => requests.get<ExpenseTypeOption[]>('/expensetypes')
 }
 
+const Creditors = {
+    list: () => requests.get<Creditor[]>('/creditors'),
+    create: (creditor: Creditor) => requests.post<void>('/creditors', creditor),
+    update: (creditor: Creditor) => requests.put<void>(`/creditors/${creditor.id}`, creditor),
+    delete: (id: number) => requests.del<void>(`/creditors/${id}`)
+}
+
 const agent = {
     Invoices,
     ExpenseItems,
-    ExpenseTypes
+    ExpenseTypes,
+    Creditors
 }
 
 export default agent;
