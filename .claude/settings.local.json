@@ -5,7 +5,9 @@
       "Bash(findstr:*)",
       "Bash(dir:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet build:*)"
     ]
   }
 }
