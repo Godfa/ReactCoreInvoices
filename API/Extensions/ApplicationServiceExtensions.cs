@@ -24,8 +24,18 @@ namespace API.Extensions
             });
             services.AddDbContext<DataContext>(opt =>
             {
-                opt.UseSqlite(config.GetConnectionString("DefaultConnection"));
+                var connectionString = config.GetConnectionString("DefaultConnection");
 
+                // Use SQL Server in production (if connection string contains "Server=")
+                // Use SQLite in development
+                if (connectionString.Contains("Server=", StringComparison.OrdinalIgnoreCase))
+                {
+                    opt.UseSqlServer(connectionString);
+                }
+                else
+                {
+                    opt.UseSqlite(connectionString);
+                }
             });
             services.AddCors(opt =>
             {
