@@ -31,7 +31,12 @@ namespace API.Extensions
             {
                 opt.AddPolicy("CorsPolicy", policy =>
                 {
-                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:3000");
+                    var allowedOrigins = config.GetSection("AllowedOrigins").Get<string[]>()
+                        ?? new[] { "http://localhost:3000" };
+
+                    policy.AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .WithOrigins(allowedOrigins);
                 });
             });
             services.AddMediatR(typeof(Application.Invoices.List.Handler).Assembly);
