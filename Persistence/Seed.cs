@@ -30,22 +30,26 @@ namespace Persistence
             {
                 var creditors = new List<Creditor>
                 {
-                    new Creditor { Id = 1, Name = "Epi", Email = "epi@example.com" },
-                    new Creditor { Id = 2, Name = "Leivo", Email = "leivo@example.com" },
-                    new Creditor { Id = 3, Name = "Jaapu", Email = "jaapu@example.com" },
-                    new Creditor { Id = 4, Name = "Timo", Email = "timo@example.com" },
-                    new Creditor { Id = 5, Name = "JHattu", Email = "jhattu@example.com" },
-                    new Creditor { Id = 6, Name = "Urpi", Email = "urpi@example.com" },
-                    new Creditor { Id = 7, Name = "Zeip", Email = "zeip@example.com" },
-                    new Creditor { Id = 8, Name = "Antti", Email = "antti@example.com" },
-                    new Creditor { Id = 9, Name = "Sakke", Email = "sakke@example.com" },
-                    new Creditor { Id = 10, Name = "Lasse", Email = "lasse@example.com" }
+                    new Creditor { Name = "Epi", Email = "epi@example.com" },
+                    new Creditor { Name = "Leivo", Email = "leivo@example.com" },
+                    new Creditor { Name = "Jaapu", Email = "jaapu@example.com" },
+                    new Creditor { Name = "Timo", Email = "timo@example.com" },
+                    new Creditor { Name = "JHattu", Email = "jhattu@example.com" },
+                    new Creditor { Name = "Urpi", Email = "urpi@example.com" },
+                    new Creditor { Name = "Zeip", Email = "zeip@example.com" },
+                    new Creditor { Name = "Antti", Email = "antti@example.com" },
+                    new Creditor { Name = "Sakke", Email = "sakke@example.com" },
+                    new Creditor { Name = "Lasse", Email = "lasse@example.com" }
                 };
                 await context.Creditors.AddRangeAsync(creditors);
                 await context.SaveChangesAsync();
             }
 
             if (context.Invoices.Any()) return;
+
+            // Get the first creditor (Epi) for the expense item
+            var firstCreditor = await context.Creditors.FirstOrDefaultAsync();
+            if (firstCreditor == null) return;
 
             var invoices = new List<Invoice>
             {
@@ -61,7 +65,7 @@ namespace Persistence
                         {
                             ExpenseType = ExpenseType.ShoppingList,
                             Name = "Kauppalista" ,
-                            ExpenseCreditor = 1,
+                            ExpenseCreditor = firstCreditor.Id,
                             Amount = 415.24m
                         }
 
