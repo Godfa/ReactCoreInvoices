@@ -230,4 +230,54 @@ export default class InvoiceStore {
     getCreditorName = (creditorId: number): string => {
         return this.creditorRegistry.get(creditorId) || creditorId.toString();
     }
+
+    addParticipant = async (invoiceId: string, creditorId: number) => {
+        this.loading = true;
+        try {
+            await agent.Invoices.addParticipant(invoiceId, creditorId);
+            runInAction(() => {
+                const invoice = this.invoiceRegistry.get(invoiceId);
+                if (invoice) {
+                    if (!invoice.participants) invoice.participants = [];
+                    const creditor = { id: creditorId, name: this.creditorRegistry.get(creditorId) || '' };
+                    invoice.participants.push({
+                        invoiceId: invoiceId,
+                        creditorId: creditorId,
+                        creditor: creditor
+                    });
+                    this.invoiceRegistry.set(invoiceId, invoice);
+                    if (this.selectedInvoice?.id === invoiceId) {
+                        this.selectedInvoice = invoice;
+                    }
+                }
+                this.loading = false;
+            });
+            toast.success('Participant added');
+        } catch (error) {
+            console.log(error);
+            runInAction(() => this.loading = false);
+        }
+    }
+
+    removeParticipant = async (invoiceId: string, creditorId: number) => {
+        this.loading = true;
+        try {
+            await agent.Invoices.removeParticipant(invoiceId, creditorId);
+            runInAction(() => {
+                const invoice = this.invoiceRegistry.get(invoiceId);
+                if (invoice && invoice.participants) {
+                    invoice.participants = invoice.participants.filter(p => p.creditorId !== creditorId);
+                    this.invoiceRegistry.set(invoiceId, invoice);
+                    if (this.selectedInvoice?.id === invoiceId) {
+                        this.selectedInvoice = invoice;
+                    }
+                }
+                this.loading = false;
+            });
+            toast.success('Participant removed');
+        } catch (error) {
+            console.log(error);
+            runInAction(() => this.loading = false);
+        }
+    }
 }

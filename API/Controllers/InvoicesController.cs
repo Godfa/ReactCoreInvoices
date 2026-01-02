@@ -39,5 +39,19 @@ namespace API.Controllers
         {
             return Ok(await Mediator.Send(new Delete.Command{Id = id}));
         }
+
+        [HttpPost("{invoiceId}/participants/{creditorId}")]
+        public async Task<IActionResult> AddParticipant(Guid invoiceId, int creditorId)
+        {
+            await Mediator.Send(new AddParticipant.Command { InvoiceId = invoiceId, CreditorId = creditorId });
+            return Ok();
+        }
+
+        [HttpDelete("{invoiceId}/participants/{creditorId}")]
+        public async Task<IActionResult> RemoveParticipant(Guid invoiceId, int creditorId)
+        {
+            await Mediator.Send(new RemoveParticipant.Command { InvoiceId = invoiceId, CreditorId = creditorId });
+            return Ok();
+        }
     }
 }

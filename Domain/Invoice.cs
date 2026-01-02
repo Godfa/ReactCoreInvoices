@@ -19,7 +19,7 @@ namespace Domain
         public string Image { get; set; }
 
         public virtual List<ExpenseItem> ExpenseItems { get; set; }
-        
+        public virtual List<InvoiceParticipant> Participants { get; set; }
 
     }
 }

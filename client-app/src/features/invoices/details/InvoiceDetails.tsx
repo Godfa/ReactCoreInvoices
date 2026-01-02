@@ -3,6 +3,7 @@ import { Button, Card, Image, List } from "semantic-ui-react";
 import LoadingComponent from "../../../app/layout/LoadingComponent";
 import { useStore } from "../../../app/stores/store";
 import ExpenseItemList from "./ExpenseItemList";
+import ParticipantList from "./ParticipantList";
 
 export default function InvoiceDetails() {
     const { invoiceStore } = useStore();
@@ -23,6 +24,9 @@ export default function InvoiceDetails() {
                 <Card.Description>
                     {invoice.description}
                 </Card.Description>
+            </Card.Content>
+            <Card.Content>
+                <ParticipantList invoiceId={invoice.id} />
             </Card.Content>
             <Card.Content>
                 <ExpenseItemList invoiceId={invoice.id} />

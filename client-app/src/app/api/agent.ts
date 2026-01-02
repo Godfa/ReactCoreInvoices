@@ -55,7 +55,9 @@ const Invoices = {
     details: (id: string) => requests.get<Invoice>(`/invoices/${id}`),
     create: (invoice: Invoice) => requests.post<void>('/invoices', invoice),
     update: (invoice: Invoice) => requests.put<void>(`/invoices/${invoice.id}`, invoice),
-    delete: (id: string) => requests.del<void>(`/invoices/${id}`)
+    delete: (id: string) => requests.del<void>(`/invoices/${id}`),
+    addParticipant: (invoiceId: string, creditorId: number) => requests.post<void>(`/invoices/${invoiceId}/participants/${creditorId}`, {}),
+    removeParticipant: (invoiceId: string, creditorId: number) => requests.del<void>(`/invoices/${invoiceId}/participants/${creditorId}`)
 }
 
 const ExpenseItems = {

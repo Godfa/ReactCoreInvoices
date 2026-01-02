@@ -17,6 +17,12 @@ declare module "Invoices" {
         name: string;
     }
 
+    export interface InvoiceParticipant {
+        invoiceId: string;
+        creditorId: number;
+        creditor: Creditor;
+    }
+
     export interface Invoice {
         id: string;
         lanNumber: number;
@@ -25,6 +31,7 @@ declare module "Invoices" {
         image: string;
         amount: number;
         expenseItems: ExpenseItem[];
+        participants: InvoiceParticipant[];
     }
 
 
