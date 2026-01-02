@@ -54,10 +54,15 @@ namespace API.Extensions
 
                     Console.WriteLine($"[CORS DEBUG] Configured origins: {string.Join(", ", allowedOrigins)}");
 
-                    policy.WithOrigins(allowedOrigins)
+                    // TEMPORARY: Using AllowAnyOrigin to debug CORS issue
+                    policy.AllowAnyOrigin()
                           .AllowAnyMethod()
-                          .AllowAnyHeader()
-                          .SetIsOriginAllowed(origin => allowedOrigins.Contains(origin));
+                          .AllowAnyHeader();
+
+                    // TODO: Revert to specific origins once CORS headers issue is resolved
+                    // policy.WithOrigins(allowedOrigins)
+                    //       .AllowAnyMethod()
+                    //       .AllowAnyHeader();
                 });
             });
             services.AddMediatR(typeof(Application.Invoices.List.Handler).Assembly);
