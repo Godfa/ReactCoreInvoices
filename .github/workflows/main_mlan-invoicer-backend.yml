@@ -29,6 +29,13 @@ jobs:
       - name: dotnet publish
         run: dotnet publish API/API.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
+      - name: List published files
+        run: |
+          echo "Published files:"
+          ls -la ${{env.DOTNET_ROOT}}/myapp
+          echo "Appsettings files:"
+          ls -la ${{env.DOTNET_ROOT}}/myapp/appsettings*.json || echo "No appsettings files found"
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
