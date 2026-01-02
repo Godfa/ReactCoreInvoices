@@ -30,16 +30,16 @@ namespace Persistence
             {
                 var creditors = new List<Creditor>
                 {
-                    new Creditor { Id = 1, Name = "Epi" },
-                    new Creditor { Id = 2, Name = "Leivo" },
-                    new Creditor { Id = 3, Name = "Jaapu" },
-                    new Creditor { Id = 4, Name = "Timo" },
-                    new Creditor { Id = 5, Name = "JHattu" },
-                    new Creditor { Id = 6, Name = "Urpi" },
-                    new Creditor { Id = 7, Name = "Zeip" },
-                    new Creditor { Id = 8, Name = "Antti" },
-                    new Creditor { Id = 9, Name = "Sakke" },
-                    new Creditor { Id = 10, Name = "Lasse" }
+                    new Creditor { Id = 1, Name = "Epi", Email = "epi@example.com" },
+                    new Creditor { Id = 2, Name = "Leivo", Email = "leivo@example.com" },
+                    new Creditor { Id = 3, Name = "Jaapu", Email = "jaapu@example.com" },
+                    new Creditor { Id = 4, Name = "Timo", Email = "timo@example.com" },
+                    new Creditor { Id = 5, Name = "JHattu", Email = "jhattu@example.com" },
+                    new Creditor { Id = 6, Name = "Urpi", Email = "urpi@example.com" },
+                    new Creditor { Id = 7, Name = "Zeip", Email = "zeip@example.com" },
+                    new Creditor { Id = 8, Name = "Antti", Email = "antti@example.com" },
+                    new Creditor { Id = 9, Name = "Sakke", Email = "sakke@example.com" },
+                    new Creditor { Id = 10, Name = "Lasse", Email = "lasse@example.com" }
                 };
                 await context.Creditors.AddRangeAsync(creditors);
                 await context.SaveChangesAsync();

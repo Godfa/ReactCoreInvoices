@@ -7,6 +7,7 @@ namespace Domain
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public string Email { get; set; }
         public virtual List<InvoiceParticipant> Invoices { get; set; }
         public virtual List<ExpenseItemPayer> ExpenseItems { get; set; }
     }

@@ -23,6 +23,7 @@ declare module "Invoices" {
     export interface Creditor {
         id: number;
         name: string;
+        email: string;
     }
 
     export interface InvoiceParticipant {
