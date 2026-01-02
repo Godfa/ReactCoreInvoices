@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Domain;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Persistence;
 
 namespace Application.Invoices
@@ -25,6 +26,12 @@ namespace Application.Invoices
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
+                // Auto-generate LanNumber as max + 1
+                var maxLanNumber = await _context.Invoices
+                    .MaxAsync(i => (int?)i.LanNumber, cancellationToken) ?? 0;
+
+                request.Invoice.LanNumber = maxLanNumber + 1;
+
                 _context.Invoices.Add(request.Invoice);
 
                 await _context.SaveChangesAsync();

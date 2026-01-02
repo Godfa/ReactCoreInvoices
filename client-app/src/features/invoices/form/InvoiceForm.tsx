@@ -14,7 +14,6 @@ export default observer(function InvoiceForm() {
         description: '',
         title: '',
         image: '',
-        lanNumber: 0,
         expenseItems: [],
         participants: []
     }
@@ -31,10 +30,6 @@ export default observer(function InvoiceForm() {
 
         if (!invoice.description || invoice.description.trim() === '') {
             newErrors.description = 'Description is required';
-        }
-
-        if (invoice.lanNumber <= 0) {
-            newErrors.lanNumber = 'LAN number must be greater than 0';
         }
 
         setErrors(newErrors);
@@ -71,14 +66,6 @@ export default observer(function InvoiceForm() {
                     name='description'
                     onChange={handleInputChange}
                     error={errors.description ? { content: errors.description, pointing: 'below' } : null}
-                />
-                <Form.Input
-                    placeholder='LAN number'
-                    value={invoice.lanNumber}
-                    name='lanNumber'
-                    type='number'
-                    onChange={handleInputChange}
-                    error={errors.lanNumber ? { content: errors.lanNumber, pointing: 'below' } : null}
                 />
                 <Button
                     loading={loading}
