@@ -13,10 +13,10 @@ export default observer(function InvoiceForm() {
         id: '',
         description: '',
         title: '',
-        amount: 0,
         image: '',
         lanNumber: 0,
-        expenseItems: []
+        expenseItems: [],
+        participants: []
     }
 
     const [invoice, setInvoice] = useState(initialState);
@@ -31,10 +31,6 @@ export default observer(function InvoiceForm() {
 
         if (!invoice.description || invoice.description.trim() === '') {
             newErrors.description = 'Description is required';
-        }
-
-        if (invoice.amount <= 0) {
-            newErrors.amount = 'Amount must be greater than 0';
         }
 
         if (invoice.lanNumber <= 0) {
@@ -75,15 +71,6 @@ export default observer(function InvoiceForm() {
                     name='description'
                     onChange={handleInputChange}
                     error={errors.description ? { content: errors.description, pointing: 'below' } : null}
-                />
-                <Form.Input
-                    placeholder='Amount'
-                    value={invoice.amount}
-                    name='amount'
-                    type='number'
-                    step='0.01'
-                    onChange={handleInputChange}
-                    error={errors.amount ? { content: errors.amount, pointing: 'below' } : null}
                 />
                 <Form.Input
                     placeholder='LAN number'

@@ -5,6 +5,7 @@ declare module "Invoices" {
         expenseCreditor: number;
         expenseType: number; // Enum value
         name: string;
+        amount: number;
     }
 
     export interface ExpenseTypeOption {

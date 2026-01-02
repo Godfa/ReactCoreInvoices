@@ -62,6 +62,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                         <Table.HeaderCell>Name</Table.HeaderCell>
                         <Table.HeaderCell>Type</Table.HeaderCell>
                         <Table.HeaderCell>Creditor</Table.HeaderCell>
+                        <Table.HeaderCell>Amount</Table.HeaderCell>
                         <Table.HeaderCell>Actions</Table.HeaderCell>
                     </Table.Row>
                 </Table.Header>
@@ -72,6 +73,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                             <Table.Cell>{item.name}</Table.Cell>
                             <Table.Cell>{getExpenseTypeName(item.expenseType)}</Table.Cell>
                             <Table.Cell>{getCreditorName(item.expenseCreditor)}</Table.Cell>
+                            <Table.Cell>{item.amount.toFixed(2)} €</Table.Cell>
                             <Table.Cell>
                                 <Button
                                     onClick={() => handleEdit(item)}

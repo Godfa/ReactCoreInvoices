@@ -16,6 +16,9 @@ namespace Application.ExpenseItems
 
             RuleFor(x => x.ExpenseType)
                 .IsInEnum().WithMessage("Invalid Expense Type");
+
+            RuleFor(x => x.Amount)
+                .GreaterThan(0).WithMessage("Amount must be greater than 0");
         }
     }
 }

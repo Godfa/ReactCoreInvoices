@@ -17,6 +17,7 @@ interface FormValues {
     name: string;
     expenseType: number;
     expenseCreditor: number;
+    amount: number;
     id: string;
 }
 
@@ -32,18 +33,21 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
     const validationSchema = Yup.object({
         name: Yup.string().required('The event name is required'),
         expenseType: Yup.number().required('Expense Type is required').notOneOf([-1], 'Type is required'),
-        expenseCreditor: Yup.number().required('Creditor is required').notOneOf([-1], 'Creditor is required')
+        expenseCreditor: Yup.number().required('Creditor is required').notOneOf([-1], 'Creditor is required'),
+        amount: Yup.number().required('Amount is required').positive('Amount must be greater than 0')
     })
 
     const initialValues: FormValues = expenseItem ? {
         name: expenseItem.name,
         expenseType: expenseItem.expenseType,
         expenseCreditor: expenseItem.expenseCreditor,
+        amount: expenseItem.amount,
         id: expenseItem.id
     } : {
         name: '',
         expenseType: -1,
         expenseCreditor: -1,
+        amount: 0,
         id: ''
     }
 
@@ -92,6 +96,11 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                                 ))}
                             </Field>
                             <ErrorMessage name='expenseType' render={error => <label style={{ color: 'red' }}>{error}</label>} />
+                        </Form.Field>
+                        <Form.Field>
+                            <label>Amount (€)</label>
+                            <Field type='number' step='0.01' placeholder='Amount' name='amount' />
+                            <ErrorMessage name='amount' render={error => <label style={{ color: 'red' }}>{error}</label>} />
                         </Form.Field>
                         <Button
                             disabled={isSubmitting || !dirty || !isValid}

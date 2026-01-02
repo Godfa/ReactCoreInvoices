@@ -52,18 +52,18 @@ namespace Persistence
                 new Invoice
                 {
                     LanNumber = 68,
-                    Title = "Mökkilan 68", 
+                    Title = "Mökkilan 68",
                     Description = "Nousiaisissa",
                     Image = null,
-                    Amount = 415.24m,
                     ExpenseItems = new List<ExpenseItem>
                     {
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.ShoppingList,
-                            Name = "Kauppalista" , 
-                            ExpenseCreditor = 1                                  
-                        }                         
+                            Name = "Kauppalista" ,
+                            ExpenseCreditor = 1,
+                            Amount = 415.24m
+                        }
 
                     }
                 }

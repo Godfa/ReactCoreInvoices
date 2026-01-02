@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,6 +40,9 @@ namespace API
             {
                 // var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
                 // opt.Filters.Add(new AuthorizeFilter(policy));
+            }).AddJsonOptions(x => 
+            {
+                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             });
             services.AddApplicationServices(_config);
            
