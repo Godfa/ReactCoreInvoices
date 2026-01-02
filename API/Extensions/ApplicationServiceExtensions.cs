@@ -31,20 +31,24 @@ namespace API.Extensions
             {
                 opt.AddPolicy("CorsPolicy", policy =>
                 {
-                    var allowedOrigins = config.GetSection("AllowedOrigins").Get<string[]>();
+                    // TEMPORARY: Allow all origins for debugging
+                    // TODO: Revert to specific origins after confirming CORS works
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
 
-                    // Fallback to environment variable if config section is empty
-                    if (allowedOrigins == null || allowedOrigins.Length == 0)
-                    {
-                        var envOrigin = config["ALLOWED_ORIGINS"];
-                        allowedOrigins = !string.IsNullOrEmpty(envOrigin)
-                            ? envOrigin.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                            : new[] { "http://localhost:3000" };
-                    }
-
-                    policy.AllowAnyMethod()
-                          .AllowAnyHeader()
-                          .WithOrigins(allowedOrigins);
+                    // var allowedOrigins = config.GetSection("AllowedOrigins").Get<string[]>();
+                    // // Fallback to environment variable if config section is empty
+                    // if (allowedOrigins == null || allowedOrigins.Length == 0)
+                    // {
+                    //     var envOrigin = config["ALLOWED_ORIGINS"];
+                    //     allowedOrigins = !string.IsNullOrEmpty(envOrigin)
+                    //         ? envOrigin.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    //         : new[] { "http://localhost:3000" };
+                    // }
+                    // policy.AllowAnyMethod()
+                    //       .AllowAnyHeader()
+                    //       .WithOrigins(allowedOrigins);
                 });
             });
             services.AddMediatR(typeof(Application.Invoices.List.Handler).Assembly);
