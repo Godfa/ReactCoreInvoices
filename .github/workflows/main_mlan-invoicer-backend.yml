@@ -69,4 +69,5 @@ jobs:
           app-name: 'mlan-invoicer-backend'
           slot-name: 'Production'
           package: .
+          startup-command: 'dotnet API.dll'
           
