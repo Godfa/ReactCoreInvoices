@@ -52,6 +52,8 @@ namespace API.Extensions
                             : new[] { "http://localhost:3000" };
                     }
 
+                    Console.WriteLine($"[CORS DEBUG] Configured origins: {string.Join(", ", allowedOrigins)}");
+
                     policy.AllowAnyMethod()
                           .AllowAnyHeader()
                           .WithOrigins(allowedOrigins);
