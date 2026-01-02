@@ -69,7 +69,7 @@ namespace API
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers().RequireCors("CorsPolicy");
+                endpoints.MapControllers();
             });
         }
     }
