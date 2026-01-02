@@ -52,17 +52,9 @@ namespace API.Extensions
                             : new[] { "http://localhost:3000" };
                     }
 
-                    Console.WriteLine($"[CORS DEBUG] Configured origins: {string.Join(", ", allowedOrigins)}");
-
-                    // TEMPORARY: Using AllowAnyOrigin to debug CORS issue
-                    policy.AllowAnyOrigin()
-                          .AllowAnyMethod()
-                          .AllowAnyHeader();
-
-                    // TODO: Revert to specific origins once CORS headers issue is resolved
-                    // policy.WithOrigins(allowedOrigins)
-                    //       .AllowAnyMethod()
-                    //       .AllowAnyHeader();
+                    policy.AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .WithOrigins(allowedOrigins);
                 });
             });
             services.AddMediatR(typeof(Application.Invoices.List.Handler).Assembly);
