@@ -22,18 +22,8 @@ export default observer(function InvoiceForm() {
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     function validateForm() {
-        const newErrors: { [key: string]: string } = {};
-
-        if (!invoice.title || invoice.title.trim() === '') {
-            newErrors.title = 'Title is required';
-        }
-
-        if (!invoice.description || invoice.description.trim() === '') {
-            newErrors.description = 'Description is required';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        // No required fields - both title and description are optional
+        return true;
     }
 
     function handleSubmit() {
@@ -54,18 +44,16 @@ export default observer(function InvoiceForm() {
         <Segment clearing>
             <Form onSubmit={handleSubmit} autoComplete='off'>
                 <Form.Input
-                    placeholder='Title'
+                    placeholder='Title (optional - auto-generated if empty)'
                     value={invoice.title}
                     name='title'
                     onChange={handleInputChange}
-                    error={errors.title ? { content: errors.title, pointing: 'below' } : null}
                 />
                 <Form.Input
-                    placeholder='Description'
+                    placeholder='Description (optional)'
                     value={invoice.description}
                     name='description'
                     onChange={handleInputChange}
-                    error={errors.description ? { content: errors.description, pointing: 'below' } : null}
                 />
                 <Button
                     loading={loading}

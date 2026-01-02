@@ -11,12 +11,12 @@ namespace Application.Invoices
 {
     public class Create
     {
-        public class Command : IRequest
+        public class Command : IRequest<Invoice>
         {
             public Invoice Invoice { get; set; }
         }
 
-        public class Handler : IRequestHandler<Command>
+        public class Handler : IRequestHandler<Command, Invoice>
         {
         private readonly DataContext _context;
             public Handler(DataContext context)
@@ -24,7 +24,7 @@ namespace Application.Invoices
                 _context = context;
             }
 
-            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
+            public async Task<Invoice> Handle(Command request, CancellationToken cancellationToken)
             {
                 // Auto-generate LanNumber as max + 1
                 var maxLanNumber = await _context.Invoices
@@ -32,11 +32,17 @@ namespace Application.Invoices
 
                 request.Invoice.LanNumber = maxLanNumber + 1;
 
+                // Auto-generate Title if not provided
+                if (string.IsNullOrWhiteSpace(request.Invoice.Title))
+                {
+                    request.Invoice.Title = $"Mökkilan {request.Invoice.LanNumber}";
+                }
+
                 _context.Invoices.Add(request.Invoice);
 
                 await _context.SaveChangesAsync();
 
-                return Unit.Value;
+                return request.Invoice;
             }
         }
 

@@ -79,10 +79,10 @@ export default class InvoiceStore {
         this.loading = true;
         invoice.id = uuid();
         try {
-            await agent.Invoices.create(invoice);
+            const createdInvoice = await agent.Invoices.create(invoice);
             runInAction(() => {
-                this.invoiceRegistry.set(invoice.id, invoice);
-                this.selectedInvoice = invoice;
+                this.invoiceRegistry.set(createdInvoice.id, createdInvoice);
+                this.selectedInvoice = createdInvoice;
                 this.editMode = false;
                 this.loading = false;
             })
