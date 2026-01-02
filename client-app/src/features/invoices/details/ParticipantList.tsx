@@ -28,9 +28,57 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
         await removeParticipant(invoiceId, creditorId);
     };
 
+    const handleAddAllParticipants = async () => {
+        const nonParticipants = Creditors.filter(c => !participantIds.includes(c.key));
+        for (const creditor of nonParticipants) {
+            await addParticipant(invoiceId, creditor.key);
+        }
+    };
+
+    const handleAddUsualSuspects = async () => {
+        const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
+        const suspectsToAdd = Creditors.filter(c =>
+            usualSuspects.includes(c.value) && !participantIds.includes(c.key)
+        );
+        for (const creditor of suspectsToAdd) {
+            await addParticipant(invoiceId, creditor.key);
+        }
+    };
+
+    const nonParticipantCount = Creditors.filter(c => !participantIds.includes(c.key)).length;
+    const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
+    const usualSuspectsToAdd = Creditors.filter(c =>
+        usualSuspects.includes(c.value) && !participantIds.includes(c.key)
+    ).length;
+
     return (
         <Segment>
-            <Header as='h3'>Participants</Header>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <Header as='h3' style={{ margin: 0 }}>Participants</Header>
+                <div>
+                    {usualSuspectsToAdd > 0 && (
+                        <Button
+                            size='tiny'
+                            color='blue'
+                            content={`Add Usual Suspects (${usualSuspectsToAdd})`}
+                            onClick={handleAddUsualSuspects}
+                            loading={loading}
+                            disabled={loading}
+                            style={{ marginRight: '5px' }}
+                        />
+                    )}
+                    {nonParticipantCount > 0 && (
+                        <Button
+                            size='tiny'
+                            color='green'
+                            content={`Add All (${nonParticipantCount})`}
+                            onClick={handleAddAllParticipants}
+                            loading={loading}
+                            disabled={loading}
+                        />
+                    )}
+                </div>
+            </div>
             <div style={{ marginBottom: '10px' }}>
                 {participants.length > 0 ? (
                     participants.map(p => (
