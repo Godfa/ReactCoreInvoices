@@ -31,8 +31,16 @@ namespace API.Extensions
             {
                 opt.AddPolicy("CorsPolicy", policy =>
                 {
-                    var allowedOrigins = config.GetSection("AllowedOrigins").Get<string[]>()
-                        ?? new[] { "http://localhost:3000" };
+                    var allowedOrigins = config.GetSection("AllowedOrigins").Get<string[]>();
+
+                    // Fallback to environment variable if config section is empty
+                    if (allowedOrigins == null || allowedOrigins.Length == 0)
+                    {
+                        var envOrigin = config["ALLOWED_ORIGINS"];
+                        allowedOrigins = !string.IsNullOrEmpty(envOrigin)
+                            ? envOrigin.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            : new[] { "http://localhost:3000" };
+                    }
 
                     policy.AllowAnyMethod()
                           .AllowAnyHeader()
