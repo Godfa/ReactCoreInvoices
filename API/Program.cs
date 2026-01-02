@@ -27,13 +27,21 @@ namespace API
            {
                 var context = services.GetRequiredService<DataContext>();
                 var userManager = services.GetRequiredService<UserManager<User>>();
-                await context.Database.MigrateAsync();                
+                var logger = services.GetRequiredService<ILogger<Program>>();
+
+                logger.LogInformation("Starting database migration...");
+                await context.Database.MigrateAsync();
+                logger.LogInformation("Database migration completed successfully");
+
+                logger.LogInformation("Starting data seeding...");
                 await Seed.SeedData(context, userManager);
+                logger.LogInformation("Data seeding completed successfully");
 
            } catch  (Exception ex)
            {
                var logger = services.GetRequiredService<ILogger<Program>>();
-               logger.LogError(ex, "An error occured during migration");
+               logger.LogError(ex, "An error occured during migration or seeding");
+               throw; // Re-throw to prevent app from starting with broken database
            }
            await host.RunAsync();
         }
