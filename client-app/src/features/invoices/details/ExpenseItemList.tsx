@@ -63,6 +63,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                         <Table.HeaderCell>Type</Table.HeaderCell>
                         <Table.HeaderCell>Creditor</Table.HeaderCell>
                         <Table.HeaderCell>Amount</Table.HeaderCell>
+                        <Table.HeaderCell>Payers</Table.HeaderCell>
                         <Table.HeaderCell>Actions</Table.HeaderCell>
                     </Table.Row>
                 </Table.Header>
@@ -74,6 +75,11 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                             <Table.Cell>{getExpenseTypeName(item.expenseType)}</Table.Cell>
                             <Table.Cell>{getCreditorName(item.expenseCreditor)}</Table.Cell>
                             <Table.Cell>{item.amount.toFixed(2)} €</Table.Cell>
+                            <Table.Cell>
+                                {item.payers && item.payers.length > 0
+                                    ? item.payers.map(p => p.creditor.name).join(', ')
+                                    : 'No payers'}
+                            </Table.Cell>
                             <Table.Cell>
                                 <Button
                                     onClick={() => handleEdit(item)}

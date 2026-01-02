@@ -280,4 +280,60 @@ export default class InvoiceStore {
             runInAction(() => this.loading = false);
         }
     }
+
+    addPayer = async (invoiceId: string, expenseItemId: string, creditorId: number) => {
+        this.loading = true;
+        try {
+            await agent.ExpenseItems.addPayer(expenseItemId, creditorId);
+            runInAction(() => {
+                const invoice = this.invoiceRegistry.get(invoiceId);
+                if (invoice && invoice.expenseItems) {
+                    const expenseItem = invoice.expenseItems.find(ei => ei.id === expenseItemId);
+                    if (expenseItem) {
+                        if (!expenseItem.payers) expenseItem.payers = [];
+                        const creditor = { id: creditorId, name: this.creditorRegistry.get(creditorId) || '' };
+                        expenseItem.payers.push({
+                            expenseItemId: expenseItemId,
+                            creditorId: creditorId,
+                            creditor: creditor
+                        });
+                        this.invoiceRegistry.set(invoiceId, invoice);
+                        if (this.selectedInvoice?.id === invoiceId) {
+                            this.selectedInvoice = invoice;
+                        }
+                    }
+                }
+                this.loading = false;
+            });
+            toast.success('Payer added');
+        } catch (error) {
+            console.log(error);
+            runInAction(() => this.loading = false);
+        }
+    }
+
+    removePayer = async (invoiceId: string, expenseItemId: string, creditorId: number) => {
+        this.loading = true;
+        try {
+            await agent.ExpenseItems.removePayer(expenseItemId, creditorId);
+            runInAction(() => {
+                const invoice = this.invoiceRegistry.get(invoiceId);
+                if (invoice && invoice.expenseItems) {
+                    const expenseItem = invoice.expenseItems.find(ei => ei.id === expenseItemId);
+                    if (expenseItem && expenseItem.payers) {
+                        expenseItem.payers = expenseItem.payers.filter(p => p.creditorId !== creditorId);
+                        this.invoiceRegistry.set(invoiceId, invoice);
+                        if (this.selectedInvoice?.id === invoiceId) {
+                            this.selectedInvoice = invoice;
+                        }
+                    }
+                }
+                this.loading = false;
+            });
+            toast.success('Payer removed');
+        } catch (error) {
+            console.log(error);
+            runInAction(() => this.loading = false);
+        }
+    }
 }

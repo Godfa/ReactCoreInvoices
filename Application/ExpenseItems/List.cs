@@ -24,7 +24,10 @@ namespace Application.ExpenseItems
 
             public async Task<List<ExpenseItem>> Handle(Query request, CancellationToken cancellationToken)
             {
-                return await _context.ExpenseItems.ToListAsync(cancellationToken);
+                return await _context.ExpenseItems
+                    .Include(ei => ei.Payers)
+                        .ThenInclude(p => p.Creditor)
+                    .ToListAsync(cancellationToken);
             }
 
         }

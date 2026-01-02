@@ -14,5 +14,6 @@ namespace Domain
         public string Name { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Amount { get; set; }
+        public virtual List<ExpenseItemPayer> Payers { get; set; }
     }
 }

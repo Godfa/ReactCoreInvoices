@@ -19,6 +19,7 @@ interface FormValues {
     expenseCreditor: number;
     amount: number;
     id: string;
+    payers: any[];
 }
 
 export default observer(function ExpenseItemForm({ invoiceId, closeForm, expenseItem }: Props) {
@@ -42,13 +43,15 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
         expenseType: expenseItem.expenseType,
         expenseCreditor: expenseItem.expenseCreditor,
         amount: expenseItem.amount,
-        id: expenseItem.id
+        id: expenseItem.id,
+        payers: expenseItem.payers || []
     } : {
         name: '',
         expenseType: -1,
         expenseCreditor: -1,
         amount: 0,
-        id: ''
+        id: '',
+        payers: []
     }
 
     return (

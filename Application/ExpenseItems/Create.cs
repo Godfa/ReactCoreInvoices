@@ -41,12 +41,22 @@ namespace Application.ExpenseItems
                 if (request.InvoiceId != Guid.Empty)
                 {
                     var invoice = await _context.Invoices
+                        .Include(i => i.Participants)
                         .FirstOrDefaultAsync(x => x.Id == request.InvoiceId, cancellationToken);
 
                     if (invoice != null)
                     {
                         // Set the foreign key directly instead of modifying the collection
                         _context.Entry(request.ExpenseItem).Property("InvoiceId").CurrentValue = request.InvoiceId;
+
+                        // Add all invoice participants as default payers
+                        request.ExpenseItem.Payers = invoice.Participants
+                            .Select(p => new ExpenseItemPayer
+                            {
+                                ExpenseItemId = request.ExpenseItem.Id,
+                                CreditorId = p.CreditorId
+                            })
+                            .ToList();
                     }
                 }
 

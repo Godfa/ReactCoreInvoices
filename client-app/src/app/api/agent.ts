@@ -66,7 +66,9 @@ const ExpenseItems = {
     create: (expenseItem: ExpenseItem) => requests.post<void>('/expenseitems', expenseItem),
     createForInvoice: (invoiceId: string, expenseItem: ExpenseItem) => requests.post<void>(`/expenseitems/${invoiceId}`, expenseItem),
     update: (expenseItem: ExpenseItem) => requests.put<void>(`/expenseitems/${expenseItem.id}`, expenseItem),
-    delete: (id: string) => requests.del<void>(`/expenseitems/${id}`)
+    delete: (id: string) => requests.del<void>(`/expenseitems/${id}`),
+    addPayer: (expenseItemId: string, creditorId: number) => requests.post<void>(`/expenseitems/${expenseItemId}/payers/${creditorId}`, {}),
+    removePayer: (expenseItemId: string, creditorId: number) => requests.del<void>(`/expenseitems/${expenseItemId}/payers/${creditorId}`)
 }
 
 const ExpenseTypes = {

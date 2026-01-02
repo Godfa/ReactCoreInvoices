@@ -1,11 +1,18 @@
 declare module "Invoices" {
 
+    export interface ExpenseItemPayer {
+        expenseItemId: string;
+        creditorId: number;
+        creditor: Creditor;
+    }
+
     export interface ExpenseItem {
         id: string;
         expenseCreditor: number;
         expenseType: number; // Enum value
         name: string;
         amount: number;
+        payers: ExpenseItemPayer[];
     }
 
     export interface ExpenseTypeOption {

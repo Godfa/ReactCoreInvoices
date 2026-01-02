@@ -18,6 +18,7 @@ namespace Persistence
         public DbSet<ExpenseItem> ExpenseItems { get; set; }
         public DbSet<Creditor> Creditors { get; set; }
         public DbSet<InvoiceParticipant> InvoiceParticipants { get; set; }
+        public DbSet<ExpenseItemPayer> ExpenseItemPayers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,6 +36,19 @@ namespace Persistence
                 .HasOne(ip => ip.Creditor)
                 .WithMany(c => c.Invoices)
                 .HasForeignKey(ip => ip.CreditorId);
+
+            modelBuilder.Entity<ExpenseItemPayer>()
+                .HasKey(eip => new { eip.ExpenseItemId, eip.CreditorId });
+
+            modelBuilder.Entity<ExpenseItemPayer>()
+                .HasOne(eip => eip.ExpenseItem)
+                .WithMany(ei => ei.Payers)
+                .HasForeignKey(eip => eip.ExpenseItemId);
+
+            modelBuilder.Entity<ExpenseItemPayer>()
+                .HasOne(eip => eip.Creditor)
+                .WithMany(c => c.ExpenseItems)
+                .HasForeignKey(eip => eip.CreditorId);
         }
     }
 }

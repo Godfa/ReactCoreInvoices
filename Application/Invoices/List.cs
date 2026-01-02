@@ -27,6 +27,8 @@ namespace Application.Invoices
             {
                 return await _context.Invoices
                     .Include(i => i.ExpenseItems)
+                        .ThenInclude(ei => ei.Payers)
+                            .ThenInclude(p => p.Creditor)
                     .Include(i => i.Participants)
                         .ThenInclude(p => p.Creditor)
                     .ToListAsync(cancellationToken);
