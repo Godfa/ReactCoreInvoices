@@ -238,7 +238,7 @@ export default class InvoiceStore {
         return this.creditorRegistry.get(creditorId) || creditorId.toString();
     }
 
-    addParticipant = async (invoiceId: string, creditorId: number) => {
+    addParticipant = async (invoiceId: string, creditorId: number, silent: boolean = false) => {
         this.loading = true;
         try {
             await agent.Invoices.addParticipant(invoiceId, creditorId);
@@ -259,7 +259,9 @@ export default class InvoiceStore {
                 }
                 this.loading = false;
             });
-            toast.success('Participant added');
+            if (!silent) {
+                toast.success('Participant added');
+            }
         } catch (error) {
             console.log(error);
             runInAction(() => this.loading = false);
@@ -354,7 +356,11 @@ export default class InvoiceStore {
         );
 
         for (const creditor of suspectsToAdd) {
-            await this.addParticipant(invoiceId, creditor.key);
+            await this.addParticipant(invoiceId, creditor.key, true);
+        }
+
+        if (suspectsToAdd.length > 0) {
+            toast.success(`${suspectsToAdd.length} usual suspects added as participants`);
         }
     }
 }
