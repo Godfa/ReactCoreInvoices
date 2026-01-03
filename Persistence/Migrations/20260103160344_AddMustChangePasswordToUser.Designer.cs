@@ -11,7 +11,7 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20260103151733_AddMustChangePasswordToUser")]
+    [Migration("20260103160344_AddMustChangePasswordToUser")]
     partial class AddMustChangePasswordToUser
     {
         /// <inheritdoc />
