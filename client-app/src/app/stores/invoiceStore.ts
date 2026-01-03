@@ -351,8 +351,10 @@ export default class InvoiceStore {
         }
     }
 
-    removePayer = async (invoiceId: string, expenseItemId: string, creditorId: number) => {
-        this.loading = true;
+    removePayer = async (invoiceId: string, expenseItemId: string, creditorId: number, silent: boolean = false) => {
+        if (!silent) {
+            this.loading = true;
+        }
         try {
             await agent.ExpenseItems.removePayer(expenseItemId, creditorId);
             runInAction(() => {
@@ -367,12 +369,18 @@ export default class InvoiceStore {
                         }
                     }
                 }
-                this.loading = false;
+                if (!silent) {
+                    this.loading = false;
+                }
             });
-            toast.success('Payer removed');
+            if (!silent) {
+                toast.success('Payer removed');
+            }
         } catch (error) {
             console.log(error);
-            runInAction(() => this.loading = false);
+            if (!silent) {
+                runInAction(() => this.loading = false);
+            }
         }
     }
 

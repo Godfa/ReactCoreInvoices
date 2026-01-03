@@ -4,6 +4,7 @@ import { Button, Label, Segment, Table } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import ExpenseItemForm from "../form/ExpenseItemForm";
 import { ExpenseItem } from "Invoices";
+import { toast } from "react-toastify";
 
 interface Props {
     invoiceId: string;
@@ -100,6 +101,66 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                         <span style={{ color: '#999' }}>No payers</span>
                                     )}
                                 </div>
+                                <div style={{ marginTop: '5px' }}>
+                                    {selectedInvoice.participants && selectedInvoice.participants.length > 0 && (
+                                        <>
+                                            {selectedInvoice.participants.filter(p => !item.payers?.some(payer => payer.creditorId === p.creditorId)).length > 0 && (
+                                                <Button
+                                                    size='tiny'
+                                                    color='green'
+                                                    content={`Add All (${selectedInvoice.participants.filter(p => !item.payers?.some(payer => payer.creditorId === p.creditorId)).length})`}
+                                                    onClick={async () => {
+                                                        const payersToAdd = selectedInvoice.participants!.filter(p => !item.payers?.some(payer => payer.creditorId === p.creditorId));
+                                                        invoiceStore.loading = true;
+                                                        try {
+                                                            await Promise.all(
+                                                                payersToAdd.map(p => addPayer(invoiceId, item.id, p.creditorId, true))
+                                                            );
+                                                            toast.success(`${payersToAdd.length} payers added`);
+                                                        } finally {
+                                                            invoiceStore.loading = false;
+                                                        }
+                                                    }}
+                                                    loading={loading}
+                                                    disabled={loading}
+                                                    style={{ marginRight: '5px', marginBottom: '5px' }}
+                                                />
+                                            )}
+                                            {item.payers && item.payers.length > 0 && (
+                                                <Button
+                                                    size='tiny'
+                                                    color='red'
+                                                    content={`Remove All (${item.payers.length})`}
+                                                    onClick={async () => {
+                                                        const payersToRemove = [...item.payers!];
+                                                        invoiceStore.loading = true;
+                                                        try {
+                                                            await Promise.all(
+                                                                payersToRemove.map(p => removePayer(invoiceId, item.id, p.creditorId, true))
+                                                            );
+                                                            toast.success(`${payersToRemove.length} payers removed`);
+                                                        } finally {
+                                                            invoiceStore.loading = false;
+                                                        }
+                                                    }}
+                                                    loading={loading}
+                                                    disabled={loading}
+                                                    style={{ marginRight: '5px', marginBottom: '5px' }}
+                                                />
+                                            )}
+                                        </>
+                                    )}
+                                    {payerMenuOpen !== item.id && (
+                                        <Button
+                                            size='tiny'
+                                            color='orange'
+                                            content='Add Payer'
+                                            onClick={() => setPayerMenuOpen(item.id)}
+                                            disabled={loading}
+                                            style={{ marginBottom: '5px' }}
+                                        />
+                                    )}
+                                </div>
                                 {payerMenuOpen === item.id && (
                                     <div style={{ marginTop: '5px' }}>
                                         {Creditors
@@ -127,16 +188,6 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                             style={{ marginBottom: '5px' }}
                                         />
                                     </div>
-                                )}
-                                {payerMenuOpen !== item.id && (
-                                    <Button
-                                        size='tiny'
-                                        color='orange'
-                                        content='Add Payer'
-                                        onClick={() => setPayerMenuOpen(item.id)}
-                                        disabled={loading}
-                                        style={{ marginTop: '5px' }}
-                                    />
                                 )}
                             </Table.Cell>
                             <Table.Cell>
