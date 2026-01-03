@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite";
 import React, { SyntheticEvent, useState } from "react";
 import { Button, Item, ItemDescription, Segment } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
+import { Link } from "react-router-dom";
 
 
 export default observer(function InvoiceList() {
@@ -31,13 +32,12 @@ export default observer(function InvoiceList() {
                                 <div>{invoice.description}</div>
                             </ItemDescription>
                             <Item.Extra>
-                                <Button onClick={() => invoiceStore.selectInvoice(invoice.id)} floated='right' content='View' color='blue' />
+                                <Button as={Link} to={`/invoices/${invoice.id}`} floated='right' content='View' color='blue' />
                                 <Button
                                     name={invoice.id}
                                     loading={loading && target === invoice.id}
                                     onClick={(e) => handleInvoiceDelete(e, invoice.id)}
                                     floated='right' content='Delete' color='red' />
-                                {/* <Label basic content={invoice.amount} /> */}
                             </Item.Extra>
                         </Item.Content>
                     </Item>

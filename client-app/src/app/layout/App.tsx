@@ -1,28 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Container } from 'semantic-ui-react';
+import React, { useEffect } from 'react';
+import { Container } from 'semantic-ui-react';
 import NavBar from './NavBar';
-import InvoiceDashboard from '../../features/invoices/dashboard/InvoiceDashboard';
-import LoadingComponent from './LoadingComponent';
 import { useStore } from '../stores/store';
 import { observer } from 'mobx-react-lite';
-
+import { Outlet, useLocation } from 'react-router-dom';
 
 function App() {
 
-  const { invoiceStore } = useStore();
+  const { userStore } = useStore();
+  const location = useLocation();
 
   useEffect(() => {
-    invoiceStore.loadInvoices();
-  }, [invoiceStore]
-  )
-
-  if (invoiceStore.loadingInitial) return <LoadingComponent content='Loading app' />
+    if (userStore.user) {
+      // User already logged in
+    } else {
+      const token = window.localStorage.getItem('jwt');
+      if (token) {
+        userStore.getUser();
+      }
+    }
+  }, [userStore])
 
   return (
     <>
       <NavBar />
       <Container style={{ marginTop: '7em' }}>
-        <InvoiceDashboard />
+        <Outlet />
       </Container>
     </>
   );

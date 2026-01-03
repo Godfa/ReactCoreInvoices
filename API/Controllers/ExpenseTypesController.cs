@@ -1,8 +1,10 @@
 using Application.ExpenseTypes;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+    [Authorize]
     public class ExpenseTypesController : BaseApiController
     {
         [HttpGet]

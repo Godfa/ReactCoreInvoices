@@ -10,6 +10,12 @@ const sleep = (delay: number) => {
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+axios.interceptors.request.use(config => {
+    const token = window.localStorage.getItem('jwt');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+})
+
 axios.interceptors.response.use(async (response: AxiosResponse) => {
     try {
         await sleep(1000);
@@ -88,11 +94,32 @@ const Creditors = {
     delete: (id: number) => requests.del<void>(`/creditors/${id}`)
 }
 
+export interface UserFormValues {
+    email: string;
+    password: string;
+    displayName?: string;
+    userName?: string;
+}
+
+export interface User {
+    userName: string;
+    displayName: string;
+    token: string;
+    image?: string;
+}
+
+const Account = {
+    current: () => requests.get<User>('/account'),
+    login: (user: UserFormValues) => requests.post<User>('/account/login', user),
+    register: (user: UserFormValues) => requests.post<User>('/account/register', user)
+}
+
 const agent = {
     Invoices,
     ExpenseItems,
     ExpenseTypes,
-    Creditors
+    Creditors,
+    Account
 }
 
 export default agent;

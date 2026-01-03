@@ -1,24 +1,41 @@
 import React from 'react'
-import { Button, Container, Menu } from 'semantic-ui-react'
+import { Button, Container, Dropdown, Menu } from 'semantic-ui-react'
 import { useStore } from '../stores/store'
+import { observer } from 'mobx-react-lite'
+import { Link, NavLink } from 'react-router-dom'
 
 
-export default function NavBar()
-{
+export default observer(function NavBar() {
 
-    const {invoiceStore} = useStore();
+    const { userStore } = useStore();
     return (
         <Menu inverted fixed='top'>
             <Container>
-                <Menu.Item header>
-                    <img src="/assets/logo.png" alt = "logo" style={{marginRight: '10px'}}/>
+                <Menu.Item as={NavLink} to='/' header>
+                    <img src="/assets/logo.png" alt="logo" style={{ marginRight: '10px' }} />
                     Mökkilan Invoices
                 </Menu.Item>
-                {/* <Menu.Item name='Invoices'></Menu.Item> */}
-                <Menu.Item>
-                    <Button onClick={() => invoiceStore.openForm()} positive content="Create Invoice"></Button>
-                </Menu.Item>
+                {userStore.isLoggedIn && (
+                    <>
+                        <Menu.Item as={NavLink} to='/invoices' name='Invoices' />
+                        <Menu.Item>
+                            <Button as={NavLink} to='/createInvoice' positive content="Create Invoice" />
+                        </Menu.Item>
+                        <Menu.Item position='right'>
+                            <Dropdown pointing='top left' text={userStore.user?.displayName}>
+                                <Dropdown.Menu>
+                                    <Dropdown.Item onClick={userStore.logout} text='Logout' icon='power' />
+                                </Dropdown.Menu>
+                            </Dropdown>
+                        </Menu.Item>
+                    </>
+                )}
+                {!userStore.isLoggedIn && (
+                    <Menu.Item position='right'>
+                        <Button as={Link} to='/login' content='Login' />
+                    </Menu.Item>
+                )}
             </Container>
         </Menu>
     )
-}
+})
