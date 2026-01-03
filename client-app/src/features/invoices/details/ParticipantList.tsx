@@ -30,9 +30,11 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
 
     const handleAddAllParticipants = async () => {
         const nonParticipants = Creditors.filter(c => !participantIds.includes(c.key));
-        for (const creditor of nonParticipants) {
-            await addParticipant(invoiceId, creditor.key);
-        }
+        await Promise.all(
+            nonParticipants.map(creditor =>
+                addParticipant(invoiceId, creditor.key)
+            )
+        );
     };
 
     const handleAddUsualSuspects = async () => {
@@ -40,9 +42,11 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
         const suspectsToAdd = Creditors.filter(c =>
             usualSuspects.includes(c.value) && !participantIds.includes(c.key)
         );
-        for (const creditor of suspectsToAdd) {
-            await addParticipant(invoiceId, creditor.key);
-        }
+        await Promise.all(
+            suspectsToAdd.map(creditor =>
+                addParticipant(invoiceId, creditor.key)
+            )
+        );
     };
 
     const nonParticipantCount = Creditors.filter(c => !participantIds.includes(c.key)).length;
