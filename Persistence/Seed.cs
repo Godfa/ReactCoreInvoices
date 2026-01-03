@@ -10,8 +10,13 @@ namespace Persistence
 {
     public class Seed
     {
-        public static async Task SeedData(DataContext context, UserManager<User> userManager)
+        public static async Task SeedData(DataContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
         {
+            // Create roles if they don't exist
+            if (!await roleManager.RoleExistsAsync("Admin"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("Admin"));
+            }
 
             if (!userManager.Users.Any())
             {
@@ -32,6 +37,13 @@ namespace Persistence
                 foreach(var user in users)
                 {
                     await userManager.CreateAsync(user, "Pa$$w0rd");
+                }
+
+                // Add Epi to Admin role
+                var epiUser = await userManager.FindByEmailAsync("epituo@gmail.com");
+                if (epiUser != null)
+                {
+                    await userManager.AddToRoleAsync(epiUser, "Admin");
                 }
             }
 

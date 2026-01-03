@@ -27,6 +27,7 @@ namespace API
            {
                 var context = services.GetRequiredService<DataContext>();
                 var userManager = services.GetRequiredService<UserManager<User>>();
+                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
                 var logger = services.GetRequiredService<ILogger<Program>>();
 
                 logger.LogInformation("Starting database migration...");
@@ -34,7 +35,7 @@ namespace API
                 logger.LogInformation("Database migration completed successfully");
 
                 logger.LogInformation("Starting data seeding...");
-                await Seed.SeedData(context, userManager);
+                await Seed.SeedData(context, userManager, roleManager);
                 logger.LogInformation("Data seeding completed successfully");
 
            } catch  (Exception ex)

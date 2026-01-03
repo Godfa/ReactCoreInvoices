@@ -21,6 +21,9 @@ export default observer(function NavBar() {
                         <Menu.Item>
                             <Button as={NavLink} to='/createInvoice' positive content="Create Invoice" />
                         </Menu.Item>
+                        {userStore.user?.roles?.includes('Admin') && (
+                            <Menu.Item as={NavLink} to='/admin' name='Admin' />
+                        )}
                         <Menu.Item position='right'>
                             <Dropdown pointing='top left' text={userStore.user?.displayName}>
                                 <Dropdown.Menu>

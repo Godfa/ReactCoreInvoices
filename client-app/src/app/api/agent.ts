@@ -107,11 +107,31 @@ export interface User {
     token: string;
     image?: string;
     mustChangePassword: boolean;
+    roles: string[];
 }
 
 export interface ChangePasswordValues {
     currentPassword: string;
     newPassword: string;
+}
+
+export interface UserManagement {
+    id: string;
+    userName: string;
+    displayName: string;
+    email: string;
+    mustChangePassword: boolean;
+}
+
+export interface CreateUser {
+    userName: string;
+    displayName: string;
+    email: string;
+}
+
+export interface UpdateUser {
+    displayName: string;
+    email: string;
 }
 
 const Account = {
@@ -121,12 +141,20 @@ const Account = {
     changePassword: (passwords: ChangePasswordValues) => requests.post<void>('/account/changePassword', passwords)
 }
 
+const Admin = {
+    listUsers: () => requests.get<UserManagement[]>('/admin/users'),
+    createUser: (user: CreateUser) => requests.post<UserManagement>('/admin/users', user),
+    updateUser: (id: string, user: UpdateUser) => requests.put<void>(`/admin/users/${id}`, user),
+    sendPasswordResetLink: (id: string) => requests.post<{message: string}>(`/admin/users/${id}/reset-password`, {})
+}
+
 const agent = {
     Invoices,
     ExpenseItems,
     ExpenseTypes,
     Creditors,
-    Account
+    Account,
+    Admin
 }
 
 export default agent;

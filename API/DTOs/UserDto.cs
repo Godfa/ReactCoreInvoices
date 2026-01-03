@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using System.Collections.Generic;
+
 namespace API.DTOs
 {
     public class UserDto
@@ -13,5 +15,6 @@ namespace API.DTOs
         public string Image { get; set; }
         public string UserName { get; set; }
         public bool MustChangePassword { get; set; }
+        public IList<string> Roles { get; set; }
     }
 }

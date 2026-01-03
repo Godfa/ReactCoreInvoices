@@ -41,7 +41,7 @@ namespace API.Controllers
 
             if (result.Succeeded)
             {
-                return CreateUserObject(user);
+                return await CreateUserObject(user);
             }
             return Unauthorized();
         }
@@ -69,7 +69,7 @@ namespace API.Controllers
 
             if (result.Succeeded)
             {
-                return CreateUserObject(user);
+                return await CreateUserObject(user);
             }
 
             return BadRequest("Problem registering user");
@@ -84,7 +84,7 @@ namespace API.Controllers
         {
             var user = await _userManager.FindByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
 
-            return CreateUserObject(user);
+            return await CreateUserObject(user);
         }
 
         [Authorize]
@@ -107,15 +107,16 @@ namespace API.Controllers
             return BadRequest("Failed to change password");
         }
 
-        private UserDto CreateUserObject(User user)
+        private async Task<UserDto> CreateUserObject(User user)
         {
             return new UserDto
                 {
                     DisplayName = user.DisplayName,
                     Image = null,
-                    Token = _tokenService.CreateToken(user),
+                    Token = await _tokenService.CreateToken(user),
                     UserName = user.UserName,
-                    MustChangePassword = user.MustChangePassword
+                    MustChangePassword = user.MustChangePassword,
+                    Roles = await _userManager.GetRolesAsync(user)
                 };
         }
 
