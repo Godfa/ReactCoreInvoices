@@ -19,6 +19,12 @@ axios.interceptors.response.use(async (response: AxiosResponse) => {
         return await Promise.reject(error);
     }
 }, (error: AxiosError) => {
+    if (!error.response) {
+        // Network error or server not responding
+        toast.error('Network error - cannot connect to server');
+        return Promise.reject(error);
+    }
+
     const { data, status } = error.response as AxiosResponse;
 
     switch (status) {
