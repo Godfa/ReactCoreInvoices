@@ -84,15 +84,18 @@ export default class InvoiceStore {
                 this.invoiceRegistry.set(createdInvoice.id, createdInvoice);
                 this.selectedInvoice = createdInvoice;
                 this.editMode = false;
-                this.loading = false;
             })
             toast.success('Invoice created successfully');
 
             // Automatically add usual suspects as participants
             try {
-                await this.addUsualSuspects(createdInvoice.id);
+                await this.addUsualSuspects(createdInvoice.id, false);
             } catch (error) {
                 console.error('Failed to add usual suspects:', error);
+            } finally {
+                runInAction(() => {
+                    this.loading = false;
+                })
             }
         } catch (error) {
             console.log(error);
@@ -239,7 +242,9 @@ export default class InvoiceStore {
     }
 
     addParticipant = async (invoiceId: string, creditorId: number, silent: boolean = false) => {
-        this.loading = true;
+        if (!silent) {
+            this.loading = true;
+        }
         try {
             await agent.Invoices.addParticipant(invoiceId, creditorId);
             runInAction(() => {
@@ -257,14 +262,18 @@ export default class InvoiceStore {
                         this.selectedInvoice = invoice;
                     }
                 }
-                this.loading = false;
+                if (!silent) {
+                    this.loading = false;
+                }
             });
             if (!silent) {
                 toast.success('Participant added');
             }
         } catch (error) {
             console.log(error);
-            runInAction(() => this.loading = false);
+            if (!silent) {
+                runInAction(() => this.loading = false);
+            }
         }
     }
 
@@ -346,27 +355,39 @@ export default class InvoiceStore {
         }
     }
 
-    addUsualSuspects = async (invoiceId: string) => {
+    addUsualSuspects = async (invoiceId: string, manageLoading: boolean = true) => {
         // Ensure creditors are loaded
         await this.loadCreditors();
 
-        const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
-        const invoice = this.invoiceRegistry.get(invoiceId);
-        const participantIds = invoice?.participants?.map(p => p.creditorId) || [];
+        if (manageLoading) {
+            this.loading = true;
+        }
 
-        const suspectsToAdd = this.Creditors.filter(c =>
-            usualSuspects.includes(c.value) && !participantIds.includes(c.key)
-        );
+        try {
+            const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
+            const invoice = this.invoiceRegistry.get(invoiceId);
+            const participantIds = invoice?.participants?.map(p => p.creditorId) || [];
 
-        // Add all suspects in parallel for better performance
-        await Promise.all(
-            suspectsToAdd.map(creditor =>
-                this.addParticipant(invoiceId, creditor.key, true)
-            )
-        );
+            const suspectsToAdd = this.Creditors.filter(c =>
+                usualSuspects.includes(c.value) && !participantIds.includes(c.key)
+            );
 
-        if (suspectsToAdd.length > 0) {
-            toast.success(`${suspectsToAdd.length} usual suspects added as participants`);
+            // Add all suspects in parallel for better performance
+            await Promise.all(
+                suspectsToAdd.map(creditor =>
+                    this.addParticipant(invoiceId, creditor.key, true)
+                )
+            );
+
+            if (suspectsToAdd.length > 0) {
+                toast.success(`${suspectsToAdd.length} usual suspects added as participants`);
+            }
+        } finally {
+            if (manageLoading) {
+                runInAction(() => {
+                    this.loading = false;
+                });
+            }
         }
     }
 }

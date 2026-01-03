@@ -2,6 +2,7 @@ import { observer } from "mobx-react-lite";
 import React, { useEffect } from "react";
 import { Button, Header, Label, Segment } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
+import { toast } from "react-toastify";
 
 interface Props {
     invoiceId: string;
@@ -9,7 +10,7 @@ interface Props {
 
 export default observer(function ParticipantList({ invoiceId }: Props) {
     const { invoiceStore } = useStore();
-    const { selectedInvoice, addParticipant, removeParticipant, loadCreditors, Creditors, loading } = invoiceStore;
+    const { selectedInvoice, addParticipant, removeParticipant, loadCreditors, Creditors, loading, addUsualSuspects } = invoiceStore;
 
     useEffect(() => {
         loadCreditors();
@@ -29,24 +30,24 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
     };
 
     const handleAddAllParticipants = async () => {
-        const nonParticipants = Creditors.filter(c => !participantIds.includes(c.key));
-        await Promise.all(
-            nonParticipants.map(creditor =>
-                addParticipant(invoiceId, creditor.key)
-            )
-        );
+        invoiceStore.loading = true;
+        try {
+            const nonParticipants = Creditors.filter(c => !participantIds.includes(c.key));
+            await Promise.all(
+                nonParticipants.map(creditor =>
+                    addParticipant(invoiceId, creditor.key, true)
+                )
+            );
+            if (nonParticipants.length > 0) {
+                toast.success(`${nonParticipants.length} participants added`);
+            }
+        } finally {
+            invoiceStore.loading = false;
+        }
     };
 
     const handleAddUsualSuspects = async () => {
-        const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
-        const suspectsToAdd = Creditors.filter(c =>
-            usualSuspects.includes(c.value) && !participantIds.includes(c.key)
-        );
-        await Promise.all(
-            suspectsToAdd.map(creditor =>
-                addParticipant(invoiceId, creditor.key)
-            )
-        );
+        await addUsualSuspects(invoiceId);
     };
 
     const nonParticipantCount = Creditors.filter(c => !participantIds.includes(c.key)).length;
