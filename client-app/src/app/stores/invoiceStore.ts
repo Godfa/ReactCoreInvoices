@@ -87,6 +87,9 @@ export default class InvoiceStore {
                 this.loading = false;
             })
             toast.success('Invoice created successfully');
+
+            // Automatically add usual suspects as participants
+            await this.addUsualSuspects(createdInvoice.id);
         } catch (error) {
             console.log(error);
             runInAction(() => {
@@ -334,6 +337,20 @@ export default class InvoiceStore {
         } catch (error) {
             console.log(error);
             runInAction(() => this.loading = false);
+        }
+    }
+
+    addUsualSuspects = async (invoiceId: string) => {
+        const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
+        const invoice = this.invoiceRegistry.get(invoiceId);
+        const participantIds = invoice?.participants?.map(p => p.creditorId) || [];
+
+        const suspectsToAdd = this.Creditors.filter(c =>
+            usualSuspects.includes(c.value) && !participantIds.includes(c.key)
+        );
+
+        for (const creditor of suspectsToAdd) {
+            await this.addParticipant(invoiceId, creditor.key);
         }
     }
 }
