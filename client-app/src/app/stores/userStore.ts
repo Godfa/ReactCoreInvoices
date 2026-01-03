@@ -59,6 +59,11 @@ export default class UserStore {
     changePassword = async (passwords: ChangePasswordValues) => {
         try {
             await agent.Account.changePassword(passwords);
+            if (this.user) {
+                runInAction(() => {
+                    this.user!.mustChangePassword = false;
+                });
+            }
         } catch (error) {
             throw error;
         }

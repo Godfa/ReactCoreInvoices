@@ -9,6 +9,6 @@ namespace Domain
     public class User: IdentityUser
     {
         public string DisplayName { get; set; }
-        
+        public bool MustChangePassword { get; set; }
     }
 }

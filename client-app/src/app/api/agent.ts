@@ -106,6 +106,7 @@ export interface User {
     displayName: string;
     token: string;
     image?: string;
+    mustChangePassword: boolean;
 }
 
 export interface ChangePasswordValues {

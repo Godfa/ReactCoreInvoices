@@ -3,12 +3,13 @@ import { Container } from 'semantic-ui-react';
 import NavBar from './NavBar';
 import { useStore } from '../stores/store';
 import { observer } from 'mobx-react-lite';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 function App() {
 
   const { userStore } = useStore();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (userStore.user) {
@@ -20,6 +21,12 @@ function App() {
       }
     }
   }, [userStore])
+
+  useEffect(() => {
+    if (userStore.user?.mustChangePassword && location.pathname !== '/changePassword') {
+      navigate('/changePassword');
+    }
+  }, [userStore.user, location.pathname, navigate])
 
   return (
     <>

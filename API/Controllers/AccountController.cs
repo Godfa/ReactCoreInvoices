@@ -99,6 +99,8 @@ namespace API.Controllers
 
             if (result.Succeeded)
             {
+                user.MustChangePassword = false;
+                await _userManager.UpdateAsync(user);
                 return Ok();
             }
 
@@ -109,10 +111,11 @@ namespace API.Controllers
         {
             return new UserDto
                 {
-                    DisplayName = user.DisplayName, 
-                    Image = null, 
-                    Token = _tokenService.CreateToken(user), 
-                    UserName = user.UserName
+                    DisplayName = user.DisplayName,
+                    Image = null,
+                    Token = _tokenService.CreateToken(user),
+                    UserName = user.UserName,
+                    MustChangePassword = user.MustChangePassword
                 };
         }
 

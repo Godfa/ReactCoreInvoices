@@ -26,6 +26,7 @@ export default observer(function ChangePasswordForm() {
             }).then(() => {
                 toast.success('Password changed successfully');
                 resetForm();
+                window.location.href = '/invoices';
             }).catch(error =>
                 setErrors({ error: 'Failed to change password. Please check your current password.' }))}
         >
