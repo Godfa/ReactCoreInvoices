@@ -10,7 +10,7 @@ export default observer(function ChangePasswordForm() {
 
     const validationSchema = Yup.object({
         currentPassword: Yup.string().required('Current password is required'),
-        newPassword: Yup.string().required('New password is required').min(6, 'Password must be at least 6 characters'),
+        newPassword: Yup.string().required('New password is required').min(12, 'Password must be at least 12 characters'),
         confirmPassword: Yup.string()
             .required('Please confirm your password')
             .oneOf([Yup.ref('newPassword')], 'Passwords must match')
