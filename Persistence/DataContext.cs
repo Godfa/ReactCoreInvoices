@@ -24,31 +24,44 @@ namespace Persistence
         {
             base.OnModelCreating(modelBuilder);
 
+            // Configure Invoice -> InvoiceParticipant relationship with cascade delete
             modelBuilder.Entity<InvoiceParticipant>()
                 .HasKey(ip => new { ip.InvoiceId, ip.CreditorId });
 
             modelBuilder.Entity<InvoiceParticipant>()
                 .HasOne(ip => ip.Invoice)
                 .WithMany(i => i.Participants)
-                .HasForeignKey(ip => ip.InvoiceId);
+                .HasForeignKey(ip => ip.InvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<InvoiceParticipant>()
                 .HasOne(ip => ip.Creditor)
                 .WithMany(c => c.Invoices)
-                .HasForeignKey(ip => ip.CreditorId);
+                .HasForeignKey(ip => ip.CreditorId)
+                .OnDelete(DeleteBehavior.Cascade);
 
+            // Configure ExpenseItem -> ExpenseItemPayer relationship with cascade delete
             modelBuilder.Entity<ExpenseItemPayer>()
                 .HasKey(eip => new { eip.ExpenseItemId, eip.CreditorId });
 
             modelBuilder.Entity<ExpenseItemPayer>()
                 .HasOne(eip => eip.ExpenseItem)
                 .WithMany(ei => ei.Payers)
-                .HasForeignKey(eip => eip.ExpenseItemId);
+                .HasForeignKey(eip => eip.ExpenseItemId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ExpenseItemPayer>()
                 .HasOne(eip => eip.Creditor)
                 .WithMany(c => c.ExpenseItems)
-                .HasForeignKey(eip => eip.CreditorId);
+                .HasForeignKey(eip => eip.CreditorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure Invoice -> ExpenseItem relationship with cascade delete
+            modelBuilder.Entity<ExpenseItem>()
+                .HasOne<Invoice>()
+                .WithMany(i => i.ExpenseItems)
+                .HasForeignKey("InvoiceId")
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
