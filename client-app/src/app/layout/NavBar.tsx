@@ -24,6 +24,7 @@ export default observer(function NavBar() {
                         <Menu.Item position='right'>
                             <Dropdown pointing='top left' text={userStore.user?.displayName}>
                                 <Dropdown.Menu>
+                                    <Dropdown.Item as={Link} to='/changePassword' text='Change Password' icon='key' />
                                     <Dropdown.Item onClick={userStore.logout} text='Logout' icon='power' />
                                 </Dropdown.Menu>
                             </Dropdown>

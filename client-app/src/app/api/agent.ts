@@ -108,10 +108,16 @@ export interface User {
     image?: string;
 }
 
+export interface ChangePasswordValues {
+    currentPassword: string;
+    newPassword: string;
+}
+
 const Account = {
     current: () => requests.get<User>('/account'),
     login: (user: UserFormValues) => requests.post<User>('/account/login', user),
-    register: (user: UserFormValues) => requests.post<User>('/account/register', user)
+    register: (user: UserFormValues) => requests.post<User>('/account/register', user),
+    changePassword: (passwords: ChangePasswordValues) => requests.post<void>('/account/changePassword', passwords)
 }
 
 const agent = {

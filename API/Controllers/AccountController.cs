@@ -78,13 +78,31 @@ namespace API.Controllers
 
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<UserDto>> GetCurrentUser()
         {
             var user = await _userManager.FindByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
 
             return CreateUserObject(user);
-             
+        }
+
+        [Authorize]
+        [HttpPost("changePassword")]
+        public async Task<ActionResult> ChangePassword(ChangePasswordDto changePasswordDto)
+        {
+            var user = await _userManager.FindByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
+
+            if (user == null) return Unauthorized();
+
+            var result = await _userManager.ChangePasswordAsync(user, changePasswordDto.CurrentPassword, changePasswordDto.NewPassword);
+
+            if (result.Succeeded)
+            {
+                return Ok();
+            }
+
+            return BadRequest("Failed to change password");
         }
 
         private UserDto CreateUserObject(User user)

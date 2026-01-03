@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import agent, { User, UserFormValues } from "../api/agent";
+import agent, { ChangePasswordValues, User, UserFormValues } from "../api/agent";
 import { router } from "../router/Routes";
 
 export default class UserStore {
@@ -53,6 +53,14 @@ export default class UserStore {
             });
         } catch (error) {
             console.log(error);
+        }
+    }
+
+    changePassword = async (passwords: ChangePasswordValues) => {
+        try {
+            await agent.Account.changePassword(passwords);
+        } catch (error) {
+            throw error;
         }
     }
 }
