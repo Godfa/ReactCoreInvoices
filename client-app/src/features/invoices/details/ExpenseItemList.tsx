@@ -45,6 +45,8 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                         setAddMode(!addMode);
                         setEditingItem(null);
                     }}
+                    loading={loading}
+                    disabled={loading}
                 />
             </div>
 
