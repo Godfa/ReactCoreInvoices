@@ -17,7 +17,7 @@ namespace API.Extensions
         public static IServiceCollection AddIdentityServices(this IServiceCollection services,
          IConfiguration config)
          {
-             services.AddIdentityCore<User>(opt=>
+             services.AddIdentity<User, IdentityRole>(opt=>
              {
                  opt.Password.RequireNonAlphanumeric = false;
              })
@@ -27,13 +27,13 @@ namespace API.Extensions
              var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"] ?? "Super secret key"));
 
              services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-             .AddJwtBearer(opt => 
+             .AddJwtBearer(opt =>
              {
                  opt.TokenValidationParameters = new TokenValidationParameters
                  {
                      ValidateIssuerSigningKey = true,
                      IssuerSigningKey = key,
-                     ValidateIssuer = false, 
+                     ValidateIssuer = false,
                      ValidateAudience = false
                  };
              });
