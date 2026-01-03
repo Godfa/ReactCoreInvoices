@@ -89,7 +89,11 @@ export default class InvoiceStore {
             toast.success('Invoice created successfully');
 
             // Automatically add usual suspects as participants
-            await this.addUsualSuspects(createdInvoice.id);
+            try {
+                await this.addUsualSuspects(createdInvoice.id);
+            } catch (error) {
+                console.error('Failed to add usual suspects:', error);
+            }
         } catch (error) {
             console.log(error);
             runInAction(() => {
