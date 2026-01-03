@@ -358,9 +358,12 @@ export default class InvoiceStore {
             usualSuspects.includes(c.value) && !participantIds.includes(c.key)
         );
 
-        for (const creditor of suspectsToAdd) {
-            await this.addParticipant(invoiceId, creditor.key, true);
-        }
+        // Add all suspects in parallel for better performance
+        await Promise.all(
+            suspectsToAdd.map(creditor =>
+                this.addParticipant(invoiceId, creditor.key, true)
+            )
+        );
 
         if (suspectsToAdd.length > 0) {
             toast.success(`${suspectsToAdd.length} usual suspects added as participants`);
