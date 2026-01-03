@@ -159,12 +159,25 @@ export default class InvoiceStore {
                         this.selectedInvoice = invoice;
                     }
                 }
-                this.loading = false;
             })
             toast.success('Expense Item added');
+
+            // Automatically add all participants as payers
+            const invoice = this.invoiceRegistry.get(invoiceId);
+            if (invoice?.participants && invoice.participants.length > 0) {
+                await Promise.all(
+                    invoice.participants.map(p =>
+                        this.addPayer(invoiceId, expenseItem.id, p.creditorId, true)
+                    )
+                );
+                toast.success(`${invoice.participants.length} payers added automatically`);
+            }
         } catch (error) {
             console.log(error);
-            runInAction(() => this.loading = false);
+        } finally {
+            runInAction(() => {
+                this.loading = false;
+            });
         }
     }
 
@@ -299,8 +312,10 @@ export default class InvoiceStore {
         }
     }
 
-    addPayer = async (invoiceId: string, expenseItemId: string, creditorId: number) => {
-        this.loading = true;
+    addPayer = async (invoiceId: string, expenseItemId: string, creditorId: number, silent: boolean = false) => {
+        if (!silent) {
+            this.loading = true;
+        }
         try {
             await agent.ExpenseItems.addPayer(expenseItemId, creditorId);
             runInAction(() => {
@@ -321,12 +336,18 @@ export default class InvoiceStore {
                         }
                     }
                 }
-                this.loading = false;
+                if (!silent) {
+                    this.loading = false;
+                }
             });
-            toast.success('Payer added');
+            if (!silent) {
+                toast.success('Payer added');
+            }
         } catch (error) {
             console.log(error);
-            runInAction(() => this.loading = false);
+            if (!silent) {
+                runInAction(() => this.loading = false);
+            }
         }
     }
 

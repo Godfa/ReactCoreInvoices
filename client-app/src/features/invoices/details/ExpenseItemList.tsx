@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 import React, { useState } from "react";
-import { Button, Segment, Table } from "semantic-ui-react";
+import { Button, Label, Segment, Table } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import ExpenseItemForm from "../form/ExpenseItemForm";
 import { ExpenseItem } from "Invoices";
@@ -11,10 +11,11 @@ interface Props {
 
 export default observer(function ExpenseItemList({ invoiceId }: Props) {
     const { invoiceStore } = useStore();
-    const { selectedInvoice, deleteExpenseItem, loading, getExpenseTypeName, getCreditorName } = invoiceStore;
+    const { selectedInvoice, deleteExpenseItem, loading, getExpenseTypeName, getCreditorName, addPayer, removePayer, Creditors } = invoiceStore;
     const [addMode, setAddMode] = useState(false);
     const [editingItem, setEditingItem] = useState<ExpenseItem | null>(null);
     const [deletingId, setDeletingId] = useState<string>('');
+    const [payerMenuOpen, setPayerMenuOpen] = useState<string | null>(null);
 
     if (!selectedInvoice) return null;
 
@@ -78,9 +79,65 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                             <Table.Cell>{getCreditorName(item.expenseCreditor)}</Table.Cell>
                             <Table.Cell>{item.amount.toFixed(2)} €</Table.Cell>
                             <Table.Cell>
-                                {item.payers && item.payers.length > 0
-                                    ? item.payers.map(p => p.creditor.name).join(', ')
-                                    : 'No payers'}
+                                <div style={{ marginBottom: '5px' }}>
+                                    {item.payers && item.payers.length > 0 ? (
+                                        item.payers.map(p => (
+                                            <Label key={p.creditorId} style={{ marginRight: '5px', marginBottom: '5px' }}>
+                                                {p.creditor.name}
+                                                <Label.Detail>
+                                                    <Button
+                                                        size='mini'
+                                                        icon='delete'
+                                                        onClick={() => removePayer(invoiceId, item.id, p.creditorId)}
+                                                        loading={loading}
+                                                        disabled={loading}
+                                                        style={{ marginLeft: '5px', padding: '3px' }}
+                                                    />
+                                                </Label.Detail>
+                                            </Label>
+                                        ))
+                                    ) : (
+                                        <span style={{ color: '#999' }}>No payers</span>
+                                    )}
+                                </div>
+                                {payerMenuOpen === item.id && (
+                                    <div style={{ marginTop: '5px' }}>
+                                        {Creditors
+                                            .filter(c => !item.payers?.some(p => p.creditorId === c.key))
+                                            .map(creditor => (
+                                                <Button
+                                                    key={creditor.key}
+                                                    size='tiny'
+                                                    color='orange'
+                                                    basic
+                                                    content={creditor.value}
+                                                    onClick={() => {
+                                                        addPayer(invoiceId, item.id, creditor.key);
+                                                        setPayerMenuOpen(null);
+                                                    }}
+                                                    loading={loading}
+                                                    disabled={loading}
+                                                    style={{ marginRight: '5px', marginBottom: '5px' }}
+                                                />
+                                            ))}
+                                        <Button
+                                            size='tiny'
+                                            content='Close'
+                                            onClick={() => setPayerMenuOpen(null)}
+                                            style={{ marginBottom: '5px' }}
+                                        />
+                                    </div>
+                                )}
+                                {payerMenuOpen !== item.id && (
+                                    <Button
+                                        size='tiny'
+                                        color='orange'
+                                        content='Add Payer'
+                                        onClick={() => setPayerMenuOpen(item.id)}
+                                        disabled={loading}
+                                        style={{ marginTop: '5px' }}
+                                    />
+                                )}
                             </Table.Cell>
                             <Table.Cell>
                                 <Button
