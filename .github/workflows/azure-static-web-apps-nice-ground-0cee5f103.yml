@@ -4,10 +4,16 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'client-app/**'
+      - '.github/workflows/azure-static-web-apps-nice-ground-0cee5f103.yml'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
+    paths:
+      - 'client-app/**'
+      - '.github/workflows/azure-static-web-apps-nice-ground-0cee5f103.yml'
 
 jobs:
   build_and_deploy_job:
