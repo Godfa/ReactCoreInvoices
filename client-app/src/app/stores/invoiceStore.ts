@@ -347,6 +347,9 @@ export default class InvoiceStore {
     }
 
     addUsualSuspects = async (invoiceId: string) => {
+        // Ensure creditors are loaded
+        await this.loadCreditors();
+
         const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
         const invoice = this.invoiceRegistry.get(invoiceId);
         const participantIds = invoice?.participants?.map(p => p.creditorId) || [];
