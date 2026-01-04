@@ -82,7 +82,18 @@ namespace API.Controllers
         [HttpGet]
         public async Task<ActionResult<UserDto>> GetCurrentUser()
         {
-            var user = await _userManager.FindByNameAsync(User.FindFirstValue(ClaimTypes.Name));
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            var userName = User.FindFirstValue(ClaimTypes.Name);
+
+            User user = null;
+
+            if (!string.IsNullOrEmpty(email))
+                user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null && !string.IsNullOrEmpty(userName))
+                user = await _userManager.FindByNameAsync(userName);
+
+            if (user == null) return Unauthorized();
 
             return await CreateUserObject(user);
         }
@@ -91,7 +102,16 @@ namespace API.Controllers
         [HttpPost("changePassword")]
         public async Task<ActionResult> ChangePassword(ChangePasswordDto changePasswordDto)
         {
-            var user = await _userManager.FindByNameAsync(User.FindFirstValue(ClaimTypes.Name));
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            var userName = User.FindFirstValue(ClaimTypes.Name);
+
+            User user = null;
+
+            if (!string.IsNullOrEmpty(email))
+                user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null && !string.IsNullOrEmpty(userName))
+                user = await _userManager.FindByNameAsync(userName);
 
             if (user == null) return Unauthorized();
 
