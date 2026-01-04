@@ -1,4 +1,4 @@
-import { Invoice, ExpenseItem, Creditor } from "Invoices";
+import { Invoice, ExpenseItem } from "Invoices";
 import { makeAutoObservable, runInAction } from "mobx";
 import agent from "../api/agent";
 import { v4 as uuid } from 'uuid';
@@ -51,6 +51,30 @@ export default class InvoiceStore {
         } catch (error) {
             console.log(error);
             this.setLoadingInitial(false);
+        }
+    }
+
+    loadInvoice = async (id: string) => {
+        let invoice = this.invoiceRegistry.get(id);
+        if (invoice) {
+            this.selectedInvoice = invoice;
+            return invoice;
+        }
+
+        this.setLoadingInitial(true);
+        try {
+            invoice = await agent.Invoices.details(id);
+            runInAction(() => {
+                this.invoiceRegistry.set(invoice!.id, invoice!);
+                this.selectedInvoice = invoice;
+                this.setLoadingInitial(false);
+            })
+            return invoice;
+        } catch (error) {
+            console.log(error);
+            runInAction(() => {
+                this.setLoadingInitial(false);
+            })
         }
     }
 
@@ -264,7 +288,7 @@ export default class InvoiceStore {
                 const invoice = this.invoiceRegistry.get(invoiceId);
                 if (invoice) {
                     if (!invoice.participants) invoice.participants = [];
-                    const creditor = { id: creditorId, name: this.creditorRegistry.get(creditorId) || '' };
+                    const creditor = { id: creditorId, name: this.creditorRegistry.get(creditorId) || '', email: '' };
                     invoice.participants.push({
                         invoiceId: invoiceId,
                         creditorId: creditorId,
@@ -324,7 +348,7 @@ export default class InvoiceStore {
                     const expenseItem = invoice.expenseItems.find(ei => ei.id === expenseItemId);
                     if (expenseItem) {
                         if (!expenseItem.payers) expenseItem.payers = [];
-                        const creditor = { id: creditorId, name: this.creditorRegistry.get(creditorId) || '' };
+                        const creditor = { id: creditorId, name: this.creditorRegistry.get(creditorId) || '', email: '' };
                         expenseItem.payers.push({
                             expenseItemId: expenseItemId,
                             creditorId: creditorId,

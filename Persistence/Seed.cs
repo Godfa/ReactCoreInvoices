@@ -5,12 +5,13 @@ using System.Threading.Tasks;
 using Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 
 namespace Persistence
 {
     public class Seed
     {
-        public static async Task SeedData(DataContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+        public static async Task SeedData(DataContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IHostEnvironment environment)
         {
             // Create roles if they don't exist
             if (!await roleManager.RoleExistsAsync("Admin"))
@@ -87,11 +88,31 @@ namespace Persistence
                 await context.SaveChangesAsync();
             }
 
+            // Clear existing invoices only in Development environment
+            if (environment.IsDevelopment() && context.Invoices.Any())
+            {
+                var existingInvoices = await context.Invoices
+                    .Include(i => i.ExpenseItems)
+                        .ThenInclude(ei => ei.Payers)
+                    .Include(i => i.Participants)
+                    .ToListAsync();
+
+                context.Invoices.RemoveRange(existingInvoices);
+                await context.SaveChangesAsync();
+            }
+
+            // Only seed invoices if none exist
             if (context.Invoices.Any()) return;
 
             // Get the first creditor (Epi) for the expense item
             var firstCreditor = await context.Creditors.FirstOrDefaultAsync();
             if (firstCreditor == null) return;
+
+            // Get usual suspects creditors
+            var usualSuspects = new List<string> { "Epi", "JHattu", "Leivo", "Timo", "Jaapu", "Urpi", "Zeip" };
+            var usualSuspectsCreditors = await context.Creditors
+                .Where(c => usualSuspects.Contains(c.Name))
+                .ToListAsync();
 
             var invoices = new List<Invoice>
             {
@@ -111,7 +132,12 @@ namespace Persistence
                             Amount = 415.24m
                         }
 
-                    }
+                    },
+                    Participants = usualSuspectsCreditors.Select(c => new InvoiceParticipant
+                    {
+                        CreditorId = c.Id,
+                        Creditor = c
+                    }).ToList()
                 }
             };
             await context.Invoices.AddRangeAsync(invoices);

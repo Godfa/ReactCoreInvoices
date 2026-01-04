@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Persistence;
 
 namespace API.Controllers
@@ -18,12 +19,16 @@ namespace API.Controllers
     public class AdminController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly DataContext _context;
+        private readonly IHostEnvironment _environment;
 
-        public AdminController(UserManager<User> userManager, DataContext context)
+        public AdminController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, DataContext context, IHostEnvironment environment)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _context = context;
+            _environment = environment;
         }
 
         [HttpGet("users")]
@@ -149,6 +154,32 @@ namespace API.Controllers
             var message = $"Password reset link would be sent to {user.Email}. User must change password on next login.";
 
             return Ok(new { message });
+        }
+
+        [HttpPost("reseed-database")]
+        public async Task<ActionResult> ReseedDatabase()
+        {
+            try
+            {
+                // Clear existing invoices
+                var existingInvoices = await _context.Invoices
+                    .Include(i => i.ExpenseItems)
+                        .ThenInclude(ei => ei.Payers)
+                    .Include(i => i.Participants)
+                    .ToListAsync();
+
+                _context.Invoices.RemoveRange(existingInvoices);
+                await _context.SaveChangesAsync();
+
+                // Run seed data
+                await Seed.SeedData(_context, _userManager, _roleManager, _environment);
+
+                return Ok(new { message = "Database reseeded successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = $"Failed to reseed database: {ex.Message}" });
+            }
         }
     }
 }

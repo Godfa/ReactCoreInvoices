@@ -5,15 +5,19 @@ import { useStore } from "../../../app/stores/store";
 import ExpenseItemList from "./ExpenseItemList";
 import ParticipantList from "./ParticipantList";
 import { Link, useParams } from "react-router-dom";
+import { observer } from "mobx-react-lite";
 
-export default function InvoiceDetails() {
+export default observer(function InvoiceDetails() {
     const { invoiceStore } = useStore();
-    const { selectedInvoice: invoice, loadInvoice, loadingInitial } = invoiceStore;
+    const { selectedInvoice: invoice, loadInvoice, loadingInitial, cancelSelectedInvoice } = invoiceStore;
     const { id } = useParams<{ id: string }>();
 
     useEffect(() => {
-        if (id) loadInvoice(id);
-    }, [id, loadInvoice]);
+        if (id) {
+            loadInvoice(id);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]);
 
     if (loadingInitial || !invoice) return <LoadingComponent />;
 
@@ -46,4 +50,4 @@ export default function InvoiceDetails() {
             </Card.Content>
         </Card>
     )
-}
+})
