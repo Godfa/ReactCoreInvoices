@@ -72,14 +72,15 @@ ReactCore Invoices Team
             return await SendEmailAsync(email, displayName, subject, plainTextContent, htmlContent);
         }
 
-        public async Task<bool> SendPasswordResetEmailAsync(string email, string displayName, string resetLink)
+        public async Task<bool> SendPasswordResetEmailAsync(string email, string displayName, string temporaryPassword)
         {
-            var subject = "Password Reset Required - ReactCore Invoices";
+            var subject = "Password Reset - ReactCore Invoices";
             var htmlContent = $@"
-                <h2>Password Reset Required</h2>
+                <h2>Password Reset</h2>
                 <p>Hi {displayName},</p>
-                <p>Your administrator has requested a password reset for your account.</p>
-                <p>You will be required to change your password upon your next login.</p>
+                <p>Your administrator has reset your password. Here is your new temporary password:</p>
+                <p><strong>Temporary Password:</strong> {temporaryPassword}</p>
+                <p><strong>Important:</strong> You will be required to change this password upon your next login for security reasons.</p>
                 <p>Please log in at: <a href=""{_appUrl}"">{_appUrl}</a></p>
                 <p>If you did not request this change, please contact your administrator immediately.</p>
                 <br>
@@ -87,13 +88,15 @@ ReactCore Invoices Team
             ";
 
             var plainTextContent = $@"
-Password Reset Required
+Password Reset
 
 Hi {displayName},
 
-Your administrator has requested a password reset for your account.
+Your administrator has reset your password. Here is your new temporary password:
 
-You will be required to change your password upon your next login.
+Temporary Password: {temporaryPassword}
+
+Important: You will be required to change this password upon your next login for security reasons.
 
 Please log in at: {_appUrl}
 

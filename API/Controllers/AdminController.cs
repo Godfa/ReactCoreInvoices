@@ -156,22 +156,61 @@ namespace API.Controllers
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
 
+            // Generate a new random temporary password
+            var newPassword = GenerateRandomPassword();
+
+            // Remove old password and set new one
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var resetResult = await _userManager.ResetPasswordAsync(user, token, newPassword);
+
+            if (!resetResult.Succeeded)
+            {
+                return BadRequest("Failed to reset password");
+            }
+
             // Set MustChangePassword flag
             user.MustChangePassword = true;
             await _userManager.UpdateAsync(user);
 
-            // Send password reset email
+            // Send password reset email with new temporary password
             var emailSent = await _emailService.SendPasswordResetEmailAsync(
                 user.Email,
                 user.DisplayName,
-                null // resetLink not needed in current implementation
+                newPassword
             );
 
             var message = emailSent
-                ? $"Password reset email sent to {user.Email}. User must change password on next login."
-                : $"Password reset flag set for {user.Email}, but email could not be sent. User must change password on next login.";
+                ? $"Password reset email sent to {user.Email} with new temporary password."
+                : $"Password reset but email could not be sent to {user.Email}. New temporary password: {newPassword}";
 
             return Ok(new { message });
+        }
+
+        private string GenerateRandomPassword()
+        {
+            const string uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const string lowercase = "abcdefghijklmnopqrstuvwxyz";
+            const string digits = "0123456789";
+            const string special = "!@#$%^&*";
+            const string all = uppercase + lowercase + digits + special;
+
+            var random = new Random();
+            var password = new char[12];
+
+            // Ensure at least one of each required type
+            password[0] = uppercase[random.Next(uppercase.Length)];
+            password[1] = lowercase[random.Next(lowercase.Length)];
+            password[2] = digits[random.Next(digits.Length)];
+            password[3] = special[random.Next(special.Length)];
+
+            // Fill the rest randomly
+            for (int i = 4; i < 12; i++)
+            {
+                password[i] = all[random.Next(all.Length)];
+            }
+
+            // Shuffle the password
+            return new string(password.OrderBy(x => random.Next()).ToArray());
         }
 
         [HttpPost("reseed-database")]
