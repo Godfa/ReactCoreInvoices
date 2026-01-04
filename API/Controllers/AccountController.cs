@@ -124,7 +124,8 @@ namespace API.Controllers
                 return Ok();
             }
 
-            return BadRequest("Failed to change password");
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            return BadRequest($"Failed to change password: {errors}");
         }
 
         private async Task<UserDto> CreateUserObject(User user)
