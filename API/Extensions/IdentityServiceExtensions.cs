@@ -24,6 +24,16 @@ namespace API.Extensions
              .AddEntityFrameworkStores<DataContext>()
              .AddSignInManager<SignInManager<User>>();
 
+             // Configure Identity to not redirect on unauthorized requests (for API)
+             services.ConfigureApplicationCookie(opt =>
+             {
+                 opt.Events.OnRedirectToLogin = context =>
+                 {
+                     context.Response.StatusCode = 401;
+                     return Task.CompletedTask;
+                 };
+             });
+
              var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"] ?? "Super secret key"));
 
              services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
