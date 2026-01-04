@@ -17,6 +17,7 @@ namespace API.Services
         private readonly string _smtpPassword;
         private readonly string _fromEmail;
         private readonly string _fromName;
+        private readonly string _appUrl;
 
         public EmailService(IConfiguration config, ILogger<EmailService> logger)
         {
@@ -28,6 +29,7 @@ namespace API.Services
             _smtpPassword = _config["Email:SmtpPassword"];
             _fromEmail = _config["Email:FromEmail"];
             _fromName = _config["Email:FromName"] ?? "ReactCore Invoices";
+            _appUrl = _config["Email:AppUrl"] ?? "https://your-app-url.com";
         }
 
         public async Task<bool> SendNewUserEmailAsync(string email, string displayName, string username, string temporaryPassword)
@@ -43,7 +45,7 @@ namespace API.Services
                     <li><strong>Temporary Password:</strong> {temporaryPassword}</li>
                 </ul>
                 <p><strong>Important:</strong> You will be required to change your password upon first login for security reasons.</p>
-                <p>Please log in at your earliest convenience and change your password.</p>
+                <p>Please log in at: <a href=""{_appUrl}"">{_appUrl}</a></p>
                 <br>
                 <p>Best regards,<br>ReactCore Invoices Team</p>
             ";
@@ -61,7 +63,7 @@ Temporary Password: {temporaryPassword}
 
 Important: You will be required to change your password upon first login for security reasons.
 
-Please log in at your earliest convenience and change your password.
+Please log in at: {_appUrl}
 
 Best regards,
 ReactCore Invoices Team
@@ -78,6 +80,7 @@ ReactCore Invoices Team
                 <p>Hi {displayName},</p>
                 <p>Your administrator has requested a password reset for your account.</p>
                 <p>You will be required to change your password upon your next login.</p>
+                <p>Please log in at: <a href=""{_appUrl}"">{_appUrl}</a></p>
                 <p>If you did not request this change, please contact your administrator immediately.</p>
                 <br>
                 <p>Best regards,<br>ReactCore Invoices Team</p>
@@ -91,6 +94,8 @@ Hi {displayName},
 Your administrator has requested a password reset for your account.
 
 You will be required to change your password upon your next login.
+
+Please log in at: {_appUrl}
 
 If you did not request this change, please contact your administrator immediately.
 
