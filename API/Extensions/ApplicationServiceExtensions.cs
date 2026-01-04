@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using API.Services;
 using Application.Core;
 using Application.ExpenseItems;
 using FluentValidation;
@@ -62,6 +63,7 @@ namespace API.Extensions
             services.AddAutoMapper(typeof(MappingProfiles).Assembly);
             services.AddFluentValidationAutoValidation();
             services.AddValidatorsFromAssemblyContaining<ExpenseItemValidator>();
+            services.AddScoped<IEmailService, EmailService>();
 
             return services;
         }

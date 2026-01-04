@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using API.DTOs;
+using API.Services;
 using Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -22,13 +23,15 @@ namespace API.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly DataContext _context;
         private readonly IHostEnvironment _environment;
+        private readonly IEmailService _emailService;
 
-        public AdminController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, DataContext context, IHostEnvironment environment)
+        public AdminController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, DataContext context, IHostEnvironment environment, IEmailService emailService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _context = context;
             _environment = environment;
+            _emailService = emailService;
         }
 
         [HttpGet("users")]
@@ -93,6 +96,14 @@ namespace API.Controllers
                 await _context.SaveChangesAsync();
             }
 
+            // Send email with credentials
+            var emailSent = await _emailService.SendNewUserEmailAsync(
+                user.Email,
+                user.DisplayName,
+                user.UserName,
+                tempPassword
+            );
+
             return new UserManagementDto
             {
                 Id = user.Id,
@@ -149,9 +160,16 @@ namespace API.Controllers
             user.MustChangePassword = true;
             await _userManager.UpdateAsync(user);
 
-            // In a real application, you would send an email with a reset link
-            // For now, we'll just return a message
-            var message = $"Password reset link would be sent to {user.Email}. User must change password on next login.";
+            // Send password reset email
+            var emailSent = await _emailService.SendPasswordResetEmailAsync(
+                user.Email,
+                user.DisplayName,
+                null // resetLink not needed in current implementation
+            );
+
+            var message = emailSent
+                ? $"Password reset email sent to {user.Email}. User must change password on next login."
+                : $"Password reset flag set for {user.Email}, but email could not be sent. User must change password on next login.";
 
             return Ok(new { message });
         }
