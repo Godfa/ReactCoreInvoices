@@ -1,0 +1,12 @@
+{
+  "sqltools.connections": [
+    {
+      "name": "LocalDB - LanInvoices",
+      "driver": "MS SQL",
+      "server": "(localdb)\\mssqllocaldb",
+      "database": "LanInvoices",
+      "authenticationType": "Windows Authentication",
+      "previewLimit": 50
+    }
+  ]
+}

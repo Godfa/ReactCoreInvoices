@@ -17,22 +17,14 @@ namespace API.Extensions
         public static IServiceCollection AddIdentityServices(this IServiceCollection services,
          IConfiguration config)
          {
-             services.AddIdentity<User, IdentityRole>(opt=>
+             services.AddIdentityCore<User>(opt=>
              {
                  opt.Password.RequireNonAlphanumeric = false;
              })
+             .AddRoles<IdentityRole>()
              .AddEntityFrameworkStores<DataContext>()
-             .AddSignInManager<SignInManager<User>>();
-
-             // Configure Identity to not redirect on unauthorized requests (for API)
-             services.ConfigureApplicationCookie(opt =>
-             {
-                 opt.Events.OnRedirectToLogin = context =>
-                 {
-                     context.Response.StatusCode = 401;
-                     return Task.CompletedTask;
-                 };
-             });
+             .AddSignInManager<SignInManager<User>>()
+             .AddRoleManager<RoleManager<IdentityRole>>();
 
              var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"] ?? "Super secret key"));
 
