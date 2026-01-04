@@ -18,30 +18,51 @@ namespace Persistence
                 await roleManager.CreateAsync(new IdentityRole("Admin"));
             }
 
-            if (!userManager.Users.Any())
+            // Define expected users
+            var expectedUsers = new List<(string DisplayName, string UserName, string Email)>
             {
-                var users = new List<User>
-                {
-                    new User{DisplayName= "Epi", UserName = "epi", Email = "epituo@gmail.com", MustChangePassword = true},
-                    new User{DisplayName= "Leivo", UserName = "leivo", Email = "leivo@example.com", MustChangePassword = true},
-                    new User{DisplayName= "Jaapu", UserName = "jaapu", Email = "jaapu@example.com", MustChangePassword = true},
-                    new User{DisplayName= "Timo", UserName = "timo", Email = "timo@example.com", MustChangePassword = true},
-                    new User{DisplayName= "JHattu", UserName = "jhattu", Email = "jhattu@example.com", MustChangePassword = true},
-                    new User{DisplayName= "Urpi", UserName = "urpi", Email = "urpi@example.com", MustChangePassword = true},
-                    new User{DisplayName= "Zeip", UserName = "zeip", Email = "zeip@example.com", MustChangePassword = true},
-                    new User{DisplayName= "Antti", UserName = "antti", Email = "antti@example.com", MustChangePassword = true},
-                    new User{DisplayName= "Sakke", UserName = "sakke", Email = "sakke@example.com", MustChangePassword = true},
-                    new User{DisplayName= "Lasse", UserName = "lasse", Email = "lasse@example.com", MustChangePassword = true}
-                };
+                ("Epi", "epi", "epituo@gmail.com"),
+                ("Leivo", "leivo", "leivo@example.com"),
+                ("Jaapu", "jaapu", "jaapu@example.com"),
+                ("Timo", "timo", "timo@example.com"),
+                ("JHattu", "jhattu", "jhattu@example.com"),
+                ("Urpi", "urpi", "urpi@example.com"),
+                ("Zeip", "zeip", "zeip@example.com"),
+                ("Antti", "antti", "antti@example.com"),
+                ("Sakke", "sakke", "sakke@example.com"),
+                ("Lasse", "lasse", "lasse@example.com")
+            };
 
-                foreach(var user in users)
+            // Create or update users
+            foreach (var (displayName, userName, email) in expectedUsers)
+            {
+                var existingUser = await userManager.FindByEmailAsync(email);
+                if (existingUser == null)
                 {
-                    await userManager.CreateAsync(user, "Pa$$w0rd");
+                    // Create new user
+                    var newUser = new User
+                    {
+                        DisplayName = displayName,
+                        UserName = userName,
+                        Email = email,
+                        MustChangePassword = true
+                    };
+                    await userManager.CreateAsync(newUser, "Pa$$w0rd");
                 }
+                else
+                {
+                    // Update existing user to set MustChangePassword flag
+                    existingUser.MustChangePassword = true;
+                    await userManager.UpdateAsync(existingUser);
+                }
+            }
 
-                // Add Epi to Admin role
-                var epiUser = await userManager.FindByEmailAsync("epituo@gmail.com");
-                if (epiUser != null)
+            // Add Epi to Admin role
+            var epiUser = await userManager.FindByEmailAsync("epituo@gmail.com");
+            if (epiUser != null)
+            {
+                var isInRole = await userManager.IsInRoleAsync(epiUser, "Admin");
+                if (!isInRole)
                 {
                     await userManager.AddToRoleAsync(epiUser, "Admin");
                 }
