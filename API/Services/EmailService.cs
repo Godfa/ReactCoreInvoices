@@ -109,6 +109,42 @@ ReactCore Invoices Team
             return await SendEmailAsync(email, displayName, subject, plainTextContent, htmlContent);
         }
 
+        public async Task<bool> SendPasswordResetLinkAsync(string email, string displayName, string resetLink)
+        {
+            var subject = "Password Reset Request - ReactCore Invoices";
+            var htmlContent = $@"
+                <h2>Password Reset Request</h2>
+                <p>Hi {displayName},</p>
+                <p>We received a request to reset your password. Click the link below to reset your password:</p>
+                <p><a href=""{resetLink}"" style=""display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;"">Reset Password</a></p>
+                <p>Or copy and paste this link into your browser:</p>
+                <p>{resetLink}</p>
+                <p><strong>This link will expire in 24 hours.</strong></p>
+                <p>If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
+                <br>
+                <p>Best regards,<br>ReactCore Invoices Team</p>
+            ";
+
+            var plainTextContent = $@"
+Password Reset Request
+
+Hi {displayName},
+
+We received a request to reset your password. Click the link below to reset your password:
+
+{resetLink}
+
+This link will expire in 24 hours.
+
+If you did not request a password reset, please ignore this email or contact support if you have concerns.
+
+Best regards,
+ReactCore Invoices Team
+            ";
+
+            return await SendEmailAsync(email, displayName, subject, plainTextContent, htmlContent);
+        }
+
         private async Task<bool> SendEmailAsync(string toEmail, string toName, string subject, string plainTextContent, string htmlContent)
         {
             if (string.IsNullOrEmpty(_smtpHost))

@@ -19,15 +19,21 @@ namespace API.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly TokenService _tokenService;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
 
-         private readonly TokenService _tokenService;
-        public AccountController(UserManager<User> userManager,        
-       
-        SignInManager<User> signInManager, TokenService tokenService) 
+        public AccountController(UserManager<User> userManager,
+            SignInManager<User> signInManager,
+            TokenService tokenService,
+            IEmailService emailService,
+            IConfiguration configuration)
         {
             _tokenService = tokenService;
             _signInManager = signInManager;
             _userManager = userManager;
+            _emailService = emailService;
+            _configuration = configuration;
         }
 
         [HttpPost("login")]
@@ -112,6 +118,58 @@ namespace API.Controllers
 
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
             return BadRequest($"Failed to change password: {errors}");
+        }
+
+        [HttpPost("forgotPassword")]
+        public async Task<ActionResult> ForgotPassword(ForgotPasswordDto forgotPasswordDto)
+        {
+            var user = await _userManager.FindByEmailAsync(forgotPasswordDto.Email);
+
+            // Always return success to prevent email enumeration
+            if (user == null)
+            {
+                return Ok(new { message = "If the email exists, a password reset link has been sent." });
+            }
+
+            // Generate password reset token
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            // Create reset link
+            var appUrl = _configuration["Email:AppUrl"] ?? "https://your-app-url.com";
+            var resetLink = $"{appUrl}/reset-password?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(token)}";
+
+            // Send email with reset link
+            var emailSent = await _emailService.SendPasswordResetLinkAsync(
+                user.Email,
+                user.DisplayName,
+                resetLink
+            );
+
+            return Ok(new { message = "If the email exists, a password reset link has been sent." });
+        }
+
+        [HttpPost("resetPassword")]
+        public async Task<ActionResult> ResetPassword(ResetPasswordDto resetPasswordDto)
+        {
+            var user = await _userManager.FindByEmailAsync(resetPasswordDto.Email);
+
+            if (user == null)
+            {
+                return BadRequest("Invalid password reset token");
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, resetPasswordDto.Token, resetPasswordDto.NewPassword);
+
+            if (result.Succeeded)
+            {
+                // Clear MustChangePassword flag when user resets their password
+                user.MustChangePassword = false;
+                await _userManager.UpdateAsync(user);
+                return Ok(new { message = "Password has been reset successfully" });
+            }
+
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            return BadRequest($"Failed to reset password: {errors}");
         }
 
         private async Task<UserDto> CreateUserObject(User user)
