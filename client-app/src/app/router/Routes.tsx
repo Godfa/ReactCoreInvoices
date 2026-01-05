@@ -5,6 +5,8 @@ import InvoiceDetails from "../../features/invoices/details/InvoiceDetails";
 import InvoiceForm from "../../features/invoices/form/InvoiceForm";
 import LoginForm from "../../features/users/LoginForm";
 import ChangePasswordForm from "../../features/users/ChangePasswordForm";
+import ForgotPasswordForm from "../../features/users/ForgotPasswordForm";
+import ResetPasswordForm from "../../features/users/ResetPasswordForm";
 import AdminPage from "../../features/admin/AdminPage";
 
 export const routes: RouteObject[] = [
@@ -18,6 +20,8 @@ export const routes: RouteObject[] = [
             { path: 'manage/:id', element: <InvoiceForm key='manage' /> },
             { path: 'login', element: <LoginForm /> },
             { path: 'changePassword', element: <ChangePasswordForm /> },
+            { path: 'forgot-password', element: <ForgotPasswordForm /> },
+            { path: 'reset-password', element: <ResetPasswordForm /> },
             { path: 'admin', element: <AdminPage /> },
             { path: '*', element: <Navigate replace to='/invoices' /> },
         ]

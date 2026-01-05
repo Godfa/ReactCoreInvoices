@@ -2,6 +2,7 @@ import { ErrorMessage, Form as FormikForm, Formik } from "formik";
 import { observer } from "mobx-react-lite";
 import { Button, Form, Header, Label } from "semantic-ui-react";
 import { useStore } from "../../app/stores/store";
+import { Link } from "react-router-dom";
 
 export default observer(function LoginForm() {
     const { userStore } = useStore();
@@ -33,6 +34,10 @@ export default observer(function LoginForm() {
                             <Label style={{ marginBottom: 10 }} basic color='red' content={errors.error} />}
                     />
                     <Button loading={isSubmitting} positive content='Login' type='submit' fluid />
+
+                    <div style={{ textAlign: 'center', marginTop: 15 }}>
+                        <Link to='/forgot-password'>Forgot password?</Link>
+                    </div>
                 </FormikForm>
             )}
         </Formik>

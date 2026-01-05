@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import agent, { ChangePasswordValues, User, UserFormValues } from "../api/agent";
+import agent, { ChangePasswordValues, ForgotPasswordValues, ResetPasswordValues, User, UserFormValues } from "../api/agent";
 import { router } from "../router/Routes";
 
 export default class UserStore {
@@ -64,6 +64,24 @@ export default class UserStore {
                     this.user!.mustChangePassword = false;
                 });
             }
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    forgotPassword = async (values: ForgotPasswordValues) => {
+        try {
+            const response = await agent.Account.forgotPassword(values);
+            return response.message;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    resetPassword = async (values: ResetPasswordValues) => {
+        try {
+            const response = await agent.Account.resetPassword(values);
+            return response.message;
         } catch (error) {
             throw error;
         }

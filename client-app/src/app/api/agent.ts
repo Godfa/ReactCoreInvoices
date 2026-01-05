@@ -114,6 +114,16 @@ export interface ChangePasswordValues {
     newPassword: string;
 }
 
+export interface ForgotPasswordValues {
+    email: string;
+}
+
+export interface ResetPasswordValues {
+    email: string;
+    token: string;
+    newPassword: string;
+}
+
 export interface UserManagement {
     id: string;
     userName: string;
@@ -137,7 +147,9 @@ const Account = {
     current: () => requests.get<User>('/account'),
     login: (user: UserFormValues) => requests.post<User>('/account/login', user),
     register: (user: UserFormValues) => requests.post<User>('/account/register', user),
-    changePassword: (passwords: ChangePasswordValues) => requests.post<void>('/account/changePassword', passwords)
+    changePassword: (passwords: ChangePasswordValues) => requests.post<void>('/account/changePassword', passwords),
+    forgotPassword: (values: ForgotPasswordValues) => requests.post<{message: string}>('/account/forgotPassword', values),
+    resetPassword: (values: ResetPasswordValues) => requests.post<{message: string}>('/account/resetPassword', values)
 }
 
 const Admin = {
