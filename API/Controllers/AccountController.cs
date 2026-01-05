@@ -107,7 +107,11 @@ namespace API.Controllers
             var user = await _userManager.FindByNameAsync(username);
             if (user == null) return Unauthorized();
 
-            var result = await _userManager.ChangePasswordAsync(user, changePasswordDto.CurrentPassword, changePasswordDto.NewPassword);
+            // Generate a password reset token for the current user
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            // Use the token to reset the password (no need for current password)
+            var result = await _userManager.ResetPasswordAsync(user, token, changePasswordDto.NewPassword);
 
             if (result.Succeeded)
             {
