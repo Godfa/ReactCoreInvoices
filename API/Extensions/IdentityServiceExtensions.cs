@@ -24,7 +24,8 @@ namespace API.Extensions
              .AddRoles<IdentityRole>()
              .AddEntityFrameworkStores<DataContext>()
              .AddSignInManager<SignInManager<User>>()
-             .AddRoleManager<RoleManager<IdentityRole>>();
+             .AddRoleManager<RoleManager<IdentityRole>>()
+             .AddDefaultTokenProviders();
 
              var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"] ?? "Super secret key"));
 
