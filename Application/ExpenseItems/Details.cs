@@ -27,7 +27,11 @@ namespace Application.ExpenseItems
 
             public async Task<ExpenseItem> Handle(Query request, CancellationToken cancellationToken)
             {
-                return await _context.ExpenseItems.FindAsync(new object[]{request.Id}, cancellationToken);
+                return await _context.ExpenseItems
+                    .Include(ei => ei.LineItems)
+                    .Include(ei => ei.Payers)
+                        .ThenInclude(p => p.Creditor)
+                    .FirstOrDefaultAsync(ei => ei.Id == request.Id, cancellationToken);
             }
         }
     }

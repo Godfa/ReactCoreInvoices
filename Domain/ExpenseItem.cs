@@ -12,8 +12,11 @@ namespace Domain
         public int ExpenseCreditor { get; set; }
         public ExpenseType ExpenseType { get; set; }
         public string Name { get; set; }
-        [Column(TypeName = "decimal(18, 2)")]
-        public decimal Amount { get; set; }
+
+        [NotMapped]
+        public decimal Amount => LineItems?.Sum(li => li.Total) ?? 0;
+
         public virtual List<ExpenseItemPayer> Payers { get; set; }
+        public virtual List<ExpenseLineItem> LineItems { get; set; }
     }
 }

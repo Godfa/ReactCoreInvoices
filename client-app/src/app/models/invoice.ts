@@ -1,5 +1,14 @@
 declare module "Invoices" {
 
+    export interface ExpenseLineItem {
+        id: string;
+        expenseItemId: string;
+        name: string;
+        quantity: number;
+        unitPrice: number;
+        total: number;
+    }
+
     export interface ExpenseItemPayer {
         expenseItemId: string;
         creditorId: number;
@@ -13,6 +22,7 @@ declare module "Invoices" {
         name: string;
         amount: number;
         payers: ExpenseItemPayer[];
+        lineItems: ExpenseLineItem[];
     }
 
     export interface ExpenseTypeOption {

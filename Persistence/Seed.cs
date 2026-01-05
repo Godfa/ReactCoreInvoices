@@ -129,7 +129,15 @@ namespace Persistence
                             ExpenseType = ExpenseType.ShoppingList,
                             Name = "Kauppalista" ,
                             ExpenseCreditor = firstCreditor.Id,
-                            Amount = 415.24m
+                            LineItems = new List<ExpenseLineItem>
+                            {
+                                new ExpenseLineItem
+                                {
+                                    Name = "Imported from original amount",
+                                    Quantity = 1,
+                                    UnitPrice = 415.24m
+                                }
+                            }
                         }
 
                     },

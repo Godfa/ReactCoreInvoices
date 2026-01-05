@@ -1,4 +1,4 @@
-import { Invoice, ExpenseItem } from "Invoices";
+import { Invoice, ExpenseItem, ExpenseLineItem } from "Invoices";
 import { makeAutoObservable, runInAction } from "mobx";
 import agent from "../api/agent";
 import { v4 as uuid } from 'uuid';
@@ -441,6 +441,85 @@ export default class InvoiceStore {
                     this.loading = false;
                 });
             }
+        }
+    }
+
+    createLineItem = async (invoiceId: string, expenseItemId: string, lineItem: ExpenseLineItem) => {
+        this.loading = true;
+        try {
+            await agent.ExpenseLineItems.create(expenseItemId, lineItem);
+            runInAction(() => {
+                const invoice = this.invoiceRegistry.get(invoiceId);
+                if (invoice && invoice.expenseItems) {
+                    const expenseItem = invoice.expenseItems.find(ei => ei.id === expenseItemId);
+                    if (expenseItem) {
+                        if (!expenseItem.lineItems) expenseItem.lineItems = [];
+                        expenseItem.lineItems.push(lineItem);
+                        this.invoiceRegistry.set(invoiceId, invoice);
+                        if (this.selectedInvoice?.id === invoiceId) {
+                            this.selectedInvoice = invoice;
+                        }
+                    }
+                }
+                this.loading = false;
+            });
+            toast.success('Line item added');
+        } catch (error) {
+            console.log(error);
+            runInAction(() => this.loading = false);
+        }
+    }
+
+    updateLineItem = async (invoiceId: string, expenseItemId: string, lineItem: ExpenseLineItem) => {
+        this.loading = true;
+        try {
+            await agent.ExpenseLineItems.update(expenseItemId, lineItem);
+            runInAction(() => {
+                const invoice = this.invoiceRegistry.get(invoiceId);
+                if (invoice && invoice.expenseItems) {
+                    const expenseItem = invoice.expenseItems.find(ei => ei.id === expenseItemId);
+                    if (expenseItem && expenseItem.lineItems) {
+                        const index = expenseItem.lineItems.findIndex(li => li.id === lineItem.id);
+                        if (index !== -1) {
+                            expenseItem.lineItems[index] = lineItem;
+                            this.invoiceRegistry.set(invoiceId, invoice);
+                            if (this.selectedInvoice?.id === invoiceId) {
+                                this.selectedInvoice = invoice;
+                            }
+                        }
+                    }
+                }
+                this.loading = false;
+            });
+            toast.success('Line item updated');
+        } catch (error) {
+            console.log(error);
+            runInAction(() => this.loading = false);
+        }
+    }
+
+    deleteLineItem = async (invoiceId: string, expenseItemId: string, lineItemId: string) => {
+        this.loading = true;
+        try {
+            await agent.ExpenseLineItems.delete(expenseItemId, lineItemId);
+            runInAction(() => {
+                const invoice = this.invoiceRegistry.get(invoiceId);
+                if (invoice && invoice.expenseItems) {
+                    const expenseItem = invoice.expenseItems.find(ei => ei.id === expenseItemId);
+                    if (expenseItem && expenseItem.lineItems) {
+                        expenseItem.lineItems = expenseItem.lineItems.filter(li => li.id !== lineItemId);
+                        this.invoiceRegistry.set(invoiceId, invoice);
+                        if (this.selectedInvoice?.id === invoiceId) {
+                            this.selectedInvoice = invoice;
+                        }
+                    }
+                }
+                this.loading = false;
+            });
+            toast.success('Line item deleted');
+        } catch (error) {
+            console.log(error);
+            runInAction(() => this.loading = false);
         }
     }
 }

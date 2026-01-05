@@ -13,6 +13,7 @@ namespace Application.Core
         {
             CreateMap<Invoice, Invoice>();
             CreateMap<ExpenseItem, ExpenseItem>();
+            CreateMap<ExpenseLineItem, ExpenseLineItem>();
         }
     }
 }

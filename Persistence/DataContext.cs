@@ -16,6 +16,7 @@ namespace Persistence
 
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<ExpenseItem> ExpenseItems { get; set; }
+        public DbSet<ExpenseLineItem> ExpenseLineItems { get; set; }
         public DbSet<Creditor> Creditors { get; set; }
         public DbSet<InvoiceParticipant> InvoiceParticipants { get; set; }
         public DbSet<ExpenseItemPayer> ExpenseItemPayers { get; set; }
@@ -61,6 +62,13 @@ namespace Persistence
                 .HasOne<Invoice>()
                 .WithMany(i => i.ExpenseItems)
                 .HasForeignKey("InvoiceId")
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure ExpenseItem -> ExpenseLineItem relationship with cascade delete
+            modelBuilder.Entity<ExpenseLineItem>()
+                .HasOne(eli => eli.ExpenseItem)
+                .WithMany(ei => ei.LineItems)
+                .HasForeignKey(eli => eli.ExpenseItemId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

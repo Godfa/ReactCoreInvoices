@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { Invoice, ExpenseItem, ExpenseTypeOption, Creditor } from "Invoices";
+import { Invoice, ExpenseItem, ExpenseTypeOption, Creditor, ExpenseLineItem } from "Invoices";
 import { toast } from 'react-toastify';
 
 const sleep = (delay: number) => {
@@ -94,6 +94,13 @@ const Creditors = {
     delete: (id: number) => requests.del<void>(`/creditors/${id}`)
 }
 
+const ExpenseLineItems = {
+    list: (expenseItemId: string) => requests.get<ExpenseLineItem[]>(`/expenselineitems/${expenseItemId}`),
+    create: (expenseItemId: string, lineItem: ExpenseLineItem) => requests.post<void>(`/expenselineitems/${expenseItemId}`, lineItem),
+    update: (expenseItemId: string, lineItem: ExpenseLineItem) => requests.put<void>(`/expenselineitems/${expenseItemId}/items/${lineItem.id}`, lineItem),
+    delete: (expenseItemId: string, lineItemId: string) => requests.del<void>(`/expenselineitems/${expenseItemId}/items/${lineItemId}`)
+}
+
 export interface UserFormValues {
     email: string;
     password: string;
@@ -162,6 +169,7 @@ const Admin = {
 const agent = {
     Invoices,
     ExpenseItems,
+    ExpenseLineItems,
     ExpenseTypes,
     Creditors,
     Account,

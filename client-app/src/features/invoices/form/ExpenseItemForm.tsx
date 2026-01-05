@@ -17,9 +17,9 @@ interface FormValues {
     name: string;
     expenseType: number;
     expenseCreditor: number;
-    amount: number;
     id: string;
     payers: any[];
+    lineItems: any[];
 }
 
 export default observer(function ExpenseItemForm({ invoiceId, closeForm, expenseItem }: Props) {
@@ -34,24 +34,23 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
     const validationSchema = Yup.object({
         name: Yup.string().required('The event name is required'),
         expenseType: Yup.number().required('Expense Type is required').notOneOf([-1], 'Type is required'),
-        expenseCreditor: Yup.number().required('Creditor is required').notOneOf([-1], 'Creditor is required'),
-        amount: Yup.number().required('Amount is required').positive('Amount must be greater than 0')
+        expenseCreditor: Yup.number().required('Creditor is required').notOneOf([-1], 'Creditor is required')
     })
 
     const initialValues: FormValues = expenseItem ? {
         name: expenseItem.name,
         expenseType: expenseItem.expenseType,
         expenseCreditor: expenseItem.expenseCreditor,
-        amount: expenseItem.amount,
         id: expenseItem.id,
-        payers: expenseItem.payers || []
+        payers: expenseItem.payers || [],
+        lineItems: expenseItem.lineItems || []
     } : {
         name: '',
         expenseType: -1,
         expenseCreditor: -1,
-        amount: 0,
         id: '',
-        payers: []
+        payers: [],
+        lineItems: []
     }
 
     return (
@@ -100,11 +99,19 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                             </Field>
                             <ErrorMessage name='expenseType' render={error => <label style={{ color: 'red' }}>{error}</label>} />
                         </Form.Field>
-                        <Form.Field>
-                            <label>Amount (€)</label>
-                            <Field type='number' step='0.01' placeholder='Amount' name='amount' />
-                            <ErrorMessage name='amount' render={error => <label style={{ color: 'red' }}>{error}</label>} />
-                        </Form.Field>
+                        {expenseItem && (
+                            <Form.Field>
+                                <label>Amount: €{expenseItem.amount.toFixed(2)}</label>
+                                <p style={{ color: '#666', fontSize: '0.9em' }}>
+                                    <em>Amount is calculated from line items. Expand the expense item to add or edit line items.</em>
+                                </p>
+                            </Form.Field>
+                        )}
+                        {!expenseItem && (
+                            <p style={{ color: '#666', fontSize: '0.9em', fontStyle: 'italic' }}>
+                                Note: After creating the expense item, expand it to add line items.
+                            </p>
+                        )}
                         <Button
                             disabled={isSubmitting || !dirty || !isValid}
                             loading={loading} floated='right'
