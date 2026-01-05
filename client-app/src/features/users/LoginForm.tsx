@@ -35,8 +35,10 @@ export default observer(function LoginForm() {
                     />
                     <Button loading={isSubmitting} positive content='Login' type='submit' fluid />
 
-                    <div style={{ textAlign: 'center', marginTop: 15 }}>
-                        <Link to='/forgot-password'>Forgot password?</Link>
+                    <div style={{ textAlign: 'center', marginTop: 20 }}>
+                        <Link to='/forgot-password' style={{ fontSize: '1.1em', color: '#00b5ad', fontWeight: '500' }}>
+                            Forgot password?
+                        </Link>
                     </div>
                 </FormikForm>
             )}
