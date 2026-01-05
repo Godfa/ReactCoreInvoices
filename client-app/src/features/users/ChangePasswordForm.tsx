@@ -9,7 +9,6 @@ export default observer(function ChangePasswordForm() {
     const { userStore } = useStore();
 
     const validationSchema = Yup.object({
-        currentPassword: Yup.string().required('Current password is required'),
         newPassword: Yup.string().required('New password is required').min(12, 'Password must be at least 12 characters'),
         confirmPassword: Yup.string()
             .required('Please confirm your password')
@@ -18,30 +17,20 @@ export default observer(function ChangePasswordForm() {
 
     return (
         <Formik
-            initialValues={{ currentPassword: '', newPassword: '', confirmPassword: '', error: null }}
+            initialValues={{ newPassword: '', confirmPassword: '', error: null }}
             validationSchema={validationSchema}
             onSubmit={(values, { setErrors, resetForm }) => userStore.changePassword({
-                currentPassword: values.currentPassword,
                 newPassword: values.newPassword
             }).then(() => {
                 toast.success('Password changed successfully');
                 resetForm();
                 window.location.href = '/invoices';
             }).catch(error =>
-                setErrors({ error: 'Failed to change password. Please check your current password.' }))}
+                setErrors({ error: 'Failed to change password.' }))}
         >
             {({ handleSubmit, isSubmitting, errors, handleChange, values, touched }) => (
                 <FormikForm className='ui form' onSubmit={handleSubmit} autoComplete='off'>
                     <Header as='h2' content='Change Password' color='teal' textAlign='center' />
-                    <Form.Input
-                        name='currentPassword'
-                        placeholder='Current Password'
-                        type='password'
-                        value={values.currentPassword}
-                        onChange={handleChange}
-                        error={touched.currentPassword && errors.currentPassword}
-                    />
-                    <ErrorMessage name='currentPassword' render={error => <Label style={{ marginBottom: 10 }} basic color='red' content={error} />} />
 
                     <Form.Input
                         name='newPassword'

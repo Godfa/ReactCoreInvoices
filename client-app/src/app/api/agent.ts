@@ -111,7 +111,6 @@ export interface User {
 }
 
 export interface ChangePasswordValues {
-    currentPassword: string;
     newPassword: string;
 }
 
