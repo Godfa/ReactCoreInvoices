@@ -30,7 +30,14 @@ namespace Application.Invoices
             {
                 var invoice = await _context.Invoices.FindAsync(request.Invoice.Id);
 
-                _mapper.Map(request.Invoice, invoice);
+                if (invoice == null) return Unit.Value;
+
+                // Only map simple properties, not navigation properties
+                // to avoid entity tracking conflicts
+                invoice.Title = request.Invoice.Title;
+                invoice.Description = request.Invoice.Description;
+                invoice.Image = request.Invoice.Image;
+
                 await _context.SaveChangesAsync();
 
                 return Unit.Value;

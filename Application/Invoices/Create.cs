@@ -38,6 +38,11 @@ namespace Application.Invoices
                     request.Invoice.Title = $"Mökkilan {request.Invoice.LanNumber}";
                 }
 
+                // Clear navigation properties to avoid entity tracking conflicts
+                // Participants and ExpenseItems should be added separately through their own endpoints
+                request.Invoice.Participants = null;
+                request.Invoice.ExpenseItems = null;
+
                 _context.Invoices.Add(request.Invoice);
 
                 await _context.SaveChangesAsync();
