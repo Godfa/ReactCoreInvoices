@@ -107,7 +107,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                 <Table.Cell>{item.name}</Table.Cell>
                                 <Table.Cell>{getExpenseTypeName(item.expenseType)}</Table.Cell>
                                 <Table.Cell>{getCreditorName(item.expenseCreditor)}</Table.Cell>
-                                <Table.Cell>{item.amount.toFixed(2)} €</Table.Cell>
+                                <Table.Cell>{(item.lineItems?.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0) ?? 0).toFixed(2)} €</Table.Cell>
                                 <Table.Cell>
                                     <div style={{ marginBottom: '5px' }}>
                                         {item.payers && item.payers.length > 0 ? (
@@ -285,7 +285,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                             <Table.Cell>{lineItem.name}</Table.Cell>
                                                             <Table.Cell>{lineItem.quantity}</Table.Cell>
                                                             <Table.Cell>{lineItem.unitPrice.toFixed(2)} €</Table.Cell>
-                                                            <Table.Cell>{lineItem.total.toFixed(2)} €</Table.Cell>
+                                                            <Table.Cell>{(lineItem.quantity * lineItem.unitPrice).toFixed(2)} €</Table.Cell>
                                                             <Table.Cell>
                                                                 <Button
                                                                     icon='edit'

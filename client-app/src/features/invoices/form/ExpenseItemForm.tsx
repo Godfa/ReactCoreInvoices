@@ -101,7 +101,7 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                         </Form.Field>
                         {expenseItem && (
                             <Form.Field>
-                                <label>Amount: €{expenseItem.amount.toFixed(2)}</label>
+                                <label>Amount: €{(expenseItem.lineItems?.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0) ?? 0).toFixed(2)}</label>
                                 <p style={{ color: '#666', fontSize: '0.9em' }}>
                                     <em>Amount is calculated from line items. Expand the expense item to add or edit line items.</em>
                                 </p>
