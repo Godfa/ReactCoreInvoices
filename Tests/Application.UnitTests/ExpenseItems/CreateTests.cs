@@ -74,7 +74,7 @@ namespace Application.UnitTests.ExpenseItems
         }
 
         [Fact]
-        public async Task Handle_ShouldAddDefaultPayers_WhenInvoiceHasParticipants()
+        public async Task Handle_ShouldCreateExpenseItemWithoutAmount_WhenLineItemsNotProvided()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<DataContext>()
@@ -82,27 +82,16 @@ namespace Application.UnitTests.ExpenseItems
                 .Options;
 
             var invoiceId = Guid.NewGuid();
-            var expenseItem = new ExpenseItem { Id = Guid.NewGuid(), Name = "Item with Payers" };
+            var expenseItem = new ExpenseItem { Id = Guid.NewGuid(), Name = "Item without LineItems" };
 
-            // Seed with invoice and participants
+            // Seed with invoice
             using (var context = new DataContext(options))
             {
                 context.Database.EnsureCreated();
-                context.Creditors.AddRange(
-                    new Creditor { Id = 1, Name = "Creditor 1", Email = "c1@example.com" },
-                    new Creditor { Id = 2, Name = "Creditor 2", Email = "c2@example.com" },
-                    new Creditor { Id = 3, Name = "Creditor 3", Email = "c3@example.com" }
-                );
                 var invoice = new Invoice
                 {
                     Id = invoiceId,
-                    Title = "Invoice with Participants",
-                    Participants = new List<InvoiceParticipant>
-                    {
-                        new InvoiceParticipant { InvoiceId = invoiceId, CreditorId = 1 },
-                        new InvoiceParticipant { InvoiceId = invoiceId, CreditorId = 2 },
-                        new InvoiceParticipant { InvoiceId = invoiceId, CreditorId = 3 }
-                    }
+                    Title = "Invoice",
                 };
                 context.Invoices.Add(invoice);
                 await context.SaveChangesAsync();
@@ -119,14 +108,13 @@ namespace Application.UnitTests.ExpenseItems
             using (var context = new DataContext(options))
             {
                 var savedItem = await context.ExpenseItems
-                    .Include(ei => ei.Payers)
+                    .Include(ei => ei.LineItems)
                     .FirstOrDefaultAsync(ei => ei.Id == expenseItem.Id);
 
                 Assert.NotNull(savedItem);
-                Assert.Equal(3, savedItem.Payers.Count);
-                Assert.Contains(savedItem.Payers, p => p.CreditorId == 1);
-                Assert.Contains(savedItem.Payers, p => p.CreditorId == 2);
-                Assert.Contains(savedItem.Payers, p => p.CreditorId == 3);
+                Assert.Equal("Item without LineItems", savedItem.Name);
+                Assert.Empty(savedItem.LineItems);
+                Assert.Equal(0m, savedItem.Amount); // Amount should be 0 when no line items
             }
         }
     }
