@@ -1,11 +1,12 @@
 import { observer } from "mobx-react-lite";
 import React, { ChangeEvent, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button, Form, Segment } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 
 
 export default observer(function InvoiceForm() {
-
+    const navigate = useNavigate();
     const { invoiceStore } = useStore();
     const { selectedInvoice, closeForm, createInvoice, updateInvoice, loading } = invoiceStore;
 
@@ -26,9 +27,18 @@ export default observer(function InvoiceForm() {
         return true;
     }
 
-    function handleSubmit() {
+    async function handleSubmit() {
         if (!validateForm()) return;
-        invoice.id ? updateInvoice(invoice) : createInvoice(invoice);
+        if (invoice.id) {
+            await updateInvoice(invoice);
+            navigate(`/invoices/${invoice.id}`);
+        } else {
+            await createInvoice(invoice);
+            // Navigate to the newly created invoice (selectedInvoice is updated by createInvoice)
+            if (invoiceStore.selectedInvoice) {
+                navigate(`/invoices/${invoiceStore.selectedInvoice.id}`);
+            }
+        }
     }
 
     function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
