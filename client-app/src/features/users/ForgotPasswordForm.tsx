@@ -1,6 +1,6 @@
 import { ErrorMessage, Form as FormikForm, Formik } from "formik";
 import { observer } from "mobx-react-lite";
-import { Button, Form, Header, Label, Message } from "semantic-ui-react";
+import { Button, Form, Label, Message } from "semantic-ui-react";
 import { useStore } from "../../app/stores/store";
 import * as Yup from 'yup';
 import { useState } from "react";
@@ -11,63 +11,78 @@ export default observer(function ForgotPasswordForm() {
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const validationSchema = Yup.object({
-        email: Yup.string().required('Email is required').email('Invalid email address')
+        email: Yup.string().required('Sähköposti vaaditaan').email('Virheellinen sähköpostiosoite')
     });
 
     return (
-        <Formik
-            initialValues={{ email: '', error: null }}
-            validationSchema={validationSchema}
-            onSubmit={(values, { setErrors, setSubmitting }) => userStore.forgotPassword({
-                email: values.email
-            }).then((message) => {
-                setSuccessMessage(message);
-                setSubmitting(false);
-            }).catch(error => {
-                setErrors({ error: 'Failed to send password reset email.' });
-                setSubmitting(false);
-            })}
-        >
-            {({ handleSubmit, isSubmitting, errors, handleChange, values, touched }) => (
-                <FormikForm className='ui form' onSubmit={handleSubmit} autoComplete='off'>
-                    <Header as='h2' content='Forgot Password?' color='teal' textAlign='center' />
+        <div className="login-page">
+            <div className="login-card">
+                <div className="login-logo">M</div>
+                <h1 className="login-title">Unohtuiko salasana?</h1>
 
-                    {successMessage ? (
-                        <Message positive>
-                            <Message.Header>Email Sent</Message.Header>
-                            <p>{successMessage}</p>
-                            <p>Please check your email inbox and follow the instructions to reset your password.</p>
-                            <p><Link to='/login'>Return to login</Link></p>
-                        </Message>
-                    ) : (
-                        <>
-                            <p style={{ textAlign: 'center', marginBottom: 20 }}>
-                                Enter your email address and we'll send you a link to reset your password.
-                            </p>
+                <Formik
+                    initialValues={{ email: '', error: null }}
+                    validationSchema={validationSchema}
+                    onSubmit={(values, { setErrors, setSubmitting }) => userStore.forgotPassword({
+                        email: values.email
+                    }).then((message) => {
+                        setSuccessMessage(message);
+                        setSubmitting(false);
+                    }).catch(error => {
+                        setErrors({ error: 'Salasanan palautusviestin lähetys epäonnistui.' });
+                        setSubmitting(false);
+                    })}
+                >
+                    {({ handleSubmit, isSubmitting, errors, handleChange, values, touched }) => (
+                        <FormikForm className='ui form login-form' onSubmit={handleSubmit} autoComplete='off'>
+                            {successMessage ? (
+                                <Message positive>
+                                    <Message.Header>Sähköposti lähetetty</Message.Header>
+                                    <p>{successMessage}</p>
+                                    <p>Tarkista sähköpostisi ja seuraa ohjeita salasanan nollaamiseksi.</p>
+                                    <p><Link to='/login'>Palaa kirjautumiseen</Link></p>
+                                </Message>
+                            ) : (
+                                <>
+                                    <p style={{ textAlign: 'center', marginBottom: 20, color: 'var(--text-secondary)' }}>
+                                        Syötä sähköpostiosoitteesi ja lähetämme sinulle linkin salasanan nollaamiseksi.
+                                    </p>
 
-                            <Form.Input
-                                name='email'
-                                placeholder='Email'
-                                type='email'
-                                value={values.email}
-                                onChange={handleChange}
-                                error={touched.email && errors.email}
-                            />
-                            <ErrorMessage name='email' render={error => <Label style={{ marginBottom: 10 }} basic color='red' content={error} />} />
+                                    <Form.Input
+                                        name='email'
+                                        placeholder='Sähköposti'
+                                        type='email'
+                                        value={values.email}
+                                        onChange={handleChange}
+                                        icon='mail'
+                                        iconPosition='left'
+                                        error={touched.email && errors.email}
+                                        fluid
+                                    />
+                                    <ErrorMessage name='email' render={error => <Label style={{ marginBottom: 10 }} basic color='red' content={error} />} />
 
-                            <ErrorMessage
-                                name='error' render={() =>
-                                    <Label style={{ marginBottom: 10 }} basic color='red' content={errors.error} />}
-                            />
-                            <Button loading={isSubmitting} positive content='Send Reset Link' type='submit' fluid />
+                                    <ErrorMessage
+                                        name='error' render={() =>
+                                            <Label style={{ marginBottom: 10, width: '100%', textAlign: 'center' }} basic color='red' content={errors.error} />}
+                                    />
+                                    <Button
+                                        loading={isSubmitting}
+                                        className="btn-primary"
+                                        content='Lähetä palautuslinkki'
+                                        type='submit'
+                                        fluid
+                                        size="large"
+                                    />
 
-                            <div style={{ textAlign: 'center', marginTop: 15 }}>
-                                <Link to='/login'>Back to login</Link>
-                            </div>
-                        </>
+                                    <div className="login-footer">
+                                        <Link to='/login'>Takaisin kirjautumiseen</Link>
+                                    </div>
+                                </>
+                            )}
+                        </FormikForm>
                     )}
-                </FormikForm>
-            )}
-        </Formik>
+                </Formik>
+            </div>
+        </div>
     )
 })

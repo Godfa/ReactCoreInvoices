@@ -1,6 +1,6 @@
 import { ErrorMessage, Form as FormikForm, Formik } from "formik";
 import { observer } from "mobx-react-lite";
-import { Button, Form, Header, Label } from "semantic-ui-react";
+import { Button, Form, Label } from "semantic-ui-react";
 import { useStore } from "../../app/stores/store";
 import { Link } from "react-router-dom";
 
@@ -8,40 +8,59 @@ export default observer(function LoginForm() {
     const { userStore } = useStore();
 
     return (
-        <Formik
-            initialValues={{ email: '', password: '', error: null }}
-            onSubmit={(values, { setErrors }) => userStore.login(values).catch(error =>
-                setErrors({ error: 'Invalid email or password' }))}
-        >
-            {({ handleSubmit, isSubmitting, errors, handleChange, values }) => (
-                <FormikForm className='ui form' onSubmit={handleSubmit} autoComplete='off'>
-                    <Header as='h2' content='Login to Invoices' color='teal' textAlign='center' />
-                    <Form.Input
-                        name='email'
-                        placeholder='Email'
-                        value={values.email}
-                        onChange={handleChange}
-                    />
-                    <Form.Input
-                        name='password'
-                        placeholder='Password'
-                        type='password'
-                        value={values.password}
-                        onChange={handleChange}
-                    />
-                    <ErrorMessage
-                        name='error' render={() =>
-                            <Label style={{ marginBottom: 10 }} basic color='red' content={errors.error} />}
-                    />
-                    <Button loading={isSubmitting} positive content='Login' type='submit' fluid />
+        <div className="login-page">
+            <div className="login-card">
+                <div className="login-logo">M</div>
+                <h1 className="login-title">Mökkilan Invoices</h1>
 
-                    <div style={{ textAlign: 'center', marginTop: 20 }}>
-                        <Link to='/forgot-password' style={{ fontSize: '1.1em', color: '#00b5ad', fontWeight: '500' }}>
-                            Forgot password?
-                        </Link>
-                    </div>
-                </FormikForm>
-            )}
-        </Formik>
+                <Formik
+                    initialValues={{ email: '', password: '', error: null }}
+                    onSubmit={(values, { setErrors }) => userStore.login(values).catch(error =>
+                        setErrors({ error: 'Virheellinen sähköposti tai salasana' }))}
+                >
+                    {({ handleSubmit, isSubmitting, errors, handleChange, values }) => (
+                        <FormikForm className='ui form login-form' onSubmit={handleSubmit} autoComplete='off'>
+                            <Form.Input
+                                name='email'
+                                placeholder='Sähköposti'
+                                value={values.email}
+                                onChange={handleChange}
+                                icon='mail'
+                                iconPosition='left'
+                                fluid
+                            />
+                            <Form.Input
+                                name='password'
+                                placeholder='Salasana'
+                                type='password'
+                                value={values.password}
+                                onChange={handleChange}
+                                icon='lock'
+                                iconPosition='left'
+                                fluid
+                            />
+                            <ErrorMessage
+                                name='error' render={() =>
+                                    <Label style={{ marginBottom: 10, width: '100%', textAlign: 'center' }} basic color='red' content={errors.error} />}
+                            />
+                            <Button
+                                loading={isSubmitting}
+                                className="btn-primary"
+                                content='Kirjaudu sisään'
+                                type='submit'
+                                fluid
+                                size="large"
+                            />
+                        </FormikForm>
+                    )}
+                </Formik>
+
+                <div className="login-footer">
+                    <Link to='/forgot-password'>
+                        Unohtuiko salasana?
+                    </Link>
+                </div>
+            </div>
+        </div>
     )
 })

@@ -55,19 +55,20 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
     };
 
     return (
-        <Segment>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <h3>Expense Items</h3>
+        <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+                <h3 style={{ margin: 0 }}>Kuluerät</h3>
                 <Button
-                    color='teal'
-                    content='Add Item'
+                    className='btn-primary'
                     onClick={() => {
                         setAddMode(!addMode);
                         setEditingItem(null);
                     }}
                     loading={loading}
                     disabled={loading}
-                />
+                >
+                    <Icon name='plus' /> Lisää kulu
+                </Button>
             </div>
 
             {(addMode || editingItem) && (
@@ -78,16 +79,17 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                 />
             )}
 
+            <div style={{ overflowX: 'auto' }}>
             <Table celled>
                 <Table.Header>
                     <Table.Row>
                         <Table.HeaderCell width={1}></Table.HeaderCell>
-                        <Table.HeaderCell>Name</Table.HeaderCell>
-                        <Table.HeaderCell>Type</Table.HeaderCell>
-                        <Table.HeaderCell>Creditor</Table.HeaderCell>
-                        <Table.HeaderCell>Amount</Table.HeaderCell>
-                        <Table.HeaderCell>Payers</Table.HeaderCell>
-                        <Table.HeaderCell>Actions</Table.HeaderCell>
+                        <Table.HeaderCell>Nimi</Table.HeaderCell>
+                        <Table.HeaderCell>Tyyppi</Table.HeaderCell>
+                        <Table.HeaderCell>Velkoja</Table.HeaderCell>
+                        <Table.HeaderCell>Summa</Table.HeaderCell>
+                        <Table.HeaderCell>Maksajat</Table.HeaderCell>
+                        <Table.HeaderCell>Toiminnot</Table.HeaderCell>
                     </Table.Row>
                 </Table.Header>
 
@@ -127,7 +129,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                 </Label>
                                             ))
                                         ) : (
-                                            <span style={{ color: '#999' }}>No payers</span>
+                                            <span style={{ color: 'var(--text-muted)' }}>Ei maksajia</span>
                                         )}
                                     </div>
                                     <div style={{ marginTop: '5px' }}>
@@ -136,8 +138,8 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                 {selectedInvoice.participants.filter(p => !item.payers?.some(payer => payer.creditorId === p.creditorId)).length > 0 && (
                                                     <Button
                                                         size='tiny'
-                                                        color='green'
-                                                        content={`Add All (${selectedInvoice.participants.filter(p => !item.payers?.some(payer => payer.creditorId === p.creditorId)).length})`}
+                                                        className='btn-success'
+                                                        content={`Lisää kaikki (${selectedInvoice.participants.filter(p => !item.payers?.some(payer => payer.creditorId === p.creditorId)).length})`}
                                                         onClick={async () => {
                                                             const payersToAdd = selectedInvoice.participants!.filter(p => !item.payers?.some(payer => payer.creditorId === p.creditorId));
                                                             invoiceStore.loading = true;
@@ -145,7 +147,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                                 await Promise.all(
                                                                     payersToAdd.map(p => addPayer(invoiceId, item.id, p.creditorId, true))
                                                                 );
-                                                                toast.success(`${payersToAdd.length} payers added`);
+                                                                toast.success(`${payersToAdd.length} maksajaa lisätty`);
                                                             } finally {
                                                                 invoiceStore.loading = false;
                                                             }
@@ -158,8 +160,8 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                 {item.payers && item.payers.length > 0 && (
                                                     <Button
                                                         size='tiny'
-                                                        color='red'
-                                                        content={`Remove All (${item.payers.length})`}
+                                                        className='btn-danger'
+                                                        content={`Poista kaikki (${item.payers.length})`}
                                                         onClick={async () => {
                                                             const payersToRemove = [...item.payers!];
                                                             invoiceStore.loading = true;
@@ -167,7 +169,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                                 await Promise.all(
                                                                     payersToRemove.map(p => removePayer(invoiceId, item.id, p.creditorId, true))
                                                                 );
-                                                                toast.success(`${payersToRemove.length} payers removed`);
+                                                                toast.success(`${payersToRemove.length} maksajaa poistettu`);
                                                             } finally {
                                                                 invoiceStore.loading = false;
                                                             }
@@ -182,8 +184,8 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                         {payerMenuOpen !== item.id && (
                                             <Button
                                                 size='tiny'
-                                                color='orange'
-                                                content='Add Payer'
+                                                className='btn-secondary'
+                                                content='Lisää maksaja'
                                                 onClick={() => setPayerMenuOpen(item.id)}
                                                 disabled={loading}
                                                 style={{ marginBottom: '5px' }}
@@ -212,7 +214,8 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                 ))}
                                             <Button
                                                 size='tiny'
-                                                content='Close'
+                                                className='btn-secondary'
+                                                content='Sulje'
                                                 onClick={() => setPayerMenuOpen(null)}
                                                 style={{ marginBottom: '5px' }}
                                             />
@@ -240,20 +243,20 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
 
                             {expandedItems.has(item.id) && (
                                 <Table.Row>
-                                    <Table.Cell colSpan='7' style={{ padding: '10px 20px', backgroundColor: '#f9f9f9' }}>
-                                        <div style={{ marginBottom: '10px' }}>
-                                            <strong>Line Items:</strong>
+                                    <Table.Cell colSpan='7' style={{ padding: 'var(--spacing-md) var(--spacing-lg)', backgroundColor: 'var(--bg-secondary)' }}>
+                                        <div style={{ marginBottom: 'var(--spacing-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+                                            <strong>Rivitiedot:</strong>
                                             <Button
                                                 size='tiny'
-                                                color='teal'
-                                                content='Add Line Item'
-                                                floated='right'
+                                                className='btn-primary'
                                                 onClick={() => {
                                                     setAddingLineItemFor(item.id);
                                                     setEditingLineItem(null);
                                                 }}
                                                 disabled={loading}
-                                            />
+                                            >
+                                                <Icon name='plus' /> Lisää rivi
+                                            </Button>
                                         </div>
 
                                         {(addingLineItemFor === item.id || editingLineItem?.expenseItemId === item.id) && (
@@ -272,11 +275,11 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                             <Table compact size='small'>
                                                 <Table.Header>
                                                     <Table.Row>
-                                                        <Table.HeaderCell>Name</Table.HeaderCell>
-                                                        <Table.HeaderCell>Quantity</Table.HeaderCell>
-                                                        <Table.HeaderCell>Unit Price</Table.HeaderCell>
-                                                        <Table.HeaderCell>Total</Table.HeaderCell>
-                                                        <Table.HeaderCell>Actions</Table.HeaderCell>
+                                                        <Table.HeaderCell>Nimi</Table.HeaderCell>
+                                                        <Table.HeaderCell>Määrä</Table.HeaderCell>
+                                                        <Table.HeaderCell>Yksikköhinta</Table.HeaderCell>
+                                                        <Table.HeaderCell>Yhteensä</Table.HeaderCell>
+                                                        <Table.HeaderCell>Toiminnot</Table.HeaderCell>
                                                     </Table.Row>
                                                 </Table.Header>
                                                 <Table.Body>
@@ -311,7 +314,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                 </Table.Body>
                                             </Table>
                                         ) : (
-                                            <p style={{ color: '#999', fontStyle: 'italic' }}>No line items added yet.</p>
+                                            <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Ei rivitietoja vielä.</p>
                                         )}
                                     </Table.Cell>
                                 </Table.Row>
@@ -320,6 +323,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                     ))}
                 </Table.Body>
             </Table>
-        </Segment>
+            </div>
+        </div>
     )
 })

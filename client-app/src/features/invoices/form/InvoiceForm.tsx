@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite";
 import React, { ChangeEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Form, Segment } from "semantic-ui-react";
+import { Button, Form, Icon } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 
 
@@ -50,30 +50,54 @@ export default observer(function InvoiceForm() {
         }
     }
 
+    const isEditing = !!invoice.id;
+
     return (
-        <Segment clearing>
-            <Form onSubmit={handleSubmit} autoComplete='off'>
-                <Form.Input
-                    placeholder='Title (optional - auto-generated if empty)'
-                    value={invoice.title}
-                    name='title'
-                    onChange={handleInputChange}
-                />
-                <Form.Input
-                    placeholder='Description (optional)'
-                    value={invoice.description}
-                    name='description'
-                    onChange={handleInputChange}
-                />
-                <Button
-                    loading={loading}
-                    floated='right'
-                    positive
-                    type='submit'
-                    content='Submit'
-                />
-                <Button onClick={closeForm} floated='right' type='button' content='Cancel' />
-            </Form>
-        </Segment>
+        <div className="animate-fade-in">
+            <h1 style={{ marginBottom: 'var(--spacing-xl)' }}>
+                {isEditing ? 'Muokkaa laskua' : 'Luo uusi lasku'}
+            </h1>
+
+            <div className="glass-card" style={{ padding: 'var(--spacing-xl)' }}>
+                <Form onSubmit={handleSubmit} autoComplete='off'>
+                    <Form.Field>
+                        <label>Otsikko</label>
+                        <Form.Input
+                            placeholder='Otsikko (valinnainen - luodaan automaattisesti jos tyhjä)'
+                            value={invoice.title}
+                            name='title'
+                            onChange={handleInputChange}
+                            icon='file alternate outline'
+                            iconPosition='left'
+                        />
+                    </Form.Field>
+
+                    <Form.Field>
+                        <label>Kuvaus</label>
+                        <Form.Input
+                            placeholder='Kuvaus (valinnainen)'
+                            value={invoice.description}
+                            name='description'
+                            onChange={handleInputChange}
+                            icon='align left'
+                            iconPosition='left'
+                        />
+                    </Form.Field>
+
+                    <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)', flexWrap: 'wrap' }}>
+                        <Button
+                            loading={loading}
+                            className="btn-primary"
+                            type='submit'
+                        >
+                            <Icon name="check" /> {isEditing ? 'Tallenna' : 'Luo lasku'}
+                        </Button>
+                        <Button onClick={closeForm} className="btn-secondary" type='button'>
+                            <Icon name="cancel" /> Peruuta
+                        </Button>
+                    </div>
+                </Form>
+            </div>
+        </div>
     )
 })

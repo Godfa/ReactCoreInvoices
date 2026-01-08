@@ -14,6 +14,7 @@ export const routes: RouteObject[] = [
         path: '/',
         element: <App />,
         children: [
+            { index: true, element: <Navigate replace to='/login' /> },
             { path: 'invoices', element: <InvoiceDashboard /> },
             { path: 'invoices/:id', element: <InvoiceDetails /> },
             { path: 'createInvoice', element: <InvoiceForm key='create' /> },

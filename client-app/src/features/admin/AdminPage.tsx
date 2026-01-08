@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
-import { Button, Container, Form, Header, Icon, Modal, Segment, Table } from "semantic-ui-react";
+import { Button, Form, Icon, Modal, Table } from "semantic-ui-react";
 import agent, { CreateUser, UpdateUser, UserManagement } from "../../app/api/agent";
 import { toast } from "react-toastify";
 
@@ -33,7 +33,7 @@ export default observer(function AdminPage() {
             setUsers(data);
         } catch (error) {
             console.error(error);
-            toast.error('Failed to load users');
+            toast.error('Käyttäjien lataus epäonnistui');
         } finally {
             setLoading(false);
         }
@@ -45,9 +45,9 @@ export default observer(function AdminPage() {
             setUsers([...users, newUser]);
             setCreateModalOpen(false);
             setCreateForm({ userName: '', displayName: '', email: '' });
-            toast.success('User created successfully. Temporary password: TempPass123!');
+            toast.success('Käyttäjä luotu onnistuneesti. Väliaikainen salasana: TempPass123!');
         } catch (error: any) {
-            toast.error(error.response?.data || 'Failed to create user');
+            toast.error(error.response?.data || 'Käyttäjän luonti epäonnistui');
         }
     };
 
@@ -58,9 +58,9 @@ export default observer(function AdminPage() {
             setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...editForm } : u));
             setEditModalOpen(false);
             setEditingUser(null);
-            toast.success('User updated successfully');
+            toast.success('Käyttäjä päivitetty onnistuneesti');
         } catch (error: any) {
-            toast.error(error.response?.data || 'Failed to update user');
+            toast.error(error.response?.data || 'Käyttäjän päivitys epäonnistui');
         }
     };
 
@@ -70,7 +70,7 @@ export default observer(function AdminPage() {
             toast.success(response.message);
             await loadUsers();
         } catch (error) {
-            toast.error('Failed to send password reset link');
+            toast.error('Salasanan palautuslinkin lähetys epäonnistui');
         }
     };
 
@@ -84,96 +84,102 @@ export default observer(function AdminPage() {
     };
 
     return (
-        <Container>
-            <Segment>
-                <Header as='h2' color='teal'>
-                    <Icon name='users' />
-                    User Management
-                </Header>
-                <Button primary onClick={() => setCreateModalOpen(true)}>
-                    <Icon name='plus' /> Add User
-                </Button>
+        <div className="animate-fade-in">
+            <h1 style={{ marginBottom: 'var(--spacing-xl)' }}>
+                <Icon name="users" /> Käyttäjähallinta
+            </h1>
 
-                <Table celled>
-                    <Table.Header>
-                        <Table.Row>
-                            <Table.HeaderCell>Username</Table.HeaderCell>
-                            <Table.HeaderCell>Display Name</Table.HeaderCell>
-                            <Table.HeaderCell>Email</Table.HeaderCell>
-                            <Table.HeaderCell>Must Change Password</Table.HeaderCell>
-                            <Table.HeaderCell>Actions</Table.HeaderCell>
-                        </Table.Row>
-                    </Table.Header>
+            <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
+                <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+                    <Button className="btn-primary" onClick={() => setCreateModalOpen(true)}>
+                        <Icon name='plus' /> Lisää käyttäjä
+                    </Button>
+                </div>
 
-                    <Table.Body>
-                        {users.map(user => (
-                            <Table.Row key={user.id}>
-                                <Table.Cell>{user.userName}</Table.Cell>
-                                <Table.Cell>{user.displayName}</Table.Cell>
-                                <Table.Cell>{user.email}</Table.Cell>
-                                <Table.Cell>{user.mustChangePassword ? 'Yes' : 'No'}</Table.Cell>
-                                <Table.Cell>
-                                    <Button size='small' onClick={() => openEditModal(user)}>
-                                        <Icon name='edit' /> Edit
-                                    </Button>
-                                    <Button
-                                        size='small'
-                                        color='orange'
-                                        onClick={() => handleSendPasswordReset(user.id, user.email)}
-                                    >
-                                        <Icon name='key' /> Reset Password
-                                    </Button>
-                                </Table.Cell>
+                <div style={{ overflowX: 'auto' }}>
+                    <Table celled>
+                        <Table.Header>
+                            <Table.Row>
+                                <Table.HeaderCell>Käyttäjänimi</Table.HeaderCell>
+                                <Table.HeaderCell>Näyttönimi</Table.HeaderCell>
+                                <Table.HeaderCell>Sähköposti</Table.HeaderCell>
+                                <Table.HeaderCell>Salasana vaihdettava</Table.HeaderCell>
+                                <Table.HeaderCell>Toiminnot</Table.HeaderCell>
                             </Table.Row>
-                        ))}
-                    </Table.Body>
-                </Table>
-            </Segment>
+                        </Table.Header>
+
+                        <Table.Body>
+                            {users.map(user => (
+                                <Table.Row key={user.id}>
+                                    <Table.Cell>{user.userName}</Table.Cell>
+                                    <Table.Cell>{user.displayName}</Table.Cell>
+                                    <Table.Cell>{user.email}</Table.Cell>
+                                    <Table.Cell>{user.mustChangePassword ? 'Kyllä' : 'Ei'}</Table.Cell>
+                                    <Table.Cell>
+                                        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
+                                            <Button size='small' className="btn-secondary" onClick={() => openEditModal(user)}>
+                                                <Icon name='edit' /> Muokkaa
+                                            </Button>
+                                            <Button
+                                                size='small'
+                                                className="btn-primary"
+                                                onClick={() => handleSendPasswordReset(user.id, user.email)}
+                                            >
+                                                <Icon name='key' /> Nollaa salasana
+                                            </Button>
+                                        </div>
+                                    </Table.Cell>
+                                </Table.Row>
+                            ))}
+                        </Table.Body>
+                    </Table>
+                </div>
+            </div>
 
             {/* Create User Modal */}
             <Modal open={createModalOpen} onClose={() => setCreateModalOpen(false)}>
-                <Modal.Header>Create New User</Modal.Header>
+                <Modal.Header>Luo uusi käyttäjä</Modal.Header>
                 <Modal.Content>
                     <Form>
                         <Form.Input
-                            label='Username'
+                            label='Käyttäjänimi'
                             value={createForm.userName}
                             onChange={(e) => setCreateForm({ ...createForm, userName: e.target.value })}
                         />
                         <Form.Input
-                            label='Display Name'
+                            label='Näyttönimi'
                             value={createForm.displayName}
                             onChange={(e) => setCreateForm({ ...createForm, displayName: e.target.value })}
                         />
                         <Form.Input
-                            label='Email'
+                            label='Sähköposti'
                             type='email'
                             value={createForm.email}
                             onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
                         />
                     </Form>
-                    <p style={{ marginTop: '1em', color: '#666' }}>
-                        A temporary password (TempPass123!) will be assigned. User must change it on first login.
+                    <p style={{ marginTop: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
+                        Käyttäjälle asetetaan väliaikainen salasana (TempPass123!), joka on vaihdettava ensimmäisellä kirjautumisella.
                     </p>
                 </Modal.Content>
                 <Modal.Actions>
-                    <Button onClick={() => setCreateModalOpen(false)}>Cancel</Button>
-                    <Button positive onClick={handleCreateUser}>Create</Button>
+                    <Button className="btn-secondary" onClick={() => setCreateModalOpen(false)}>Peruuta</Button>
+                    <Button className="btn-primary" onClick={handleCreateUser}>Luo käyttäjä</Button>
                 </Modal.Actions>
             </Modal>
 
             {/* Edit User Modal */}
             <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)}>
-                <Modal.Header>Edit User</Modal.Header>
+                <Modal.Header>Muokkaa käyttäjää</Modal.Header>
                 <Modal.Content>
                     <Form>
                         <Form.Input
-                            label='Display Name'
+                            label='Näyttönimi'
                             value={editForm.displayName}
                             onChange={(e) => setEditForm({ ...editForm, displayName: e.target.value })}
                         />
                         <Form.Input
-                            label='Email'
+                            label='Sähköposti'
                             type='email'
                             value={editForm.email}
                             onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
@@ -181,10 +187,10 @@ export default observer(function AdminPage() {
                     </Form>
                 </Modal.Content>
                 <Modal.Actions>
-                    <Button onClick={() => setEditModalOpen(false)}>Cancel</Button>
-                    <Button positive onClick={handleUpdateUser}>Save</Button>
+                    <Button className="btn-secondary" onClick={() => setEditModalOpen(false)}>Peruuta</Button>
+                    <Button className="btn-primary" onClick={handleUpdateUser}>Tallenna</Button>
                 </Modal.Actions>
             </Modal>
-        </Container>
+        </div>
     );
 });

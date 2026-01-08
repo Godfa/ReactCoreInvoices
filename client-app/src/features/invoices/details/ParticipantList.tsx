@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 import React, { useEffect } from "react";
-import { Button, Header, Label, Segment } from "semantic-ui-react";
+import { Button, Icon } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import { toast } from "react-toastify";
 
@@ -39,7 +39,7 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                 )
             );
             if (nonParticipants.length > 0) {
-                toast.success(`${nonParticipants.length} participants added`);
+                toast.success(`${nonParticipants.length} osallistujaa lisätty`);
             }
         } finally {
             invoiceStore.loading = false;
@@ -56,73 +56,86 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
         usualSuspects.includes(c.value) && !participantIds.includes(c.key)
     ).length;
 
+    const getInitials = (name: string) => {
+        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    };
+
     return (
-        <Segment>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <Header as='h3' style={{ margin: 0 }}>Participants</Header>
-                <div>
+        <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+                <h3 style={{ margin: 0 }}>Osallistujat</h3>
+                <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
                     {usualSuspectsToAdd > 0 && (
                         <Button
                             size='tiny'
-                            color='blue'
-                            content={`Add Usual Suspects (${usualSuspectsToAdd})`}
+                            className='btn-primary'
                             onClick={handleAddUsualSuspects}
                             loading={loading}
                             disabled={loading}
-                            style={{ marginRight: '5px' }}
-                        />
+                        >
+                            <Icon name='users' /> Vakkarit ({usualSuspectsToAdd})
+                        </Button>
                     )}
                     {nonParticipantCount > 0 && (
                         <Button
                             size='tiny'
-                            color='green'
-                            content={`Add All (${nonParticipantCount})`}
+                            className='btn-success'
                             onClick={handleAddAllParticipants}
                             loading={loading}
                             disabled={loading}
-                        />
+                        >
+                            <Icon name='plus' /> Lisää kaikki ({nonParticipantCount})
+                        </Button>
                     )}
                 </div>
             </div>
-            <div style={{ marginBottom: '10px' }}>
+
+            {/* Current Participants */}
+            <div className="participant-grid" style={{ marginBottom: 'var(--spacing-lg)' }}>
                 {participants.length > 0 ? (
                     participants.map(p => (
-                        <Label key={p.creditorId} style={{ marginRight: '5px', marginBottom: '5px' }}>
-                            {p.creditor.name}
-                            <Label.Detail>
-                                <Button
-                                    size='mini'
-                                    icon='delete'
-                                    onClick={() => handleRemoveParticipant(p.creditorId)}
-                                    loading={loading}
-                                    disabled={loading}
-                                    style={{ marginLeft: '5px', padding: '3px' }}
-                                />
-                            </Label.Detail>
-                        </Label>
+                        <div key={p.creditorId} className="participant-card">
+                            <div className="participant-avatar">
+                                {getInitials(p.creditor.name)}
+                            </div>
+                            <span className="participant-name">{p.creditor.name}</span>
+                            <Button
+                                size='mini'
+                                icon='close'
+                                onClick={() => handleRemoveParticipant(p.creditorId)}
+                                loading={loading}
+                                disabled={loading}
+                                style={{ marginLeft: 'auto', padding: '4px', background: 'transparent', color: 'var(--text-muted)' }}
+                            />
+                        </div>
                     ))
                 ) : (
-                    <p style={{ color: '#999' }}>No participants yet</p>
+                    <p style={{ color: 'var(--text-muted)' }}>Ei osallistujia vielä</p>
                 )}
             </div>
-            <Header as='h4'>Add Participant</Header>
-            <div>
-                {Creditors
-                    .filter(c => !participantIds.includes(c.key))
-                    .map(creditor => (
-                        <Button
-                            key={creditor.key}
-                            size='tiny'
-                            color='teal'
-                            basic
-                            content={creditor.value}
-                            onClick={() => handleAddParticipant(creditor.key)}
-                            loading={loading}
-                            disabled={loading}
-                            style={{ marginRight: '5px', marginBottom: '5px' }}
-                        />
-                    ))}
-            </div>
-        </Segment>
+
+            {/* Add Participants */}
+            {Creditors.filter(c => !participantIds.includes(c.key)).length > 0 && (
+                <>
+                    <h4 style={{ marginBottom: 'var(--spacing-sm)' }}>Lisää osallistuja</h4>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+                        {Creditors
+                            .filter(c => !participantIds.includes(c.key))
+                            .map(creditor => (
+                                <Button
+                                    key={creditor.key}
+                                    size='tiny'
+                                    className='btn-secondary'
+                                    onClick={() => handleAddParticipant(creditor.key)}
+                                    loading={loading}
+                                    disabled={loading}
+                                >
+                                    <Icon name='plus' /> {creditor.value}
+                                </Button>
+                            ))}
+                    </div>
+                </>
+            )}
+        </div>
     );
 });
