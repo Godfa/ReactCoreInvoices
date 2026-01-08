@@ -28,15 +28,15 @@ namespace API.Services
             _smtpUsername = _config["Email:SmtpUsername"];
             _smtpPassword = _config["Email:SmtpPassword"];
             _fromEmail = _config["Email:FromEmail"];
-            _fromName = _config["Email:FromName"] ?? "ReactCore Invoices";
+            _fromName = _config["Email:FromName"] ?? "Mökkilan Invoices";
             _appUrl = _config["Email:AppUrl"] ?? "https://your-app-url.com";
         }
 
         public async Task<bool> SendNewUserEmailAsync(string email, string displayName, string username, string temporaryPassword)
         {
-            var subject = "Welcome to ReactCore Invoices - Your Account Details";
+            var subject = "Welcome to Mökkilan Invoices - Your Account Details";
             var htmlContent = $@"
-                <h2>Welcome to ReactCore Invoices!</h2>
+                <h2>Welcome to Mökkilan Invoices!</h2>
                 <p>Hi {displayName},</p>
                 <p>Your account has been created successfully. Here are your login credentials:</p>
                 <ul>
@@ -47,11 +47,11 @@ namespace API.Services
                 <p><strong>Important:</strong> You will be required to change your password upon first login for security reasons.</p>
                 <p>Please log in at: <a href=""{_appUrl}"">{_appUrl}</a></p>
                 <br>
-                <p>Best regards,<br>ReactCore Invoices Team</p>
+                <p>Best regards,<br>Mökkilan Invoices Team</p>
             ";
 
             var plainTextContent = $@"
-Welcome to ReactCore Invoices!
+Welcome to Mökkilan Invoices!
 
 Hi {displayName},
 
@@ -66,7 +66,7 @@ Important: You will be required to change your password upon first login for sec
 Please log in at: {_appUrl}
 
 Best regards,
-ReactCore Invoices Team
+Mökkilan Invoices Team
             ";
 
             return await SendEmailAsync(email, displayName, subject, plainTextContent, htmlContent);
@@ -74,7 +74,7 @@ ReactCore Invoices Team
 
         public async Task<bool> SendPasswordResetEmailAsync(string email, string displayName, string temporaryPassword)
         {
-            var subject = "Password Reset - ReactCore Invoices";
+            var subject = "Password Reset - Mökkilan Invoices";
             var htmlContent = $@"
                 <h2>Password Reset</h2>
                 <p>Hi {displayName},</p>
@@ -84,7 +84,7 @@ ReactCore Invoices Team
                 <p>Please log in at: <a href=""{_appUrl}"">{_appUrl}</a></p>
                 <p>If you did not request this change, please contact your administrator immediately.</p>
                 <br>
-                <p>Best regards,<br>ReactCore Invoices Team</p>
+                <p>Best regards,<br>Mökkilan Invoices Team</p>
             ";
 
             var plainTextContent = $@"
@@ -103,7 +103,7 @@ Please log in at: {_appUrl}
 If you did not request this change, please contact your administrator immediately.
 
 Best regards,
-ReactCore Invoices Team
+Mökkilan Invoices Team
             ";
 
             return await SendEmailAsync(email, displayName, subject, plainTextContent, htmlContent);
@@ -111,7 +111,7 @@ ReactCore Invoices Team
 
         public async Task<bool> SendPasswordResetLinkAsync(string email, string displayName, string resetLink)
         {
-            var subject = "Password Reset Request - ReactCore Invoices";
+            var subject = "Password Reset Request - Mökkilan Invoices";
             var htmlContent = $@"
                 <h2>Password Reset Request</h2>
                 <p>Hi {displayName},</p>
@@ -122,7 +122,7 @@ ReactCore Invoices Team
                 <p><strong>This link will expire in 24 hours.</strong></p>
                 <p>If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
                 <br>
-                <p>Best regards,<br>ReactCore Invoices Team</p>
+                <p>Best regards,<br>Mökkilan Invoices Team</p>
             ";
 
             var plainTextContent = $@"
@@ -139,7 +139,7 @@ This link will expire in 24 hours.
 If you did not request a password reset, please ignore this email or contact support if you have concerns.
 
 Best regards,
-ReactCore Invoices Team
+Mökkilan Invoices Team
             ";
 
             return await SendEmailAsync(email, displayName, subject, plainTextContent, htmlContent);
