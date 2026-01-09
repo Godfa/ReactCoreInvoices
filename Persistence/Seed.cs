@@ -52,9 +52,7 @@ namespace Persistence
                 }
                 else
                 {
-                    // Update existing user to set MustChangePassword flag
-                    existingUser.MustChangePassword = true;
-                    await userManager.UpdateAsync(existingUser);
+                    // User already exists - don't reset their password change flag
                 }
             }
 
