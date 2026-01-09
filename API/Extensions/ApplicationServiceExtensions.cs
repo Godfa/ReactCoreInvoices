@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using API.Services;
 using Application.Core;
 using Application.ExpenseItems;
+using Application.Interfaces;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MediatR;

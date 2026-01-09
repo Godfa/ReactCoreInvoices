@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Application.Interfaces;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
