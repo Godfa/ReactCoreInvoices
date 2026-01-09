@@ -61,7 +61,7 @@ export default observer(function Sidebar({ mobileOpen, onMobileClose }: Props) {
             <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
                 {/* Header */}
                 <div className="sidebar-header">
-                    <div className="sidebar-logo">M</div>
+                    <img src="/assets/logo.png" alt="Logo" style={{ height: '40px', width: 'auto', borderRadius: '6px' }} />
                     <span className="sidebar-title">Mökkilan Invoices</span>
                 </div>
 
