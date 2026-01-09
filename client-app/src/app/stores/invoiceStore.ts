@@ -133,6 +133,14 @@ export default class InvoiceStore {
                     toast.error('Laskun luonti onnistui, mutta ostokset-kulun luonti epäonnistui');
                 }
             }
+
+            // Reload invoice from server to get complete data with participants and expenses
+            // Force reload from server (not from registry cache)
+            const refreshedInvoice = await agent.Invoices.details(createdInvoice.id);
+            runInAction(() => {
+                this.invoiceRegistry.set(refreshedInvoice.id, refreshedInvoice);
+                this.selectedInvoice = refreshedInvoice;
+            });
         } catch (error) {
             console.log(error);
             toast.error('Failed to create invoice');
