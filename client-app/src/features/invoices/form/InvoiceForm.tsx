@@ -11,7 +11,7 @@ export default observer(function InvoiceForm() {
     const { selectedInvoice, closeForm, createInvoice, updateInvoice, loading } = invoiceStore;
 
     const initialState = selectedInvoice ?? {
-        id: '',
+        id: '00000000-0000-0000-0000-000000000000',
         description: '',
         title: '',
         image: '',
