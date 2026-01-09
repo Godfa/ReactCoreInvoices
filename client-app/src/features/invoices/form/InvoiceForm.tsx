@@ -38,7 +38,7 @@ export default observer(function InvoiceForm() {
 
     async function handleSubmit() {
         if (!validateForm()) return;
-        if (invoice.id) {
+        if (isEditing) {
             await updateInvoice(invoice);
             navigate(`/invoices/${invoice.id}`);
         } else {
