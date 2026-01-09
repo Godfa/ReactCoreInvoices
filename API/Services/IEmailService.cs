@@ -7,5 +7,6 @@ namespace API.Services
         Task<bool> SendNewUserEmailAsync(string email, string displayName, string username, string temporaryPassword);
         Task<bool> SendPasswordResetEmailAsync(string email, string displayName, string temporaryPassword);
         Task<bool> SendPasswordResetLinkAsync(string email, string displayName, string resetLink);
+        Task<bool> SendInvoiceReviewNotificationAsync(string email, string displayName, string invoiceTitle, string invoiceUrl);
     }
 }

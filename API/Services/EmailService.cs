@@ -145,6 +145,39 @@ Mökkilan Invoices Team
             return await SendEmailAsync(email, displayName, subject, plainTextContent, htmlContent);
         }
 
+        public async Task<bool> SendInvoiceReviewNotificationAsync(string email, string displayName, string invoiceTitle, string invoiceUrl)
+        {
+            var subject = "Tarkista lasku - Mökkilan Invoices";
+            var htmlContent = $@"
+                <h2>Lasku odottaa katselmoitavana</h2>
+                <p>Hei {displayName},</p>
+                <p>Lasku <strong>{invoiceTitle}</strong> on siirretty katselmoitavaksi.</p>
+                <p>Ole hyvä ja tarkista lasku sekä lisää omat mahdolliset kulusi:</p>
+                <p><a href=""{invoiceUrl}"" style=""display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;"">Avaa lasku</a></p>
+                <p>Tai kopioi linkki selaimeesi:</p>
+                <p>{invoiceUrl}</p>
+                <br>
+                <p>Terveisin,<br>Mökkilan Invoices</p>
+            ";
+
+            var plainTextContent = $@"
+Lasku odottaa katselmoitavana
+
+Hei {displayName},
+
+Lasku {invoiceTitle} on siirretty katselmoitavaksi.
+
+Ole hyvä ja tarkista lasku sekä lisää omat mahdolliset kulusi:
+
+{invoiceUrl}
+
+Terveisin,
+Mökkilan Invoices
+            ";
+
+            return await SendEmailAsync(email, displayName, subject, plainTextContent, htmlContent);
+        }
+
         private async Task<bool> SendEmailAsync(string toEmail, string toName, string subject, string plainTextContent, string htmlContent)
         {
             if (string.IsNullOrEmpty(_smtpHost))
