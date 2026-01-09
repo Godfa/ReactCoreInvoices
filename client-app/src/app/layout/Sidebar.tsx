@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default observer(function Sidebar({ mobileOpen, onMobileClose }: Props) {
-    const { userStore } = useStore();
+    const { userStore, invoiceStore } = useStore();
     const location = useLocation();
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -30,6 +30,11 @@ export default observer(function Sidebar({ mobileOpen, onMobileClose }: Props) {
         if (onMobileClose) {
             onMobileClose();
         }
+    };
+
+    const handleCreateInvoiceClick = () => {
+        invoiceStore.cancelSelectedInvoice();
+        handleNavClick();
     };
 
     if (!userStore.isLoggedIn) return null;
@@ -74,7 +79,7 @@ export default observer(function Sidebar({ mobileOpen, onMobileClose }: Props) {
                     <NavLink
                         to="/createInvoice"
                         className={`sidebar-nav-item ${isActive('/createInvoice') ? 'active' : ''}`}
-                        onClick={handleNavClick}
+                        onClick={handleCreateInvoiceClick}
                     >
                         <Icon name="plus" />
                         <span>Luo lasku</span>
