@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Form, Icon } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
@@ -21,6 +21,15 @@ export default observer(function InvoiceForm() {
 
     const [invoice, setInvoice] = useState(initialState);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const [createShoppingExpense, setCreateShoppingExpense] = useState(false);
+    const [shoppingPrice, setShoppingPrice] = useState('');
+
+    useEffect(() => {
+        if (!invoice.id) {
+            setCreateShoppingExpense(false);
+            setShoppingPrice('');
+        }
+    }, [invoice.id]);
 
     function validateForm() {
         // No required fields - both title and description are optional
@@ -33,7 +42,12 @@ export default observer(function InvoiceForm() {
             await updateInvoice(invoice);
             navigate(`/invoices/${invoice.id}`);
         } else {
-            await createInvoice(invoice);
+            const shoppingData = createShoppingExpense && shoppingPrice ? {
+                price: parseFloat(shoppingPrice),
+                enabled: true
+            } : null;
+
+            await createInvoice(invoice, shoppingData);
             // Navigate to the newly created invoice (selectedInvoice is updated by createInvoice)
             if (invoiceStore.selectedInvoice) {
                 navigate(`/invoices/${invoiceStore.selectedInvoice.id}`);
@@ -83,6 +97,43 @@ export default observer(function InvoiceForm() {
                             iconPosition='left'
                         />
                     </Form.Field>
+
+                    {!isEditing && (
+                        <Form.Field>
+                            <div style={{
+                                padding: 'var(--spacing-md)',
+                                background: 'var(--surface-secondary)',
+                                borderRadius: 'var(--radius-md)',
+                                marginTop: 'var(--spacing-md)'
+                            }}>
+                                <Form.Checkbox
+                                    label='Lisää "Ostokset" kuluerä'
+                                    checked={createShoppingExpense}
+                                    onChange={(e, { checked }) => {
+                                        setCreateShoppingExpense(checked || false);
+                                        if (!checked) setShoppingPrice('');
+                                    }}
+                                />
+
+                                {createShoppingExpense && (
+                                    <Form.Field style={{ marginTop: 'var(--spacing-md)' }}>
+                                        <label>Ostokset hinta (€)</label>
+                                        <Form.Input
+                                            placeholder='Esim. 150.50'
+                                            value={shoppingPrice}
+                                            name='shoppingPrice'
+                                            type='number'
+                                            step='0.01'
+                                            min='0.01'
+                                            onChange={(e) => setShoppingPrice(e.target.value)}
+                                            icon='euro sign'
+                                            iconPosition='left'
+                                        />
+                                    </Form.Field>
+                                )}
+                            </div>
+                        </Form.Field>
+                    )}
 
                     <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)', flexWrap: 'wrap' }}>
                         <Button

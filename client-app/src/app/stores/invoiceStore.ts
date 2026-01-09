@@ -3,6 +3,12 @@ import { makeAutoObservable, runInAction } from "mobx";
 import agent from "../api/agent";
 import { v4 as uuid } from 'uuid';
 import { toast } from 'react-toastify';
+
+interface ShoppingExpenseData {
+    price: number;
+    enabled: boolean;
+}
+
 export default class InvoiceStore {
     invoiceRegistry = new Map<string, Invoice>();
     selectedInvoice: Invoice | undefined = undefined;
@@ -99,7 +105,7 @@ export default class InvoiceStore {
         this.editMode = false;
     }
 
-    createInvoice = async (invoice: Invoice) => {
+    createInvoice = async (invoice: Invoice, shoppingData?: ShoppingExpenseData | null) => {
         this.loading = true;
         invoice.id = uuid();
         try {
@@ -116,13 +122,21 @@ export default class InvoiceStore {
                 await this.addUsualSuspects(createdInvoice.id, false);
             } catch (error) {
                 console.error('Failed to add usual suspects:', error);
-            } finally {
-                runInAction(() => {
-                    this.loading = false;
-                })
+            }
+
+            // Create shopping expense if requested
+            if (shoppingData?.enabled && shoppingData.price > 0) {
+                try {
+                    await this.createShoppingExpense(createdInvoice.id, shoppingData.price);
+                } catch (error) {
+                    console.error('Failed to create shopping expense:', error);
+                    toast.error('Laskun luonti onnistui, mutta ostokset-kulun luonti epäonnistui');
+                }
             }
         } catch (error) {
             console.log(error);
+            toast.error('Failed to create invoice');
+        } finally {
             runInAction(() => {
                 this.loading = false;
             })
@@ -442,6 +456,42 @@ export default class InvoiceStore {
                 });
             }
         }
+    }
+
+    createShoppingExpense = async (invoiceId: string, price: number) => {
+        await this.loadCreditors();
+
+        const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
+        const defaultCreditor = this.Creditors.find(c => usualSuspects.includes(c.value));
+
+        if (!defaultCreditor) {
+            throw new Error('No creditor found to assign shopping expense');
+        }
+
+        const expenseItem: ExpenseItem = {
+            id: uuid(),
+            name: 'Ostokset',
+            expenseType: 0, // ShoppingList
+            expenseCreditor: defaultCreditor.key,
+            amount: price,
+            payers: [],
+            lineItems: []
+        };
+
+        await this.createExpenseItem(invoiceId, expenseItem);
+
+        const lineItem: ExpenseLineItem = {
+            id: uuid(),
+            expenseItemId: expenseItem.id,
+            name: 'Ostokset',
+            quantity: 1,
+            unitPrice: price,
+            total: price
+        };
+
+        await this.createLineItem(invoiceId, expenseItem.id, lineItem);
+
+        toast.success('Ostokset kuluerä luotu onnistuneesti');
     }
 
     createLineItem = async (invoiceId: string, expenseItemId: string, lineItem: ExpenseLineItem) => {
