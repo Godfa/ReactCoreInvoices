@@ -70,6 +70,11 @@ export default observer(function InvoiceForm() {
 
     const isEditing = !!invoice.id && invoice.id !== '00000000-0000-0000-0000-000000000000';
 
+    function handleCancel() {
+        closeForm();
+        navigate('/invoices');
+    }
+
     return (
         <div className="animate-fade-in">
             <h1 style={{ marginBottom: 'var(--spacing-xl)' }}>
@@ -155,7 +160,7 @@ export default observer(function InvoiceForm() {
                         >
                             <Icon name="check" /> {isEditing ? 'Tallenna' : 'Luo lasku'}
                         </Button>
-                        <Button onClick={closeForm} className="btn-secondary" type='button'>
+                        <Button onClick={handleCancel} className="btn-secondary" type='button'>
                             <Icon name="cancel" /> Peruuta
                         </Button>
                     </div>
