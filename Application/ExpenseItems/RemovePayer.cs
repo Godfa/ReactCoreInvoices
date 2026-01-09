@@ -12,7 +12,7 @@ namespace Application.ExpenseItems
         public class Command : IRequest
         {
             public Guid ExpenseItemId { get; set; }
-            public int CreditorId { get; set; }
+            public string AppUserId { get; set; }
         }
 
         public class Handler : IRequestHandler<Command>
@@ -28,7 +28,7 @@ namespace Application.ExpenseItems
             {
                 var payer = await _context.ExpenseItemPayers
                     .FirstOrDefaultAsync(eip => eip.ExpenseItemId == request.ExpenseItemId
-                        && eip.CreditorId == request.CreditorId, cancellationToken);
+                        && eip.AppUserId == request.AppUserId, cancellationToken);
 
                 if (payer == null)
                     return Unit.Value; // Payer not found, nothing to remove

@@ -20,20 +20,20 @@ export default class InvoiceStore {
         makeAutoObservable(this)
     }
 
-    // Creditor mapping
-    creditorRegistry = new Map<number, string>();
+    // User mapping
+    userRegistry = new Map<string, string>(); // Id -> DisplayName
 
-    get Creditors() {
-        return Array.from(this.creditorRegistry.entries()).map(([key, value]) => ({ key, value }));
+    get PotentialParticipants() {
+        return Array.from(this.userRegistry.entries()).map(([key, value]) => ({ key, value }));
     }
 
-    loadCreditors = async () => {
-        if (this.creditorRegistry.size > 0) return;
+    loadUsers = async () => {
+        if (this.userRegistry.size > 0) return;
         try {
-            const creditors = await agent.Creditors.list();
+            const users = await agent.Users.list();
             runInAction(() => {
-                creditors.forEach(creditor => {
-                    this.creditorRegistry.set(creditor.id, creditor.name);
+                users.forEach(user => {
+                    this.userRegistry.set(user.id, user.displayName);
                 })
             })
         } catch (error) {
@@ -218,7 +218,7 @@ export default class InvoiceStore {
             if (invoice?.participants && invoice.participants.length > 0) {
                 await Promise.all(
                     invoice.participants.map(p =>
-                        this.addPayer(invoiceId, expenseItem.id, p.creditorId, true)
+                        this.addPayer(invoiceId, expenseItem.id, p.appUserId, true)
                     )
                 );
                 toast.success(`${invoice.participants.length} payers added automatically`);
@@ -322,25 +322,25 @@ export default class InvoiceStore {
         return this.expenseTypeRegistry.get(typeId) || typeId.toString();
     }
 
-    getCreditorName = (creditorId: number): string => {
-        return this.creditorRegistry.get(creditorId) || creditorId.toString();
+    getUserName = (userId: string): string => {
+        return this.userRegistry.get(userId) || userId;
     }
 
-    addParticipant = async (invoiceId: string, creditorId: number, silent: boolean = false) => {
+    addParticipant = async (invoiceId: string, userId: string, silent: boolean = false) => {
         if (!silent) {
             this.loading = true;
         }
         try {
-            await agent.Invoices.addParticipant(invoiceId, creditorId);
+            await agent.Invoices.addParticipant(invoiceId, userId);
             runInAction(() => {
                 const invoice = this.invoiceRegistry.get(invoiceId);
                 if (invoice) {
                     if (!invoice.participants) invoice.participants = [];
-                    const creditor = { id: creditorId, name: this.creditorRegistry.get(creditorId) || '', email: '' };
+                    const user = { id: userId, userName: '', displayName: this.userRegistry.get(userId) || '', email: '' };
                     invoice.participants.push({
                         invoiceId: invoiceId,
-                        creditorId: creditorId,
-                        creditor: creditor
+                        appUserId: userId,
+                        appUser: user
                     });
                     this.invoiceRegistry.set(invoiceId, invoice);
                     if (this.selectedInvoice?.id === invoiceId) {
@@ -362,16 +362,16 @@ export default class InvoiceStore {
         }
     }
 
-    removeParticipant = async (invoiceId: string, creditorId: number, silent: boolean = false) => {
+    removeParticipant = async (invoiceId: string, userId: string, silent: boolean = false) => {
         if (!silent) {
             this.loading = true;
         }
         try {
-            await agent.Invoices.removeParticipant(invoiceId, creditorId);
+            await agent.Invoices.removeParticipant(invoiceId, userId);
             runInAction(() => {
                 const invoice = this.invoiceRegistry.get(invoiceId);
                 if (invoice && invoice.participants) {
-                    invoice.participants = invoice.participants.filter(p => p.creditorId !== creditorId);
+                    invoice.participants = invoice.participants.filter(p => p.appUserId !== userId);
                     this.invoiceRegistry.set(invoiceId, invoice);
                     if (this.selectedInvoice?.id === invoiceId) {
                         this.selectedInvoice = invoice;
@@ -392,23 +392,23 @@ export default class InvoiceStore {
         }
     }
 
-    addPayer = async (invoiceId: string, expenseItemId: string, creditorId: number, silent: boolean = false) => {
+    addPayer = async (invoiceId: string, expenseItemId: string, userId: string, silent: boolean = false) => {
         if (!silent) {
             this.loading = true;
         }
         try {
-            await agent.ExpenseItems.addPayer(expenseItemId, creditorId);
+            await agent.ExpenseItems.addPayer(expenseItemId, userId);
             runInAction(() => {
                 const invoice = this.invoiceRegistry.get(invoiceId);
                 if (invoice && invoice.expenseItems) {
                     const expenseItem = invoice.expenseItems.find(ei => ei.id === expenseItemId);
                     if (expenseItem) {
                         if (!expenseItem.payers) expenseItem.payers = [];
-                        const creditor = { id: creditorId, name: this.creditorRegistry.get(creditorId) || '', email: '' };
+                        const user = { id: userId, userName: '', displayName: this.userRegistry.get(userId) || '', email: '' };
                         expenseItem.payers.push({
                             expenseItemId: expenseItemId,
-                            creditorId: creditorId,
-                            creditor: creditor
+                            appUserId: userId,
+                            appUser: user
                         });
                         this.invoiceRegistry.set(invoiceId, invoice);
                         if (this.selectedInvoice?.id === invoiceId) {
@@ -431,18 +431,18 @@ export default class InvoiceStore {
         }
     }
 
-    removePayer = async (invoiceId: string, expenseItemId: string, creditorId: number, silent: boolean = false) => {
+    removePayer = async (invoiceId: string, expenseItemId: string, userId: string, silent: boolean = false) => {
         if (!silent) {
             this.loading = true;
         }
         try {
-            await agent.ExpenseItems.removePayer(expenseItemId, creditorId);
+            await agent.ExpenseItems.removePayer(expenseItemId, userId);
             runInAction(() => {
                 const invoice = this.invoiceRegistry.get(invoiceId);
                 if (invoice && invoice.expenseItems) {
                     const expenseItem = invoice.expenseItems.find(ei => ei.id === expenseItemId);
                     if (expenseItem && expenseItem.payers) {
-                        expenseItem.payers = expenseItem.payers.filter(p => p.creditorId !== creditorId);
+                        expenseItem.payers = expenseItem.payers.filter(p => p.appUserId !== userId);
                         this.invoiceRegistry.set(invoiceId, invoice);
                         if (this.selectedInvoice?.id === invoiceId) {
                             this.selectedInvoice = invoice;
@@ -465,8 +465,8 @@ export default class InvoiceStore {
     }
 
     addUsualSuspects = async (invoiceId: string, manageLoading: boolean = true) => {
-        // Ensure creditors are loaded
-        await this.loadCreditors();
+        // Ensure users are loaded
+        await this.loadUsers();
 
         if (manageLoading) {
             this.loading = true;
@@ -475,16 +475,16 @@ export default class InvoiceStore {
         try {
             const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
             const invoice = this.invoiceRegistry.get(invoiceId);
-            const participantIds = invoice?.participants?.map(p => p.creditorId) || [];
+            const participantIds = invoice?.participants?.map(p => p.appUserId) || [];
 
-            const suspectsToAdd = this.Creditors.filter(c =>
-                usualSuspects.includes(c.value) && !participantIds.includes(c.key)
+            const suspectsToAdd = this.PotentialParticipants.filter(c =>
+                usualSuspects.some(suspect => c.value.includes(suspect)) && !participantIds.includes(c.key)
             );
 
             // Add all suspects in parallel for better performance
             await Promise.all(
-                suspectsToAdd.map(creditor =>
-                    this.addParticipant(invoiceId, creditor.key, true)
+                suspectsToAdd.map(user =>
+                    this.addParticipant(invoiceId, user.key, true)
                 )
             );
 
@@ -501,20 +501,21 @@ export default class InvoiceStore {
     }
 
     createShoppingExpense = async (invoiceId: string, price: number) => {
-        await this.loadCreditors();
+        await this.loadUsers();
 
         const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
-        const defaultCreditor = this.Creditors.find(c => usualSuspects.includes(c.value));
+        const defaultUser = this.PotentialParticipants.find(c => usualSuspects.some(suspect => c.value.includes(suspect)));
 
-        if (!defaultCreditor) {
-            throw new Error('No creditor found to assign shopping expense');
+        if (!defaultUser) {
+            throw new Error('No user found to assign shopping expense');
         }
 
         const expenseItem: ExpenseItem = {
             id: uuid(),
             name: 'Ostokset',
             expenseType: 0, // ShoppingList
-            expenseCreditor: defaultCreditor.key,
+            organizerId: defaultUser.key,
+            organizer: { id: defaultUser.key, displayName: defaultUser.value, userName: '', email: '' },
             amount: price,
             payers: [],
             lineItems: []

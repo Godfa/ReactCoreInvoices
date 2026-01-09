@@ -12,7 +12,7 @@ namespace Application.Invoices
         public class Command : IRequest
         {
             public Guid InvoiceId { get; set; }
-            public int CreditorId { get; set; }
+            public string AppUserId { get; set; }
         }
 
         public class Handler : IRequestHandler<Command>
@@ -27,7 +27,7 @@ namespace Application.Invoices
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
                 var participant = await _context.InvoiceParticipants
-                    .FirstOrDefaultAsync(ip => ip.InvoiceId == request.InvoiceId && ip.CreditorId == request.CreditorId, cancellationToken);
+                    .FirstOrDefaultAsync(ip => ip.InvoiceId == request.InvoiceId && ip.AppUserId == request.AppUserId, cancellationToken);
 
                 if (participant == null)
                     throw new Exception("Participant not found");

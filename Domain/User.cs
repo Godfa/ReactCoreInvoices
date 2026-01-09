@@ -10,5 +10,8 @@ namespace Domain
     {
         public string DisplayName { get; set; }
         public bool MustChangePassword { get; set; }
+
+        public ICollection<InvoiceParticipant> Invoices { get; set; }
+        public ICollection<ExpenseItemPayer> ExpenseItemPayers { get; set; }
     }
 }

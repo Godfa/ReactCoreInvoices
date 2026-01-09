@@ -26,7 +26,7 @@ namespace Application.ExpenseItems
             {
                 return await _context.ExpenseItems
                     .Include(ei => ei.Payers)
-                        .ThenInclude(p => p.Creditor)
+                        .ThenInclude(p => p.AppUser)
                     .Include(ei => ei.LineItems)
                     .ToListAsync(cancellationToken);
             }

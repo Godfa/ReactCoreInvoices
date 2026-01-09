@@ -90,8 +90,8 @@ namespace Application.UnitTests.Invoices
             {
                 context.Database.EnsureCreated();
                 context.Invoices.AddRange(
-                    new Invoice { Id = Guid.NewGuid(), Title = "Invoice 1", LanNumber = 68, Description = "Test" },
-                    new Invoice { Id = Guid.NewGuid(), Title = "Invoice 2", LanNumber = 69, Description = "Test" }
+                    new Invoice { Id = Guid.NewGuid(), Title = "Invoice 1", LanNumber = 68, Description = "Test", Status = InvoiceStatus.Arkistoitu },
+                    new Invoice { Id = Guid.NewGuid(), Title = "Invoice 2", LanNumber = 69, Description = "Test", Status = InvoiceStatus.Arkistoitu }
                 );
                 await context.SaveChangesAsync();
             }
@@ -134,8 +134,8 @@ namespace Application.UnitTests.Invoices
             {
                 context.Database.EnsureCreated();
                 context.Invoices.AddRange(
-                    new Invoice { Id = Guid.NewGuid(), Title = "Invoice 1", LanNumber = 10, Description = "Test" },
-                    new Invoice { Id = Guid.NewGuid(), Title = "Invoice 2", LanNumber = 100, Description = "Test" }
+                    new Invoice { Id = Guid.NewGuid(), Title = "Invoice 1", LanNumber = 10, Description = "Test", Status = InvoiceStatus.Arkistoitu },
+                    new Invoice { Id = Guid.NewGuid(), Title = "Invoice 2", LanNumber = 100, Description = "Test", Status = InvoiceStatus.Arkistoitu }
                 );
                 await context.SaveChangesAsync();
             }

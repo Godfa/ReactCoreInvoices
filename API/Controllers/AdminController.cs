@@ -64,9 +64,7 @@ namespace API.Controllers
                 return BadRequest("Username already exists");
             }
 
-            // Check if creditor with same email exists
-            var existingCreditor = await _context.Creditors
-                .FirstOrDefaultAsync(c => c.Email == createUserDto.Email);
+            // Same email check handled above
 
             var user = new User
             {
@@ -83,18 +81,6 @@ namespace API.Controllers
             if (!result.Succeeded)
             {
                 return BadRequest("Failed to create user");
-            }
-
-            // If no creditor exists with this email, create one
-            if (existingCreditor == null)
-            {
-                var newCreditor = new Creditor
-                {
-                    Name = createUserDto.DisplayName,
-                    Email = createUserDto.Email
-                };
-                _context.Creditors.Add(newCreditor);
-                await _context.SaveChangesAsync();
             }
 
             // Send email with credentials
@@ -135,17 +121,6 @@ namespace API.Controllers
             if (!result.Succeeded)
             {
                 return BadRequest("Failed to update user");
-            }
-
-            // Update corresponding creditor if exists
-            var creditor = await _context.Creditors
-                .FirstOrDefaultAsync(c => c.Email == user.Email);
-
-            if (creditor != null)
-            {
-                creditor.Name = updateUserDto.DisplayName;
-                creditor.Email = updateUserDto.Email;
-                await _context.SaveChangesAsync();
             }
 
             return Ok();

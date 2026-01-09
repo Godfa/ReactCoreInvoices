@@ -10,32 +10,32 @@ interface Props {
 
 export default observer(function ParticipantList({ invoiceId }: Props) {
     const { invoiceStore } = useStore();
-    const { selectedInvoice, addParticipant, removeParticipant, loadCreditors, Creditors, loading, addUsualSuspects } = invoiceStore;
+    const { selectedInvoice, addParticipant, removeParticipant, loadUsers, PotentialParticipants, loading, addUsualSuspects } = invoiceStore;
 
     useEffect(() => {
-        loadCreditors();
-    }, [loadCreditors]);
+        loadUsers();
+    }, [loadUsers]);
 
     if (!selectedInvoice) return null;
 
     const participants = selectedInvoice.participants || [];
-    const participantIds = participants.map(p => p.creditorId);
+    const participantIds = participants.map(p => p.appUserId);
 
-    const handleAddParticipant = async (creditorId: number) => {
-        await addParticipant(invoiceId, creditorId);
+    const handleAddParticipant = async (userId: string) => {
+        await addParticipant(invoiceId, userId);
     };
 
-    const handleRemoveParticipant = async (creditorId: number) => {
-        await removeParticipant(invoiceId, creditorId);
+    const handleRemoveParticipant = async (userId: string) => {
+        await removeParticipant(invoiceId, userId);
     };
 
     const handleAddAllParticipants = async () => {
         invoiceStore.loading = true;
         try {
-            const nonParticipants = Creditors.filter(c => !participantIds.includes(c.key));
+            const nonParticipants = PotentialParticipants.filter(c => !participantIds.includes(c.key));
             await Promise.all(
-                nonParticipants.map(creditor =>
-                    addParticipant(invoiceId, creditor.key, true)
+                nonParticipants.map(user =>
+                    addParticipant(invoiceId, user.key, true)
                 )
             );
             if (nonParticipants.length > 0) {
@@ -55,7 +55,7 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
         try {
             await Promise.all(
                 participants.map(p =>
-                    removeParticipant(invoiceId, p.creditorId, true)
+                    removeParticipant(invoiceId, p.appUserId, true)
                 )
             );
             toast.success('Kaikki osallistujat poistettu');
@@ -64,10 +64,10 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
         }
     };
 
-    const nonParticipantCount = Creditors.filter(c => !participantIds.includes(c.key)).length;
+    const nonParticipantCount = PotentialParticipants.filter(c => !participantIds.includes(c.key)).length;
     const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
-    const usualSuspectsToAdd = Creditors.filter(c =>
-        usualSuspects.includes(c.value) && !participantIds.includes(c.key)
+    const usualSuspectsToAdd = PotentialParticipants.filter(c =>
+        usualSuspects.some(suspect => c.value.includes(suspect)) && !participantIds.includes(c.key)
     ).length;
 
     const getInitials = (name: string) => {
@@ -119,15 +119,15 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
             <div className="participant-grid" style={{ marginBottom: 'var(--spacing-lg)' }}>
                 {participants.length > 0 ? (
                     participants.map(p => (
-                        <div key={p.creditorId} className="participant-card">
+                        <div key={p.appUserId} className="participant-card">
                             <div className="participant-avatar">
-                                {getInitials(p.creditor.name)}
+                                {getInitials(p.appUser.displayName)}
                             </div>
-                            <span className="participant-name">{p.creditor.name}</span>
+                            <span className="participant-name">{p.appUser.displayName}</span>
                             <Button
                                 size='mini'
                                 icon='close'
-                                onClick={() => handleRemoveParticipant(p.creditorId)}
+                                onClick={() => handleRemoveParticipant(p.appUserId)}
                                 loading={loading}
                                 disabled={loading}
                                 style={{ marginLeft: 'auto', padding: '4px', background: 'transparent', color: 'var(--text-muted)' }}
@@ -140,22 +140,22 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
             </div>
 
             {/* Add Participants */}
-            {Creditors.filter(c => !participantIds.includes(c.key)).length > 0 && (
+            {PotentialParticipants.filter(c => !participantIds.includes(c.key)).length > 0 && (
                 <>
                     <h4 style={{ marginBottom: 'var(--spacing-sm)' }}>Lisää osallistuja</h4>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
-                        {Creditors
+                        {PotentialParticipants
                             .filter(c => !participantIds.includes(c.key))
-                            .map(creditor => (
+                            .map(user => (
                                 <Button
-                                    key={creditor.key}
+                                    key={user.key}
                                     size='tiny'
                                     className='btn-secondary'
-                                    onClick={() => handleAddParticipant(creditor.key)}
+                                    onClick={() => handleAddParticipant(user.key)}
                                     loading={loading}
                                     disabled={loading}
                                 >
-                                    <Icon name='plus' /> {creditor.value}
+                                    <Icon name='plus' /> {user.value}
                                 </Button>
                             ))}
                     </div>

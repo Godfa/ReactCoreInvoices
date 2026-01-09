@@ -21,7 +21,7 @@ namespace Application.UnitTests.ExpenseItems
                 .Options;
 
             var expenseItemId = Guid.NewGuid();
-            var creditorId = 1;
+            var userId = Guid.NewGuid().ToString();
 
             // Seed data
             using (var context = new DataContext(options))
@@ -33,11 +33,12 @@ namespace Application.UnitTests.ExpenseItems
                     Name = "Test Item",
                     Payers = new List<ExpenseItemPayer>()
                 });
-                context.Creditors.Add(new Creditor
+                context.Users.Add(new User
                 {
-                    Id = creditorId,
-                    Name = "Test Creditor",
-                    Email = "test@example.com"
+                    Id = userId,
+                    DisplayName = "Test User",
+                    Email = "test@example.com",
+                    UserName = "testuser"
                 });
                 await context.SaveChangesAsync();
             }
@@ -49,7 +50,7 @@ namespace Application.UnitTests.ExpenseItems
                 await handler.Handle(new AddPayer.Command
                 {
                     ExpenseItemId = expenseItemId,
-                    CreditorId = creditorId
+                    AppUserId = userId
                 }, CancellationToken.None);
             }
 
@@ -57,10 +58,10 @@ namespace Application.UnitTests.ExpenseItems
             using (var context = new DataContext(options))
             {
                 var payer = await context.ExpenseItemPayers
-                    .FirstOrDefaultAsync(p => p.ExpenseItemId == expenseItemId && p.CreditorId == creditorId);
+                    .FirstOrDefaultAsync(p => p.ExpenseItemId == expenseItemId && p.AppUserId == userId);
                 Assert.NotNull(payer);
                 Assert.Equal(expenseItemId, payer.ExpenseItemId);
-                Assert.Equal(creditorId, payer.CreditorId);
+                Assert.Equal(userId, payer.AppUserId);
             }
         }
 
@@ -73,7 +74,7 @@ namespace Application.UnitTests.ExpenseItems
                 .Options;
 
             var expenseItemId = Guid.NewGuid();
-            var creditorId = 1;
+            var userId = Guid.NewGuid().ToString();
 
             // Seed with existing payer
             using (var context = new DataContext(options))
@@ -85,16 +86,17 @@ namespace Application.UnitTests.ExpenseItems
                     Name = "Test Item"
                 };
                 context.ExpenseItems.Add(expenseItem);
-                context.Creditors.Add(new Creditor
+                context.Users.Add(new User
                 {
-                    Id = creditorId,
-                    Name = "Test Creditor",
-                    Email = "test@example.com"
+                    Id = userId,
+                    DisplayName = "Test User",
+                    Email = "test@example.com",
+                    UserName = "testuser"
                 });
                 context.ExpenseItemPayers.Add(new ExpenseItemPayer
                 {
                     ExpenseItemId = expenseItemId,
-                    CreditorId = creditorId
+                    AppUserId = userId
                 });
                 await context.SaveChangesAsync();
             }
@@ -106,7 +108,7 @@ namespace Application.UnitTests.ExpenseItems
                 await handler.Handle(new AddPayer.Command
                 {
                     ExpenseItemId = expenseItemId,
-                    CreditorId = creditorId
+                    AppUserId = userId
                 }, CancellationToken.None);
             }
 
@@ -114,7 +116,7 @@ namespace Application.UnitTests.ExpenseItems
             using (var context = new DataContext(options))
             {
                 var payerCount = await context.ExpenseItemPayers
-                    .CountAsync(p => p.ExpenseItemId == expenseItemId && p.CreditorId == creditorId);
+                    .CountAsync(p => p.ExpenseItemId == expenseItemId && p.AppUserId == userId);
                 Assert.Equal(1, payerCount); // Should still be only 1
             }
         }

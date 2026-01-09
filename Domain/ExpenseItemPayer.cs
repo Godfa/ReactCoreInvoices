@@ -10,7 +10,7 @@ namespace Domain
         [JsonIgnore]
         public ExpenseItem ExpenseItem { get; set; }
 
-        public int CreditorId { get; set; }
-        public Creditor Creditor { get; set; }
+        public string AppUserId { get; set; }
+        public User AppUser { get; set; }
     }
 }

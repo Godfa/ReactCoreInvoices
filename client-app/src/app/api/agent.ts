@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { Invoice, ExpenseItem, ExpenseTypeOption, Creditor, ExpenseLineItem, InvoiceStatus } from "../models/invoice";
+import { Invoice, ExpenseItem, ExpenseTypeOption, ExpenseLineItem, InvoiceStatus } from "../models/invoice";
 import { toast } from 'react-toastify';
 
 const sleep = (delay: number) => {
@@ -68,8 +68,8 @@ const Invoices = {
     create: (invoice: Invoice) => requests.post<Invoice>('/invoices', invoice),
     update: (invoice: Invoice) => requests.put<void>(`/invoices/${invoice.id}`, invoice),
     delete: (id: string) => requests.del<void>(`/invoices/${id}`),
-    addParticipant: (invoiceId: string, creditorId: number) => requests.post<void>(`/invoices/${invoiceId}/participants/${creditorId}`, {}),
-    removeParticipant: (invoiceId: string, creditorId: number) => requests.del<void>(`/invoices/${invoiceId}/participants/${creditorId}`),
+    addParticipant: (invoiceId: string, userId: string) => requests.post<void>(`/invoices/${invoiceId}/participants/${userId}`, {}),
+    removeParticipant: (invoiceId: string, userId: string) => requests.del<void>(`/invoices/${invoiceId}/participants/${userId}`),
     changeStatus: (invoiceId: string, status: InvoiceStatus) => requests.put<Invoice>(`/invoices/${invoiceId}/status/${status}`, {})
 }
 
@@ -80,19 +80,12 @@ const ExpenseItems = {
     createForInvoice: (invoiceId: string, expenseItem: ExpenseItem) => requests.post<void>(`/expenseitems/${invoiceId}`, expenseItem),
     update: (expenseItem: ExpenseItem) => requests.put<void>(`/expenseitems/${expenseItem.id}`, expenseItem),
     delete: (id: string) => requests.del<void>(`/expenseitems/${id}`),
-    addPayer: (expenseItemId: string, creditorId: number) => requests.post<void>(`/expenseitems/${expenseItemId}/payers/${creditorId}`, {}),
-    removePayer: (expenseItemId: string, creditorId: number) => requests.del<void>(`/expenseitems/${expenseItemId}/payers/${creditorId}`)
+    addPayer: (expenseItemId: string, userId: string) => requests.post<void>(`/expenseitems/${expenseItemId}/payers/${userId}`, {}),
+    removePayer: (expenseItemId: string, userId: string) => requests.del<void>(`/expenseitems/${expenseItemId}/payers/${userId}`)
 }
 
 const ExpenseTypes = {
     list: () => requests.get<ExpenseTypeOption[]>('/expensetypes')
-}
-
-const Creditors = {
-    list: () => requests.get<Creditor[]>('/creditors'),
-    create: (creditor: Creditor) => requests.post<void>('/creditors', creditor),
-    update: (creditor: Creditor) => requests.put<void>(`/creditors/${creditor.id}`, creditor),
-    delete: (id: number) => requests.del<void>(`/creditors/${id}`)
 }
 
 const ExpenseLineItems = {
@@ -156,15 +149,19 @@ const Account = {
     login: (user: UserFormValues) => requests.post<User>('/account/login', user),
     register: (user: UserFormValues) => requests.post<User>('/account/register', user),
     changePassword: (passwords: ChangePasswordValues) => requests.post<void>('/account/changePassword', passwords),
-    forgotPassword: (values: ForgotPasswordValues) => requests.post<{message: string}>('/account/forgotPassword', values),
-    resetPassword: (values: ResetPasswordValues) => requests.post<{message: string}>('/account/resetPassword', values)
+    forgotPassword: (values: ForgotPasswordValues) => requests.post<{ message: string }>('/account/forgotPassword', values),
+    resetPassword: (values: ResetPasswordValues) => requests.post<{ message: string }>('/account/resetPassword', values)
 }
 
 const Admin = {
     listUsers: () => requests.get<UserManagement[]>('/admin/users'),
     createUser: (user: CreateUser) => requests.post<UserManagement>('/admin/users', user),
     updateUser: (id: string, user: UpdateUser) => requests.put<void>(`/admin/users/${id}`, user),
-    sendPasswordResetLink: (id: string) => requests.post<{message: string}>(`/admin/users/${id}/reset-password`, {})
+    sendPasswordResetLink: (id: string) => requests.post<{ message: string }>(`/admin/users/${id}/reset-password`, {})
+}
+
+const Users = {
+    list: () => requests.get<UserManagement[]>('/users')
 }
 
 const agent = {
@@ -172,9 +169,9 @@ const agent = {
     ExpenseItems,
     ExpenseLineItems,
     ExpenseTypes,
-    Creditors,
     Account,
-    Admin
+    Admin,
+    Users
 }
 
 export default agent;

@@ -13,7 +13,7 @@ namespace Application.Invoices
         public class Command : IRequest
         {
             public Guid InvoiceId { get; set; }
-            public int CreditorId { get; set; }
+            public string AppUserId { get; set; }
         }
 
         public class Handler : IRequestHandler<Command>
@@ -34,21 +34,21 @@ namespace Application.Invoices
                 if (invoice == null)
                     throw new Exception($"Invoice with id {request.InvoiceId} not found");
 
-                var creditor = await _context.Creditors.FindAsync(new object[] { request.CreditorId }, cancellationToken);
+                var user = await _context.Users.FindAsync(new object[] { request.AppUserId }, cancellationToken);
 
-                if (creditor == null)
-                    throw new Exception($"Creditor with id {request.CreditorId} not found");
+                if (user == null)
+                    throw new Exception($"User with id {request.AppUserId} not found");
 
                 var existingParticipant = await _context.InvoiceParticipants
-                    .FirstOrDefaultAsync(ip => ip.InvoiceId == request.InvoiceId && ip.CreditorId == request.CreditorId, cancellationToken);
+                    .FirstOrDefaultAsync(ip => ip.InvoiceId == request.InvoiceId && ip.AppUserId == request.AppUserId, cancellationToken);
 
                 if (existingParticipant != null)
-                    throw new Exception("Creditor is already a participant");
+                    throw new Exception("User is already a participant");
 
                 var participant = new InvoiceParticipant
                 {
                     InvoiceId = request.InvoiceId,
-                    CreditorId = request.CreditorId
+                    AppUserId = request.AppUserId
                 };
 
                 _context.InvoiceParticipants.Add(participant);

@@ -67,24 +67,7 @@ namespace Persistence
                 }
             }
 
-            if (!context.Creditors.Any())
-            {
-                var creditors = new List<Creditor>
-                {
-                    new Creditor { Name = "Epi", Email = "epi@example.com" },
-                    new Creditor { Name = "Leivo", Email = "leivo@example.com" },
-                    new Creditor { Name = "Jaapu", Email = "jaapu@example.com" },
-                    new Creditor { Name = "Timo", Email = "timo@example.com" },
-                    new Creditor { Name = "JHattu", Email = "jhattu@example.com" },
-                    new Creditor { Name = "Urpi", Email = "urpi@example.com" },
-                    new Creditor { Name = "Zeip", Email = "zeip@example.com" },
-                    new Creditor { Name = "Antti", Email = "antti@example.com" },
-                    new Creditor { Name = "Sakke", Email = "sakke@example.com" },
-                    new Creditor { Name = "Lasse", Email = "lasse@example.com" }
-                };
-                await context.Creditors.AddRangeAsync(creditors);
-                await context.SaveChangesAsync();
-            }
+            // Seeding Creditors is removed. Creditors are now Users.
 
             // Clear existing invoices only in Development environment
             if (environment.IsDevelopment() && context.Invoices.Any())
@@ -102,16 +85,12 @@ namespace Persistence
             // Only seed invoices if none exist
             if (context.Invoices.Any()) return;
 
-            // Get the first creditor (Epi) for the expense item
-            var firstCreditor = await context.Creditors.FirstOrDefaultAsync();
-            if (firstCreditor == null) return;
-
-            // Get usual suspects creditors
-            var usualSuspects = new List<string> { "Epi", "JHattu", "Leivo", "Timo", "Jaapu", "Urpi", "Zeip" };
-            var usualSuspectsCreditors = await context.Creditors
-                .Where(c => usualSuspects.Contains(c.Name))
-                .ToListAsync();
-
+            // Get users for participation
+            // epiUser is already defined above
+            if (epiUser == null) return;
+            
+            var allUsers = await userManager.Users.ToListAsync();
+            
             var invoices = new List<Invoice>
             {
                 new Invoice
@@ -126,7 +105,7 @@ namespace Persistence
                         {
                             ExpenseType = ExpenseType.ShoppingList,
                             Name = "Kauppalista" ,
-                            ExpenseCreditor = firstCreditor.Id,
+                            OrganizerId = epiUser.Id,
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem
@@ -139,10 +118,10 @@ namespace Persistence
                         }
 
                     },
-                    Participants = usualSuspectsCreditors.Select(c => new InvoiceParticipant
+                    Participants = allUsers.Select(u => new InvoiceParticipant
                     {
-                        CreditorId = c.Id,
-                        Creditor = c
+                        AppUserId = u.Id,
+                        AppUser = u
                     }).ToList()
                 }
             };

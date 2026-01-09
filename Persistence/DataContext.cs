@@ -17,7 +17,7 @@ namespace Persistence
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<ExpenseItem> ExpenseItems { get; set; }
         public DbSet<ExpenseLineItem> ExpenseLineItems { get; set; }
-        public DbSet<Creditor> Creditors { get; set; }
+        // public DbSet<Creditor> Creditors { get; set; } // Removed
         public DbSet<InvoiceParticipant> InvoiceParticipants { get; set; }
         public DbSet<ExpenseItemPayer> ExpenseItemPayers { get; set; }
 
@@ -27,7 +27,7 @@ namespace Persistence
 
             // Configure Invoice -> InvoiceParticipant relationship with cascade delete
             modelBuilder.Entity<InvoiceParticipant>()
-                .HasKey(ip => new { ip.InvoiceId, ip.CreditorId });
+                .HasKey(ip => new { ip.InvoiceId, ip.AppUserId });
 
             modelBuilder.Entity<InvoiceParticipant>()
                 .HasOne(ip => ip.Invoice)
@@ -36,14 +36,14 @@ namespace Persistence
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<InvoiceParticipant>()
-                .HasOne(ip => ip.Creditor)
-                .WithMany(c => c.Invoices)
-                .HasForeignKey(ip => ip.CreditorId)
+                .HasOne(ip => ip.AppUser)
+                .WithMany(u => u.Invoices)
+                .HasForeignKey(ip => ip.AppUserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Configure ExpenseItem -> ExpenseItemPayer relationship with cascade delete
             modelBuilder.Entity<ExpenseItemPayer>()
-                .HasKey(eip => new { eip.ExpenseItemId, eip.CreditorId });
+                .HasKey(eip => new { eip.ExpenseItemId, eip.AppUserId });
 
             modelBuilder.Entity<ExpenseItemPayer>()
                 .HasOne(eip => eip.ExpenseItem)
@@ -52,9 +52,9 @@ namespace Persistence
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ExpenseItemPayer>()
-                .HasOne(eip => eip.Creditor)
-                .WithMany(c => c.ExpenseItems)
-                .HasForeignKey(eip => eip.CreditorId)
+                .HasOne(eip => eip.AppUser)
+                .WithMany(u => u.ExpenseItemPayers)
+                .HasForeignKey(eip => eip.AppUserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Configure Invoice -> ExpenseItem relationship with cascade delete

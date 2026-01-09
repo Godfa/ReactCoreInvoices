@@ -13,7 +13,7 @@ namespace Application.ExpenseItems
         public class Command : IRequest
         {
             public Guid ExpenseItemId { get; set; }
-            public int CreditorId { get; set; }
+            public string AppUserId { get; set; }
         }
 
         public class Handler : IRequestHandler<Command>
@@ -34,15 +34,15 @@ namespace Application.ExpenseItems
                 if (expenseItem == null)
                     throw new Exception("Expense item not found");
 
-                var creditor = await _context.Creditors
-                    .FirstOrDefaultAsync(c => c.Id == request.CreditorId, cancellationToken);
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(c => c.Id == request.AppUserId, cancellationToken);
 
-                if (creditor == null)
-                    throw new Exception("Creditor not found");
+                if (user == null)
+                    throw new Exception("User not found");
 
                 var existingPayer = await _context.ExpenseItemPayers
                     .FirstOrDefaultAsync(eip => eip.ExpenseItemId == request.ExpenseItemId
-                        && eip.CreditorId == request.CreditorId, cancellationToken);
+                        && eip.AppUserId == request.AppUserId, cancellationToken);
 
                 if (existingPayer != null)
                     return Unit.Value; // Already a payer
@@ -50,7 +50,7 @@ namespace Application.ExpenseItems
                 var payer = new ExpenseItemPayer
                 {
                     ExpenseItemId = request.ExpenseItemId,
-                    CreditorId = request.CreditorId
+                    AppUserId = request.AppUserId
                 };
 
                 _context.ExpenseItemPayers.Add(payer);

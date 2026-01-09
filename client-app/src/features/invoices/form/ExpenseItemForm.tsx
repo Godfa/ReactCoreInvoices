@@ -16,7 +16,7 @@ interface Props {
 interface FormValues {
     name: string;
     expenseType: number;
-    expenseCreditor: number;
+    organizerId: string;
     id: string;
     payers: any[];
     lineItems: any[];
@@ -28,18 +28,18 @@ interface FormValues {
 
 export default observer(function ExpenseItemForm({ invoiceId, closeForm, expenseItem }: Props) {
     const { invoiceStore } = useStore();
-    const { createExpenseItem, updateExpenseItem, createLineItem, loading, loadExpenseTypes, loadCreditors, ExpenseTypes, Creditors } = invoiceStore;
+    const { createExpenseItem, updateExpenseItem, createLineItem, loading, loadExpenseTypes, loadUsers, ExpenseTypes, PotentialParticipants } = invoiceStore;
     const [addLineItem, setAddLineItem] = useState(false);
 
     useEffect(() => {
         loadExpenseTypes();
-        loadCreditors();
-    }, [loadExpenseTypes, loadCreditors]);
+        loadUsers();
+    }, [loadExpenseTypes, loadUsers]);
 
     const validationSchema = Yup.object({
         name: Yup.string().required('The event name is required'),
         expenseType: Yup.number().required('Expense Type is required').notOneOf([-1], 'Type is required'),
-        expenseCreditor: Yup.number().required('Creditor is required').notOneOf([-1], 'Creditor is required'),
+        organizerId: Yup.string().required('Velkoja on pakollinen'),
         // Conditional validation for line item fields
         lineItemName: Yup.string().when('$addLineItem', {
             is: true,
@@ -61,14 +61,14 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
     const initialValues: FormValues = expenseItem ? {
         name: expenseItem.name,
         expenseType: expenseItem.expenseType,
-        expenseCreditor: expenseItem.expenseCreditor,
+        organizerId: expenseItem.organizerId,
         id: expenseItem.id,
         payers: expenseItem.payers || [],
         lineItems: expenseItem.lineItems || []
     } : {
         name: '',
         expenseType: -1,
-        expenseCreditor: -1,
+        organizerId: '',
         id: '',
         payers: [],
         lineItems: [],
@@ -85,12 +85,17 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                 context={{ addLineItem }}
                 onSubmit={async (values) => {
                     const expenseItemId = expenseItem ? expenseItem.id : uuid();
+                    const organizer = PotentialParticipants.find(p => p.key === values.organizerId);
+
                     const itemData = {
                         ...values,
                         expenseType: parseInt(values.expenseType.toString()),
-                        expenseCreditor: parseInt(values.expenseCreditor.toString()),
+                        organizerId: values.organizerId,
+                        organizer: organizer ? { id: organizer.key, displayName: organizer.value, userName: '', email: '' } : undefined,
                         id: expenseItemId
-                    };
+                    } as any;
+                    // Cast to any to avoid strict type checking on partial user object if needed, 
+                    // though we should match the interface. The Organizer object is needed for UI display if not refreshed.
 
                     // Create or update the expense item
                     if (expenseItem) {
@@ -124,14 +129,14 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                             <ErrorMessage name='name' render={error => <label style={{ color: 'red' }}>{error}</label>} />
                         </Form.Field>
                         <Form.Field>
-                            <label>Creditor</label>
-                            <Field as="select" name="expenseCreditor">
-                                <option value={-1}>Select Creditor</option>
-                                {Creditors.map(creditor => (
-                                    <option key={creditor.key} value={creditor.key}>{creditor.value}</option>
+                            <label>Velkoja (Maksaa)</label>
+                            <Field as="select" name="organizerId">
+                                <option value="">Valitse velkoja</option>
+                                {PotentialParticipants.map(user => (
+                                    <option key={user.key} value={user.key}>{user.value}</option>
                                 ))}
                             </Field>
-                            <ErrorMessage name='expenseCreditor' render={error => <label style={{ color: 'red' }}>{error}</label>} />
+                            <ErrorMessage name='organizerId' render={error => <label style={{ color: 'red' }}>{error}</label>} />
                         </Form.Field>
                         <Form.Field>
                             <label>Type</label>

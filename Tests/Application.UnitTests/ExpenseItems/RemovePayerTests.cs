@@ -21,7 +21,7 @@ namespace Application.UnitTests.ExpenseItems
                 .Options;
 
             var expenseItemId = Guid.NewGuid();
-            var creditorId = 1;
+            var userId = Guid.NewGuid().ToString();
 
             // Seed with existing payer
             using (var context = new DataContext(options))
@@ -32,16 +32,17 @@ namespace Application.UnitTests.ExpenseItems
                     Id = expenseItemId,
                     Name = "Test Item"
                 });
-                context.Creditors.Add(new Creditor
+                context.Users.Add(new User
                 {
-                    Id = creditorId,
-                    Name = "Test Creditor",
-                    Email = "test@example.com"
+                    Id = userId,
+                    DisplayName = "Test User",
+                    Email = "test@example.com",
+                    UserName = "testuser"
                 });
                 context.ExpenseItemPayers.Add(new ExpenseItemPayer
                 {
                     ExpenseItemId = expenseItemId,
-                    CreditorId = creditorId
+                    AppUserId = userId
                 });
                 await context.SaveChangesAsync();
             }
@@ -53,7 +54,7 @@ namespace Application.UnitTests.ExpenseItems
                 await handler.Handle(new RemovePayer.Command
                 {
                     ExpenseItemId = expenseItemId,
-                    CreditorId = creditorId
+                    AppUserId = userId
                 }, CancellationToken.None);
             }
 
@@ -61,7 +62,7 @@ namespace Application.UnitTests.ExpenseItems
             using (var context = new DataContext(options))
             {
                 var payer = await context.ExpenseItemPayers
-                    .FirstOrDefaultAsync(p => p.ExpenseItemId == expenseItemId && p.CreditorId == creditorId);
+                    .FirstOrDefaultAsync(p => p.ExpenseItemId == expenseItemId && p.AppUserId == userId);
                 Assert.Null(payer);
             }
         }
@@ -75,7 +76,7 @@ namespace Application.UnitTests.ExpenseItems
                 .Options;
 
             var expenseItemId = Guid.NewGuid();
-            var creditorId = 1;
+            var userId = Guid.NewGuid().ToString();
 
             // Seed without payer
             using (var context = new DataContext(options))
@@ -86,11 +87,12 @@ namespace Application.UnitTests.ExpenseItems
                     Id = expenseItemId,
                     Name = "Test Item"
                 });
-                context.Creditors.Add(new Creditor
+                context.Users.Add(new User
                 {
-                    Id = creditorId,
-                    Name = "Test Creditor",
-                    Email = "test@example.com"
+                    Id = userId,
+                    DisplayName = "Test User",
+                    Email = "test@example.com",
+                    UserName = "testuser"
                 });
                 await context.SaveChangesAsync();
             }
@@ -102,7 +104,7 @@ namespace Application.UnitTests.ExpenseItems
                 await handler.Handle(new RemovePayer.Command
                 {
                     ExpenseItemId = expenseItemId,
-                    CreditorId = creditorId
+                    AppUserId = userId
                 }, CancellationToken.None);
             }
 

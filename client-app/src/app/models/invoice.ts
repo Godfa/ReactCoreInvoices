@@ -13,15 +13,23 @@ export interface ExpenseLineItem {
     total: number;
 }
 
+export interface AppUser {
+    id: string;
+    userName: string;
+    displayName: string;
+    email: string;
+}
+
 export interface ExpenseItemPayer {
     expenseItemId: string;
-    creditorId: number;
-    creditor: Creditor;
+    appUserId: string;
+    appUser: AppUser;
 }
 
 export interface ExpenseItem {
     id: string;
-    expenseCreditor: number;
+    organizerId: string;
+    organizer: AppUser;
     expenseType: number; // Enum value
     name: string;
     amount: number;
@@ -34,16 +42,10 @@ export interface ExpenseTypeOption {
     value: string;
 }
 
-export interface Creditor {
-    id: number;
-    name: string;
-    email: string;
-}
-
 export interface InvoiceParticipant {
     invoiceId: string;
-    creditorId: number;
-    creditor: Creditor;
+    appUserId: string;
+    appUser: AppUser;
 }
 
 export interface Invoice {

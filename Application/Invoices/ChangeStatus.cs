@@ -36,7 +36,7 @@ namespace Application.Invoices
             {
                 var invoice = await _context.Invoices
                     .Include(i => i.Participants)
-                        .ThenInclude(p => p.Creditor)
+                        .ThenInclude(p => p.AppUser)
                     .FirstOrDefaultAsync(i => i.Id == request.InvoiceId, cancellationToken);
 
                 if (invoice == null)
@@ -60,11 +60,11 @@ namespace Application.Invoices
                     {
                         foreach (var participant in invoice.Participants)
                         {
-                            if (participant.Creditor != null && !string.IsNullOrEmpty(participant.Creditor.Email))
+                            if (participant.AppUser != null && !string.IsNullOrEmpty(participant.AppUser.Email))
                             {
                                 await _emailService.SendInvoiceReviewNotificationAsync(
-                                    participant.Creditor.Email,
-                                    participant.Creditor.Name,
+                                    participant.AppUser.Email,
+                                    participant.AppUser.DisplayName,
                                     invoice.Title,
                                     invoiceUrl
                                 );

@@ -9,7 +9,8 @@ namespace Domain
      public class ExpenseItem
     {
         public Guid Id { get; set; }
-        public int ExpenseCreditor { get; set; }
+        public string OrganizerId { get; set; }
+        public User Organizer { get; set; }
         public ExpenseType ExpenseType { get; set; }
         public string Name { get; set; }
 

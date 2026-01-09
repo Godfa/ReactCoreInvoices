@@ -10,7 +10,7 @@ vi.mock('../api/agent', () => ({
       create: vi.fn(),
       addParticipant: vi.fn(),
     },
-    Creditors: {
+    Users: {
       list: vi.fn(),
     },
   },
@@ -31,18 +31,18 @@ describe('InvoiceStore - addUsualSuspects', () => {
     store = new InvoiceStore()
     vi.clearAllMocks()
 
-    // Setup mock creditors
-    store.creditorRegistry.clear()
-    store.creditorRegistry.set(1, 'Epi')
-    store.creditorRegistry.set(2, 'JHattu')
-    store.creditorRegistry.set(3, 'Leivo')
-    store.creditorRegistry.set(4, 'Timo')
-    store.creditorRegistry.set(5, 'Jaapu')
-    store.creditorRegistry.set(6, 'Urpi')
-    store.creditorRegistry.set(7, 'Zeip')
-    store.creditorRegistry.set(8, 'Antti')
-    store.creditorRegistry.set(9, 'Sakke')
-    store.creditorRegistry.set(10, 'Lasse')
+    // Setup mock users
+    store.userRegistry.clear()
+    store.userRegistry.set('1', 'Epi')
+    store.userRegistry.set('2', 'JHattu')
+    store.userRegistry.set('3', 'Leivo')
+    store.userRegistry.set('4', 'Timo')
+    store.userRegistry.set('5', 'Jaapu')
+    store.userRegistry.set('6', 'Urpi')
+    store.userRegistry.set('7', 'Zeip')
+    store.userRegistry.set('8', 'Antti')
+    store.userRegistry.set('9', 'Sakke')
+    store.userRegistry.set('10', 'Lasse')
   })
 
   it('should add all usual suspects when none are participants', async () => {
@@ -60,18 +60,20 @@ describe('InvoiceStore - addUsualSuspects', () => {
 
     store.invoiceRegistry.set(invoiceId, invoice)
     vi.mocked(agent.Invoices.addParticipant).mockResolvedValue(undefined)
+    // Mock loadUsers to do nothing as we manually set registry
+    store.loadUsers = vi.fn().mockResolvedValue(undefined);
 
     await store.addUsualSuspects(invoiceId)
 
     // Should have called addParticipant for all 7 usual suspects
     expect(agent.Invoices.addParticipant).toHaveBeenCalledTimes(7)
-    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, 1) // Epi
-    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, 2) // JHattu
-    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, 3) // Leivo
-    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, 4) // Timo
-    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, 5) // Jaapu
-    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, 6) // Urpi
-    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, 7) // Zeip
+    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, '1') // Epi
+    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, '2') // JHattu
+    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, '3') // Leivo
+    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, '4') // Timo
+    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, '5') // Jaapu
+    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, '6') // Urpi
+    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, '7') // Zeip
   })
 
   it('should skip usual suspects that are already participants', async () => {
@@ -84,26 +86,27 @@ describe('InvoiceStore - addUsualSuspects', () => {
       image: null,
       expenseItems: [],
       participants: [
-        { invoiceId, creditorId: 1, creditor: { id: 1, name: 'Epi' } }, // Epi already participant
-        { invoiceId, creditorId: 3, creditor: { id: 3, name: 'Leivo' } }, // Leivo already participant
+        { invoiceId, appUserId: '1', appUser: { id: '1', displayName: 'Epi', userName: 'epi', email: '' } }, // Epi already participant
+        { invoiceId, appUserId: '3', appUser: { id: '3', displayName: 'Leivo', userName: 'leivo', email: '' } }, // Leivo already participant
       ],
       amount: 0,
     }
 
     store.invoiceRegistry.set(invoiceId, invoice)
     vi.mocked(agent.Invoices.addParticipant).mockResolvedValue(undefined)
+    store.loadUsers = vi.fn().mockResolvedValue(undefined);
 
     await store.addUsualSuspects(invoiceId)
 
     // Should only add 5 (7 total - 2 already participants)
     expect(agent.Invoices.addParticipant).toHaveBeenCalledTimes(5)
-    expect(agent.Invoices.addParticipant).not.toHaveBeenCalledWith(invoiceId, 1) // Epi skipped
-    expect(agent.Invoices.addParticipant).not.toHaveBeenCalledWith(invoiceId, 3) // Leivo skipped
-    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, 2) // JHattu added
-    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, 4) // Timo added
+    expect(agent.Invoices.addParticipant).not.toHaveBeenCalledWith(invoiceId, '1') // Epi skipped
+    expect(agent.Invoices.addParticipant).not.toHaveBeenCalledWith(invoiceId, '3') // Leivo skipped
+    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, '2') // JHattu added
+    expect(agent.Invoices.addParticipant).toHaveBeenCalledWith(invoiceId, '4') // Timo added
   })
 
-  it('should not add non-usual-suspects even if they exist in creditors', async () => {
+  it('should not add non-usual-suspects even if they exist in users', async () => {
     const invoiceId = 'test-invoice-id'
     const invoice: Invoice = {
       id: invoiceId,
@@ -118,13 +121,14 @@ describe('InvoiceStore - addUsualSuspects', () => {
 
     store.invoiceRegistry.set(invoiceId, invoice)
     vi.mocked(agent.Invoices.addParticipant).mockResolvedValue(undefined)
+    store.loadUsers = vi.fn().mockResolvedValue(undefined);
 
     await store.addUsualSuspects(invoiceId)
 
     // Should NOT add Antti, Sakke, or Lasse (IDs 8, 9, 10)
-    expect(agent.Invoices.addParticipant).not.toHaveBeenCalledWith(invoiceId, 8)
-    expect(agent.Invoices.addParticipant).not.toHaveBeenCalledWith(invoiceId, 9)
-    expect(agent.Invoices.addParticipant).not.toHaveBeenCalledWith(invoiceId, 10)
+    expect(agent.Invoices.addParticipant).not.toHaveBeenCalledWith(invoiceId, '8')
+    expect(agent.Invoices.addParticipant).not.toHaveBeenCalledWith(invoiceId, '9')
+    expect(agent.Invoices.addParticipant).not.toHaveBeenCalledWith(invoiceId, '10')
   })
 
   it('should handle invoice without participants array', async () => {
@@ -142,6 +146,7 @@ describe('InvoiceStore - addUsualSuspects', () => {
 
     store.invoiceRegistry.set(invoiceId, invoice)
     vi.mocked(agent.Invoices.addParticipant).mockResolvedValue(undefined)
+    store.loadUsers = vi.fn().mockResolvedValue(undefined);
 
     await store.addUsualSuspects(invoiceId)
 
@@ -157,15 +162,16 @@ describe('InvoiceStore - createInvoice with auto-add usual suspects', () => {
     store = new InvoiceStore()
     vi.clearAllMocks()
 
-    // Setup mock creditors
-    store.creditorRegistry.clear()
-    store.creditorRegistry.set(1, 'Epi')
-    store.creditorRegistry.set(2, 'JHattu')
-    store.creditorRegistry.set(3, 'Leivo')
-    store.creditorRegistry.set(4, 'Timo')
-    store.creditorRegistry.set(5, 'Jaapu')
-    store.creditorRegistry.set(6, 'Urpi')
-    store.creditorRegistry.set(7, 'Zeip')
+    // Setup mock users
+    store.userRegistry.clear()
+    store.userRegistry.set('1', 'Epi')
+    store.userRegistry.set('2', 'JHattu')
+    store.userRegistry.set('3', 'Leivo')
+    store.userRegistry.set('4', 'Timo')
+    store.userRegistry.set('5', 'Jaapu')
+    store.userRegistry.set('6', 'Urpi')
+    store.userRegistry.set('7', 'Zeip')
+    store.loadUsers = vi.fn().mockResolvedValue(undefined);
   })
 
   it('should automatically add usual suspects after creating invoice', async () => {

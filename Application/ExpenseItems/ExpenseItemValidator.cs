@@ -11,8 +11,8 @@ namespace Application.ExpenseItems
                 .NotEmpty().WithMessage("Name is required")
                 .MaximumLength(200).WithMessage("Name must not exceed 200 characters");
 
-            RuleFor(x => x.ExpenseCreditor)
-                .InclusiveBetween(1, 10).WithMessage("Expense Creditor must be between 1 and 10");
+            RuleFor(x => x.OrganizerId)
+                .NotEmpty().WithMessage("Organizer is required");
 
             RuleFor(x => x.ExpenseType)
                 .IsInEnum().WithMessage("Invalid Expense Type");
