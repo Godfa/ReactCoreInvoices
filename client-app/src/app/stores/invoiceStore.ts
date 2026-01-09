@@ -107,7 +107,7 @@ export default class InvoiceStore {
 
     createInvoice = async (invoice: Invoice, shoppingData?: ShoppingExpenseData | null) => {
         this.loading = true;
-        invoice.id = uuid();
+        // Don't set invoice.id - let the backend generate it
         try {
             const createdInvoice = await agent.Invoices.create(invoice);
             runInAction(() => {

@@ -26,6 +26,12 @@ namespace Application.Invoices
 
             public async Task<Invoice> Handle(Command request, CancellationToken cancellationToken)
             {
+                // Generate new Id if not provided or empty
+                if (request.Invoice.Id == Guid.Empty)
+                {
+                    request.Invoice.Id = Guid.NewGuid();
+                }
+
                 // Auto-generate LanNumber as max + 1
                 var maxLanNumber = await _context.Invoices
                     .MaxAsync(i => (int?)i.LanNumber, cancellationToken) ?? 0;
