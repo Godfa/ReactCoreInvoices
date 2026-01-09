@@ -4,7 +4,7 @@ import { Button, Icon, Label, Segment, Table } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import ExpenseItemForm from "../form/ExpenseItemForm";
 import ExpenseLineItemForm from "../form/ExpenseLineItemForm";
-import { ExpenseItem, ExpenseLineItem } from "Invoices";
+import { ExpenseItem, ExpenseLineItem } from "../../../app/models/invoice";
 import { toast } from "react-toastify";
 
 interface Props {

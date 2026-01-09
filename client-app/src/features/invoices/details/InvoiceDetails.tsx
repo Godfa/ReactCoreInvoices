@@ -1,17 +1,33 @@
 import React, { useEffect, useState } from "react";
-import { Button, Icon } from "semantic-ui-react";
+import { Button, Icon, Dropdown } from "semantic-ui-react";
 import LoadingComponent from "../../../app/layout/LoadingComponent";
 import { useStore } from "../../../app/stores/store";
 import ExpenseItemList from "./ExpenseItemList";
 import ParticipantList from "./ParticipantList";
 import { Link, useParams } from "react-router-dom";
 import { observer } from "mobx-react-lite";
+import { InvoiceStatus } from "../../../app/models/invoice";
 
 export default observer(function InvoiceDetails() {
     const { invoiceStore } = useStore();
-    const { selectedInvoice: invoice, loadInvoice, loadingInitial } = invoiceStore;
+    const { selectedInvoice: invoice, loadInvoice, loadingInitial, changeInvoiceStatus } = invoiceStore;
     const { id } = useParams<{ id: string }>();
     const [activeTab, setActiveTab] = useState<'expenses' | 'participants'>('expenses');
+
+    const statusOptions = [
+        { key: InvoiceStatus.Aktiivinen, text: 'Aktiivinen', value: InvoiceStatus.Aktiivinen },
+        { key: InvoiceStatus.Katselmoitavana, text: 'Katselmoitavana', value: InvoiceStatus.Katselmoitavana },
+        { key: InvoiceStatus.Arkistoitu, text: 'Arkistoitu', value: InvoiceStatus.Arkistoitu }
+    ];
+
+    function getStatusLabel(status: InvoiceStatus): string {
+        switch(status) {
+            case InvoiceStatus.Aktiivinen: return 'Aktiivinen';
+            case InvoiceStatus.Katselmoitavana: return 'Katselmoitavana';
+            case InvoiceStatus.Arkistoitu: return 'Arkistoitu';
+            default: return 'Tuntematon';
+        }
+    }
 
     useEffect(() => {
         if (id) {
@@ -50,6 +66,21 @@ export default observer(function InvoiceDetails() {
                 <div className="invoice-info-item">
                     <div className="invoice-info-label">Osallistujia</div>
                     <div className="invoice-info-value">{invoice.participants?.length || 0}</div>
+                </div>
+                <div className="invoice-info-item">
+                    <div className="invoice-info-label">Tila</div>
+                    <div className="invoice-info-value">
+                        <Dropdown
+                            selection
+                            value={invoice.status}
+                            options={statusOptions}
+                            onChange={(e, { value }) => {
+                                if (value !== undefined && invoice.id) {
+                                    changeInvoiceStatus(invoice.id, value as InvoiceStatus);
+                                }
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
 

@@ -1,20 +1,24 @@
 import { observer } from "mobx-react-lite";
 import React, { ChangeEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Form, Icon } from "semantic-ui-react";
+import { Button, Form, Icon, Message } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
+import { InvoiceStatus } from "../../../app/models/invoice";
 
 
 export default observer(function InvoiceForm() {
     const navigate = useNavigate();
     const { invoiceStore } = useStore();
-    const { selectedInvoice, closeForm, createInvoice, updateInvoice, loading } = invoiceStore;
+    const { selectedInvoice, closeForm, createInvoice, updateInvoice, loading, canCreateInvoice } = invoiceStore;
 
     const initialState = selectedInvoice ?? {
         id: '00000000-0000-0000-0000-000000000000',
+        lanNumber: 0,
         description: '',
         title: '',
         image: '',
+        status: InvoiceStatus.Aktiivinen,
+        amount: 0,
         expenseItems: [],
         participants: []
     }
@@ -71,6 +75,13 @@ export default observer(function InvoiceForm() {
             <h1 style={{ marginBottom: 'var(--spacing-xl)' }}>
                 {isEditing ? 'Muokkaa laskua' : 'Luo uusi lasku'}
             </h1>
+
+            {!isEditing && !canCreateInvoice && (
+                <Message warning>
+                    <Message.Header>Uutta laskua ei voi luoda</Message.Header>
+                    <p>Olemassa oleva lasku on aktiivinen tai katselmoitavana. Arkistoi ensin nykyinen lasku ennen uuden luomista.</p>
+                </Message>
+            )}
 
             <div className="glass-card" style={{ padding: 'var(--spacing-xl)' }}>
                 <Form onSubmit={handleSubmit} autoComplete='off'>
@@ -140,6 +151,7 @@ export default observer(function InvoiceForm() {
                             loading={loading}
                             className="btn-primary"
                             type='submit'
+                            disabled={!isEditing && !canCreateInvoice}
                         >
                             <Icon name="check" /> {isEditing ? 'Tallenna' : 'Luo lasku'}
                         </Button>

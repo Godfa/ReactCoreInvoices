@@ -16,6 +16,8 @@ namespace Domain
 
         public string Image { get; set; }
 
+        public InvoiceStatus Status { get; set; } = InvoiceStatus.Aktiivinen;
+
         public virtual List<ExpenseItem> ExpenseItems { get; set; }
         public virtual List<InvoiceParticipant> Participants { get; set; }
 

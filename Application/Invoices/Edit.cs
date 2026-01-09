@@ -37,6 +37,7 @@ namespace Application.Invoices
                 invoice.Title = request.Invoice.Title;
                 invoice.Description = request.Invoice.Description;
                 invoice.Image = request.Invoice.Image;
+                invoice.Status = request.Invoice.Status;
 
                 await _context.SaveChangesAsync();
 

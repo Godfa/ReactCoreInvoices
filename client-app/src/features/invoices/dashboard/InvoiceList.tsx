@@ -1,8 +1,9 @@
 import { observer } from "mobx-react-lite";
 import React, { SyntheticEvent, useState } from "react";
-import { Button, Icon } from "semantic-ui-react";
+import { Button, Icon, Label } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import { Link } from "react-router-dom";
+import { InvoiceStatus } from "../../../app/models/invoice";
 
 
 export default observer(function InvoiceList() {
@@ -14,6 +15,24 @@ export default observer(function InvoiceList() {
     function handleInvoiceDelete(e: SyntheticEvent<HTMLButtonElement>, id: string) {
         setTarget(e.currentTarget.name);
         deleteInvoice(id);
+    }
+
+    function getStatusLabel(status: InvoiceStatus): string {
+        switch(status) {
+            case InvoiceStatus.Aktiivinen: return 'Aktiivinen';
+            case InvoiceStatus.Katselmoitavana: return 'Katselmoitavana';
+            case InvoiceStatus.Arkistoitu: return 'Arkistoitu';
+            default: return 'Tuntematon';
+        }
+    }
+
+    function getStatusColor(status: InvoiceStatus): "red" | "orange" | "green" | "grey" {
+        switch(status) {
+            case InvoiceStatus.Aktiivinen: return 'green';
+            case InvoiceStatus.Katselmoitavana: return 'orange';
+            case InvoiceStatus.Arkistoitu: return 'grey';
+            default: return 'grey';
+        }
     }
 
     if (Invoices.length === 0) {
@@ -44,7 +63,12 @@ export default observer(function InvoiceList() {
                 <div key={invoice.id} className="invoice-card">
                     <div className="invoice-card-header">
                         <div>
-                            <h3 className="invoice-card-title">{invoice.title}</h3>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                                <h3 className="invoice-card-title" style={{ margin: 0 }}>{invoice.title}</h3>
+                                <Label color={getStatusColor(invoice.status)} size="small">
+                                    {getStatusLabel(invoice.status)}
+                                </Label>
+                            </div>
                             <div className="invoice-card-meta">
                                 LAN #{invoice.lanNumber}
                             </div>

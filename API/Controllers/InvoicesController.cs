@@ -55,5 +55,15 @@ namespace API.Controllers
             await Mediator.Send(new RemoveParticipant.Command { InvoiceId = invoiceId, CreditorId = creditorId });
             return Ok();
         }
+
+        [HttpPut("{invoiceId}/status/{status}")]
+        public async Task<IActionResult> ChangeInvoiceStatus(Guid invoiceId, int status)
+        {
+            return Ok(await Mediator.Send(new ChangeStatus.Command
+            {
+                InvoiceId = invoiceId,
+                NewStatus = (InvoiceStatus)status
+            }));
+        }
     }
 }

@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { Invoice, ExpenseItem, ExpenseTypeOption, Creditor, ExpenseLineItem } from "Invoices";
+import { Invoice, ExpenseItem, ExpenseTypeOption, Creditor, ExpenseLineItem, InvoiceStatus } from "../models/invoice";
 import { toast } from 'react-toastify';
 
 const sleep = (delay: number) => {
@@ -69,7 +69,8 @@ const Invoices = {
     update: (invoice: Invoice) => requests.put<void>(`/invoices/${invoice.id}`, invoice),
     delete: (id: string) => requests.del<void>(`/invoices/${id}`),
     addParticipant: (invoiceId: string, creditorId: number) => requests.post<void>(`/invoices/${invoiceId}/participants/${creditorId}`, {}),
-    removeParticipant: (invoiceId: string, creditorId: number) => requests.del<void>(`/invoices/${invoiceId}/participants/${creditorId}`)
+    removeParticipant: (invoiceId: string, creditorId: number) => requests.del<void>(`/invoices/${invoiceId}/participants/${creditorId}`),
+    changeStatus: (invoiceId: string, status: InvoiceStatus) => requests.put<Invoice>(`/invoices/${invoiceId}/status/${status}`, {})
 }
 
 const ExpenseItems = {

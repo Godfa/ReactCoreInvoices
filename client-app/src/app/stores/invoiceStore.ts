@@ -1,4 +1,4 @@
-import { Invoice, ExpenseItem, ExpenseLineItem } from "Invoices";
+import { Invoice, ExpenseItem, ExpenseLineItem, InvoiceStatus } from "../models/invoice";
 import { makeAutoObservable, runInAction } from "mobx";
 import agent from "../api/agent";
 import { v4 as uuid } from 'uuid';
@@ -43,6 +43,10 @@ export default class InvoiceStore {
 
     get Invoices() {
         return Array.from(this.invoiceRegistry.values());
+    }
+
+    get canCreateInvoice(): boolean {
+        return this.Invoices.every(i => i.status === InvoiceStatus.Arkistoitu);
     }
 
     loadInvoices = async () => {
@@ -264,6 +268,27 @@ export default class InvoiceStore {
             runInAction(() => {
                 this.loading = false;
             })
+        }
+    }
+
+    changeInvoiceStatus = async (invoiceId: string, newStatus: InvoiceStatus) => {
+        this.loading = true;
+        try {
+            const updatedInvoice = await agent.Invoices.changeStatus(invoiceId, newStatus);
+            runInAction(() => {
+                this.invoiceRegistry.set(invoiceId, updatedInvoice);
+                if (this.selectedInvoice?.id === invoiceId) {
+                    this.selectedInvoice = updatedInvoice;
+                }
+                this.loading = false;
+            });
+            toast.success('Laskun tila päivitetty');
+        } catch (error) {
+            console.log(error);
+            toast.error('Tilan päivitys epäonnistui');
+            runInAction(() => {
+                this.loading = false;
+            });
         }
     }
 

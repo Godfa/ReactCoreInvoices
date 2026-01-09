@@ -5,7 +5,7 @@ import { useStore } from "../../../app/stores/store";
 import { Formik, Form as FormikForm, Field, ErrorMessage } from "formik";
 import * as Yup from 'yup';
 import { v4 as uuid } from 'uuid';
-import { ExpenseLineItem } from "Invoices";
+import { ExpenseLineItem } from "../../../app/models/invoice";
 
 interface Props {
     invoiceId: string;

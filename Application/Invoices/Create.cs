@@ -26,6 +26,16 @@ namespace Application.Invoices
 
             public async Task<Invoice> Handle(Command request, CancellationToken cancellationToken)
             {
+                // Validate that no active or under review invoice exists
+                var hasActiveOrUnderReview = await _context.Invoices
+                    .AnyAsync(i => i.Status == InvoiceStatus.Aktiivinen || i.Status == InvoiceStatus.Katselmoitavana,
+                        cancellationToken);
+
+                if (hasActiveOrUnderReview)
+                {
+                    throw new Exception("Uutta laskua ei voi luoda, kun olemassa oleva lasku on aktiivinen tai katselmoitavana. Arkistoi ensin nykyinen lasku.");
+                }
+
                 // Generate new Id if not provided or empty
                 if (request.Invoice.Id == Guid.Empty)
                 {
