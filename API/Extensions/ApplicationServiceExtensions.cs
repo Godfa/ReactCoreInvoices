@@ -31,7 +31,14 @@ namespace API.Extensions
                 // Use SQLite in development
                 if (connectionString.Contains("Server=", StringComparison.OrdinalIgnoreCase))
                 {
-                    opt.UseSqlServer(connectionString);
+                    opt.UseSqlServer(connectionString, sqlOptions =>
+                    {
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 5,
+                            maxRetryDelay: TimeSpan.FromSeconds(30),
+                            errorNumbersToAdd: null);
+                        sqlOptions.CommandTimeout(60);
+                    });
                 }
                 else
                 {
