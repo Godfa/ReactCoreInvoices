@@ -28,12 +28,23 @@ export default observer(function InvoiceForm() {
     const [createShoppingExpense, setCreateShoppingExpense] = useState(false);
     const [shoppingPrice, setShoppingPrice] = useState('');
 
+    // Reset form when selectedInvoice changes (including when it becomes undefined for new invoice)
     useEffect(() => {
-        if (!invoice.id) {
-            setCreateShoppingExpense(false);
-            setShoppingPrice('');
-        }
-    }, [invoice.id]);
+        const newState = selectedInvoice ?? {
+            id: '00000000-0000-0000-0000-000000000000',
+            lanNumber: 0,
+            description: '',
+            title: '',
+            image: '',
+            status: InvoiceStatus.Aktiivinen,
+            amount: 0,
+            expenseItems: [],
+            participants: []
+        };
+        setInvoice(newState);
+        setCreateShoppingExpense(false);
+        setShoppingPrice('');
+    }, [selectedInvoice]);
 
     function validateForm() {
         // No required fields - both title and description are optional

@@ -107,6 +107,7 @@ export default class InvoiceStore {
 
     closeForm = () => {
         this.editMode = false;
+        this.selectedInvoice = undefined;
     }
 
     createInvoice = async (invoice: Invoice, shoppingData?: ShoppingExpenseData | null) => {
