@@ -50,6 +50,20 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
         await addUsualSuspects(invoiceId);
     };
 
+    const handleRemoveAllParticipants = async () => {
+        invoiceStore.loading = true;
+        try {
+            await Promise.all(
+                participants.map(p =>
+                    removeParticipant(invoiceId, p.creditorId, true)
+                )
+            );
+            toast.success('Kaikki osallistujat poistettu');
+        } finally {
+            invoiceStore.loading = false;
+        }
+    };
+
     const nonParticipantCount = Creditors.filter(c => !participantIds.includes(c.key)).length;
     const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
     const usualSuspectsToAdd = Creditors.filter(c =>
@@ -65,6 +79,17 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
                 <h3 style={{ margin: 0 }}>Osallistujat</h3>
                 <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
+                    {participants.length > 0 && (
+                        <Button
+                            size='tiny'
+                            className='btn-danger'
+                            onClick={handleRemoveAllParticipants}
+                            loading={loading}
+                            disabled={loading}
+                        >
+                            <Icon name='trash' /> Poista kaikki
+                        </Button>
+                    )}
                     {usualSuspectsToAdd > 0 && (
                         <Button
                             size='tiny'

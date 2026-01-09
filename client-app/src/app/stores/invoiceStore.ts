@@ -362,8 +362,10 @@ export default class InvoiceStore {
         }
     }
 
-    removeParticipant = async (invoiceId: string, creditorId: number) => {
-        this.loading = true;
+    removeParticipant = async (invoiceId: string, creditorId: number, silent: boolean = false) => {
+        if (!silent) {
+            this.loading = true;
+        }
         try {
             await agent.Invoices.removeParticipant(invoiceId, creditorId);
             runInAction(() => {
@@ -375,12 +377,18 @@ export default class InvoiceStore {
                         this.selectedInvoice = invoice;
                     }
                 }
-                this.loading = false;
+                if (!silent) {
+                    this.loading = false;
+                }
             });
-            toast.success('Participant removed');
+            if (!silent) {
+                toast.success('Participant removed');
+            }
         } catch (error) {
             console.log(error);
-            runInAction(() => this.loading = false);
+            if (!silent) {
+                runInAction(() => this.loading = false);
+            }
         }
     }
 
