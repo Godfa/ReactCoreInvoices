@@ -1,11 +1,11 @@
 import { observer } from "mobx-react-lite";
-import React, { useEffect } from "react";
-import { Button, Form, Header, Segment } from "semantic-ui-react";
+import React, { useEffect, useState } from "react";
+import { Button, Form, Header, Segment, Icon, Checkbox } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import { Formik, Form as FormikForm, Field, ErrorMessage } from "formik";
 import * as Yup from 'yup';
 import { v4 as uuid } from 'uuid';
-import { ExpenseItem } from "../../../app/models/invoice";
+import { ExpenseItem, ExpenseLineItem } from "../../../app/models/invoice";
 
 interface Props {
     invoiceId: string;
@@ -20,11 +20,16 @@ interface FormValues {
     id: string;
     payers: any[];
     lineItems: any[];
+    // Optional first line item fields
+    lineItemName?: string;
+    lineItemQuantity?: number;
+    lineItemUnitPrice?: number;
 }
 
 export default observer(function ExpenseItemForm({ invoiceId, closeForm, expenseItem }: Props) {
     const { invoiceStore } = useStore();
-    const { createExpenseItem, updateExpenseItem, loading, loadExpenseTypes, loadCreditors, ExpenseTypes, Creditors } = invoiceStore;
+    const { createExpenseItem, updateExpenseItem, createLineItem, loading, loadExpenseTypes, loadCreditors, ExpenseTypes, Creditors } = invoiceStore;
+    const [addLineItem, setAddLineItem] = useState(false);
 
     useEffect(() => {
         loadExpenseTypes();
@@ -34,7 +39,23 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
     const validationSchema = Yup.object({
         name: Yup.string().required('The event name is required'),
         expenseType: Yup.number().required('Expense Type is required').notOneOf([-1], 'Type is required'),
-        expenseCreditor: Yup.number().required('Creditor is required').notOneOf([-1], 'Creditor is required')
+        expenseCreditor: Yup.number().required('Creditor is required').notOneOf([-1], 'Creditor is required'),
+        // Conditional validation for line item fields
+        lineItemName: Yup.string().when('$addLineItem', {
+            is: true,
+            then: (schema) => schema.required('Line item name is required'),
+            otherwise: (schema) => schema.notRequired()
+        }),
+        lineItemQuantity: Yup.number().when('$addLineItem', {
+            is: true,
+            then: (schema) => schema.required('Quantity is required').positive('Must be positive'),
+            otherwise: (schema) => schema.notRequired()
+        }),
+        lineItemUnitPrice: Yup.number().when('$addLineItem', {
+            is: true,
+            then: (schema) => schema.required('Unit price is required').min(0, 'Must be zero or positive'),
+            otherwise: (schema) => schema.notRequired()
+        })
     })
 
     const initialValues: FormValues = expenseItem ? {
@@ -50,7 +71,10 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
         expenseCreditor: -1,
         id: '',
         payers: [],
-        lineItems: []
+        lineItems: [],
+        lineItemName: 'Ostokset',
+        lineItemQuantity: 1,
+        lineItemUnitPrice: 0
     }
 
     return (
@@ -58,17 +82,37 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
             <Header content={expenseItem ? 'Edit Expense Item' : 'Add Expense Item'} sub color='teal' />
             <Formik
                 initialValues={initialValues}
-                onSubmit={(values) => {
+                context={{ addLineItem }}
+                onSubmit={async (values) => {
+                    const expenseItemId = expenseItem ? expenseItem.id : uuid();
                     const itemData = {
                         ...values,
                         expenseType: parseInt(values.expenseType.toString()),
                         expenseCreditor: parseInt(values.expenseCreditor.toString()),
-                        id: expenseItem ? expenseItem.id : uuid()
+                        id: expenseItemId
                     };
-                    const action = expenseItem
-                        ? updateExpenseItem(invoiceId, itemData)
-                        : createExpenseItem(invoiceId, itemData);
-                    return action.then(() => closeForm());
+
+                    // Create or update the expense item
+                    if (expenseItem) {
+                        await updateExpenseItem(invoiceId, itemData);
+                    } else {
+                        await createExpenseItem(invoiceId, itemData);
+
+                        // If adding a line item, create it after expense item is created
+                        if (addLineItem && values.lineItemName && values.lineItemQuantity && values.lineItemUnitPrice !== undefined) {
+                            const lineItem: ExpenseLineItem = {
+                                id: uuid(),
+                                expenseItemId: expenseItemId,
+                                name: values.lineItemName,
+                                quantity: values.lineItemQuantity,
+                                unitPrice: values.lineItemUnitPrice,
+                                total: values.lineItemQuantity * values.lineItemUnitPrice
+                            };
+                            await createLineItem(invoiceId, expenseItemId, lineItem);
+                        }
+                    }
+
+                    closeForm();
                 }}
                 validationSchema={validationSchema}
             >
@@ -108,9 +152,42 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                             </Form.Field>
                         )}
                         {!expenseItem && (
-                            <p style={{ color: '#666', fontSize: '0.9em', fontStyle: 'italic' }}>
-                                Note: After creating the expense item, expand it to add line items.
-                            </p>
+                            <>
+                                <Form.Field>
+                                    <Checkbox
+                                        label='Lisää rivi suoraan'
+                                        checked={addLineItem}
+                                        onChange={(e, { checked }) => setAddLineItem(!!checked)}
+                                    />
+                                </Form.Field>
+                                {addLineItem && (
+                                    <Segment>
+                                        <Header size='small' content='Rivin tiedot' />
+                                        <Form.Field>
+                                            <label>Nimi</label>
+                                            <Field placeholder='Esim. Olut, Pizza, jne.' name='lineItemName' />
+                                            <ErrorMessage name='lineItemName' render={error => <label style={{ color: 'red' }}>{error}</label>} />
+                                        </Form.Field>
+                                        <Form.Group widths='equal'>
+                                            <Form.Field>
+                                                <label>Määrä</label>
+                                                <Field type='number' step='0.01' placeholder='Määrä' name='lineItemQuantity' />
+                                                <ErrorMessage name='lineItemQuantity' render={error => <label style={{ color: 'red' }}>{error}</label>} />
+                                            </Form.Field>
+                                            <Form.Field>
+                                                <label>Yksikköhinta (€)</label>
+                                                <Field type='number' step='0.01' placeholder='Hinta' name='lineItemUnitPrice' />
+                                                <ErrorMessage name='lineItemUnitPrice' render={error => <label style={{ color: 'red' }}>{error}</label>} />
+                                            </Form.Field>
+                                        </Form.Group>
+                                    </Segment>
+                                )}
+                                {!addLineItem && (
+                                    <p style={{ color: '#666', fontSize: '0.9em', fontStyle: 'italic' }}>
+                                        Voit lisätä rivejä myös jälkeenpäin laajentamalla kuluerän.
+                                    </p>
+                                )}
+                            </>
                         )}
                         <Button
                             disabled={isSubmitting || !dirty || !isValid}
