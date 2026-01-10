@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Icon, Label, Segment, Table } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import ExpenseItemForm from "../form/ExpenseItemForm";
@@ -13,7 +13,7 @@ interface Props {
 
 export default observer(function ExpenseItemList({ invoiceId }: Props) {
     const { invoiceStore } = useStore();
-    const { selectedInvoice, deleteExpenseItem, deleteLineItem, loading, getExpenseTypeName, getUserName, addPayer, removePayer, PotentialParticipants } = invoiceStore;
+    const { selectedInvoice, deleteExpenseItem, deleteLineItem, loading, getExpenseTypeName, getUserName, addPayer, removePayer, PotentialParticipants, loadExpenseTypes } = invoiceStore;
     const [addMode, setAddMode] = useState(false);
     const [editingItem, setEditingItem] = useState<ExpenseItem | null>(null);
     const [deletingId, setDeletingId] = useState<string>('');
@@ -21,6 +21,10 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
     const [addingLineItemFor, setAddingLineItemFor] = useState<string | null>(null);
     const [editingLineItem, setEditingLineItem] = useState<{ expenseItemId: string, lineItem: ExpenseLineItem } | null>(null);
+
+    useEffect(() => {
+        loadExpenseTypes();
+    }, [loadExpenseTypes]);
 
     if (!selectedInvoice) return null;
 

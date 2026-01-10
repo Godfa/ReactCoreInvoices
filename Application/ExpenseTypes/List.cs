@@ -17,10 +17,21 @@ namespace Application.ExpenseTypes
             {
                 var types = Enum.GetValues(typeof(ExpenseType))
                     .Cast<ExpenseType>()
-                    .Select(e => new KeyValuePair<int, string>((int)e, e.ToString()))
+                    .Select(e => new KeyValuePair<int, string>((int)e, GetFinnishName(e)))
                     .ToList();
-                
+
                 return Task.FromResult(types);
+            }
+
+            private string GetFinnishName(ExpenseType type)
+            {
+                return type switch
+                {
+                    ExpenseType.ShoppingList => "Kauppalista",
+                    ExpenseType.Gasoline => "Polttoaine",
+                    ExpenseType.Personal => "Henkilökohtainen",
+                    _ => type.ToString()
+                };
             }
         }
     }
