@@ -87,10 +87,10 @@ export default observer(function InvoicePrintView() {
                 <Button
                     icon
                     labelPosition='left'
-                    onClick={() => navigate(`/invoices/${invoice.id}?tab=participants`)}
+                    onClick={() => navigate(`/invoices/${invoice.id}`)}
                 >
                     <Icon name='arrow left' />
-                    Takaisin osallistujalistaan
+                    Takaisin laskulle
                 </Button>
                 <Button color='blue' icon labelPosition='left' onClick={() => window.print()}>
                     <Icon name='print' />

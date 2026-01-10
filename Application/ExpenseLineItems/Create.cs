@@ -40,7 +40,7 @@ namespace Application.ExpenseLineItems
 
                 if (expenseItem == null)
                 {
-                    throw new Exception("ExpenseItem not found");
+                    throw new Exception($"ExpenseItem not found with ID: {request.ExpenseLineItem.ExpenseItemId}");
                 }
 
                 _context.ExpenseLineItems.Add(request.ExpenseLineItem);

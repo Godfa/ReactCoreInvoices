@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 import { Button, Header, Table, Icon, Label } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
@@ -9,6 +9,7 @@ export default observer(function ParticipantInvoicePrintView() {
     const { invoiceStore } = useStore();
     const { selectedInvoice: invoice, loadInvoice, loadingInitial, getExpenseTypeName, loadExpenseTypes } = invoiceStore;
     const { id, participantId } = useParams<{ id: string; participantId: string }>();
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (id) {
@@ -101,9 +102,21 @@ export default observer(function ParticipantInvoicePrintView() {
             </style>
 
             <div className="no-print" style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
-                <Button as={Link} to={`/invoices/${invoice.id}`} icon labelPosition='left'>
+                <Button
+                    icon
+                    labelPosition='left'
+                    onClick={() => navigate(`/invoices/${invoice.id}?tab=participants`)}
+                >
                     <Icon name='arrow left' />
                     Takaisin osallistujalistaan
+                </Button>
+                <Button
+                    icon
+                    labelPosition='left'
+                    onClick={() => navigate(`/invoices/${invoice.id}`)}
+                >
+                    <Icon name='arrow left' />
+                    Takaisin laskulle
                 </Button>
                 <Button color='blue' icon labelPosition='left' onClick={() => window.print()}>
                     <Icon name='print' />

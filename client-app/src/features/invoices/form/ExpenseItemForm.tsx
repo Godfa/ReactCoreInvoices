@@ -85,17 +85,15 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                 context={{ addLineItem }}
                 onSubmit={async (values) => {
                     const expenseItemId = expenseItem ? expenseItem.id : uuid();
-                    const organizer = PotentialParticipants.find(p => p.key === values.organizerId);
 
                     const itemData = {
                         ...values,
                         expenseType: parseInt(values.expenseType.toString()),
                         organizerId: values.organizerId,
-                        organizer: organizer ? { id: organizer.key, displayName: organizer.value, userName: '', email: '' } : undefined,
+                        // Don't send organizer object to backend - it causes duplicate key errors
+                        // Backend will load the organizer via organizerId
                         id: expenseItemId
                     } as any;
-                    // Cast to any to avoid strict type checking on partial user object if needed, 
-                    // though we should match the interface. The Organizer object is needed for UI display if not refreshed.
 
                     // Create or update the expense item
                     if (expenseItem) {
