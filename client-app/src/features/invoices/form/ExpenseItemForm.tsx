@@ -129,7 +129,7 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                             <ErrorMessage name='name' render={error => <label style={{ color: 'red' }}>{error}</label>} />
                         </Form.Field>
                         <Form.Field>
-                            <label>Velkoja (Maksaa)</label>
+                            <label>Velkoja</label>
                             <Field as="select" name="organizerId">
                                 <option value="">Valitse velkoja</option>
                                 {PotentialParticipants.map(user => (
