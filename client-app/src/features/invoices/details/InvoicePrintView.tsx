@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 import { Button, Header, Table, Icon, Label, Image } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
@@ -9,6 +9,7 @@ export default observer(function InvoicePrintView() {
     const { invoiceStore } = useStore();
     const { selectedInvoice: invoice, loadInvoice, loadingInitial, getExpenseTypeName, loadExpenseTypes } = invoiceStore;
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (id) {
@@ -82,15 +83,36 @@ export default observer(function InvoicePrintView() {
                 `}
             </style>
 
-            <div className="no-print" style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
-                <Button as={Link} to={`/invoices/${invoice.id}`} icon labelPosition='left'>
+            <div className="no-print" style={{ marginBottom: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <Button
+                    icon
+                    labelPosition='left'
+                    onClick={() => navigate(`/invoices/${invoice.id}?tab=participants`)}
+                >
                     <Icon name='arrow left' />
-                    Takaisin
+                    Takaisin osallistujalistaan
                 </Button>
                 <Button color='blue' icon labelPosition='left' onClick={() => window.print()}>
                     <Icon name='print' />
                     Tulosta
                 </Button>
+
+                <div style={{ width: '100%', height: '1px', background: '#eee', margin: '10px 0' }}></div>
+
+                <Header as='h4' style={{ width: '100%', margin: '0 0 10px 0' }}>Tulosta osallistujalle:</Header>
+                {invoice.participants && invoice.participants.map(p => (
+                    <Button
+                        key={p.appUserId}
+                        as={Link}
+                        to={`/invoices/${invoice.id}/print/${p.appUserId}`}
+                        size='small'
+                        basic
+                        color='blue'
+                    >
+                        <Icon name='user' />
+                        {p.appUser.displayName} (Osuus)
+                    </Button>
+                ))}
             </div>
 
             <div className="print-container">

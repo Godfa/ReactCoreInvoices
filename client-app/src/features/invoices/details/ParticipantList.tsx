@@ -1,5 +1,6 @@
 import { observer } from "mobx-react-lite";
 import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button, Icon } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import { toast } from "react-toastify";
@@ -126,11 +127,19 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                             <span className="participant-name">{p.appUser.displayName}</span>
                             <Button
                                 size='mini'
+                                icon='print'
+                                as={Link}
+                                to={`/invoices/${invoiceId}/print/${p.appUserId}`}
+                                style={{ marginLeft: 'auto', padding: '4px', background: 'transparent', color: 'var(--text-muted)' }}
+                                title="Tulosta osuus"
+                            />
+                            <Button
+                                size='mini'
                                 icon='close'
                                 onClick={() => handleRemoveParticipant(p.appUserId)}
                                 loading={loading}
                                 disabled={loading}
-                                style={{ marginLeft: 'auto', padding: '4px', background: 'transparent', color: 'var(--text-muted)' }}
+                                style={{ padding: '4px', background: 'transparent', color: 'var(--text-muted)' }}
                             />
                         </div>
                     ))

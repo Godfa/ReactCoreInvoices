@@ -4,7 +4,7 @@ import LoadingComponent from "../../../app/layout/LoadingComponent";
 import { useStore } from "../../../app/stores/store";
 import ExpenseItemList from "./ExpenseItemList";
 import ParticipantList from "./ParticipantList";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 import { InvoiceStatus } from "../../../app/models/invoice";
 
@@ -12,6 +12,7 @@ export default observer(function InvoiceDetails() {
     const { invoiceStore } = useStore();
     const { selectedInvoice: invoice, loadInvoice, loadingInitial, changeInvoiceStatus } = invoiceStore;
     const { id } = useParams<{ id: string }>();
+    const location = useLocation();
     const [activeTab, setActiveTab] = useState<'expenses' | 'participants'>('expenses');
 
     const statusOptions = [
@@ -35,6 +36,16 @@ export default observer(function InvoiceDetails() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const tab = params.get('tab');
+        if (tab === 'participants') {
+            setActiveTab('participants');
+        } else if (tab === 'expenses') {
+            setActiveTab('expenses');
+        }
+    }, [location.search]);
 
     if (loadingInitial || !invoice) return <LoadingComponent content="Ladataan laskua..." />;
 

@@ -10,6 +10,7 @@ import ResetPasswordForm from "../../features/users/ResetPasswordForm";
 import AdminPage from "../../features/admin/AdminPage";
 
 import InvoicePrintView from "../../features/invoices/details/InvoicePrintView";
+import ParticipantInvoicePrintView from "../../features/invoices/details/ParticipantInvoicePrintView";
 
 export const routes: RouteObject[] = [
     {
@@ -20,6 +21,7 @@ export const routes: RouteObject[] = [
             { path: 'invoices', element: <InvoiceDashboard /> },
             { path: 'invoices/:id', element: <InvoiceDetails /> },
             { path: 'invoices/:id/print', element: <InvoicePrintView /> },
+            { path: 'invoices/:id/print/:participantId', element: <ParticipantInvoicePrintView /> },
             { path: 'createInvoice', element: <InvoiceForm key='create' /> },
             { path: 'manage/:id', element: <InvoiceForm key='manage' /> },
             { path: 'login', element: <LoginForm /> },
