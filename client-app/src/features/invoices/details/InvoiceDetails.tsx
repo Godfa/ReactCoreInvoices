@@ -21,7 +21,7 @@ export default observer(function InvoiceDetails() {
     ];
 
     function getStatusLabel(status: InvoiceStatus): string {
-        switch(status) {
+        switch (status) {
             case InvoiceStatus.Aktiivinen: return 'Aktiivinen';
             case InvoiceStatus.Katselmoitavana: return 'Katselmoitavana';
             case InvoiceStatus.Arkistoitu: return 'Arkistoitu';
@@ -115,9 +115,13 @@ export default observer(function InvoiceDetails() {
             </div>
 
             {/* Actions */}
+            {/* Actions */}
             <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)', flexWrap: 'wrap' }}>
                 <Button as={Link} to={`/manage/${invoice.id}`} className="btn-primary">
                     <Icon name="edit" /> Muokkaa laskua
+                </Button>
+                <Button as={Link} to={`/invoices/${invoice.id}/print`} color='blue'>
+                    <Icon name="print" /> Tulosta (PDF)
                 </Button>
                 <Button as={Link} to='/invoices' className="btn-secondary">
                     <Icon name="arrow left" /> Takaisin
