@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Button, Icon } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import { toast } from "react-toastify";
+import PaymentSettlement from "./PaymentSettlement";
 
 interface Props {
     invoiceId: string;
@@ -76,10 +77,15 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
     };
 
     return (
-        <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
-                <h3 style={{ margin: 0 }}>Osallistujat</h3>
-                <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
+        <div>
+            {/* Maksuerittely */}
+            <PaymentSettlement invoice={selectedInvoice} compact={false} />
+
+            {/* Osallistujalista */}
+            <div className="glass-card" style={{ padding: 'var(--spacing-lg)', marginTop: 'var(--spacing-lg)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+                    <h3 style={{ margin: 0 }}>Osallistujat</h3>
+                    <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
                     {participants.length > 0 && (
                         <Button
                             size='tiny'
@@ -113,11 +119,11 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                             <Icon name='plus' /> Lisää kaikki ({nonParticipantCount})
                         </Button>
                     )}
+                    </div>
                 </div>
-            </div>
 
-            {/* Current Participants */}
-            <div className="participant-grid" style={{ marginBottom: 'var(--spacing-lg)' }}>
+                {/* Current Participants */}
+                <div className="participant-grid" style={{ marginBottom: 'var(--spacing-lg)' }}>
                 {participants.length > 0 ? (
                     participants.map(p => (
                         <div key={p.appUserId} className="participant-card">
@@ -146,30 +152,31 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                 ) : (
                     <p style={{ color: 'var(--text-muted)' }}>Ei osallistujia vielä</p>
                 )}
-            </div>
+                </div>
 
-            {/* Add Participants */}
-            {PotentialParticipants.filter(c => !participantIds.includes(c.key)).length > 0 && (
-                <>
-                    <h4 style={{ marginBottom: 'var(--spacing-sm)' }}>Lisää osallistuja</h4>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
-                        {PotentialParticipants
-                            .filter(c => !participantIds.includes(c.key))
-                            .map(user => (
-                                <Button
-                                    key={user.key}
-                                    size='tiny'
-                                    className='btn-secondary'
-                                    onClick={() => handleAddParticipant(user.key)}
-                                    loading={loading}
-                                    disabled={loading}
-                                >
-                                    <Icon name='plus' /> {user.value}
-                                </Button>
-                            ))}
-                    </div>
-                </>
-            )}
+                {/* Add Participants */}
+                {PotentialParticipants.filter(c => !participantIds.includes(c.key)).length > 0 && (
+                    <>
+                            <h4 style={{ marginBottom: 'var(--spacing-sm)' }}>Lisää osallistuja</h4>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+                            {PotentialParticipants
+                                .filter(c => !participantIds.includes(c.key))
+                                .map(user => (
+                                    <Button
+                                        key={user.key}
+                                        size='tiny'
+                                        className='btn-secondary'
+                                        onClick={() => handleAddParticipant(user.key)}
+                                        loading={loading}
+                                        disabled={loading}
+                                    >
+                                        <Icon name='plus' /> {user.value}
+                                    </Button>
+                                ))}
+                        </div>
+                    </>
+                )}
+            </div>
         </div>
     );
 });

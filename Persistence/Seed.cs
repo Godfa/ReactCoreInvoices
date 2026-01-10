@@ -94,220 +94,151 @@ namespace Persistence
             var jaapuUser = await userManager.FindByEmailAsync("jaapu@example.com");
             var timoUser = await userManager.FindByEmailAsync("timo@example.com");
             var jhattuUser = await userManager.FindByEmailAsync("jhattu@example.com");
+            var urpiUser = await userManager.FindByEmailAsync("urpi@example.com");
+            var zeipUser = await userManager.FindByEmailAsync("zeip@example.com");
+            var sakkeUser = await userManager.FindByEmailAsync("sakke@example.com");
 
-            // Get subset of users for payers
-            var usualSuspects = new List<string> { "Epi", "JHattu", "Leivo", "Timo", "Jaapu", "Urpi", "Zeip" };
-            var usualSuspectsUsers = allUsers.Where(u => usualSuspects.Contains(u.DisplayName)).ToList();
+            // Mökkilan 68 osallistujat (8 henkilöä)
+            var mokkila68Participants = new List<User> { jaapuUser, leivoUser, timoUser, jhattuUser, urpiUser, epiUser, sakkeUser, zeipUser }
+                .Where(u => u != null).ToList();
 
             var invoices = new List<Invoice>
             {
                 new Invoice
                 {
-                    LanNumber = 68,
-                    Title = "Mökkilan 68",
-                    Description = "Nousiaisissa",
-                    Image = null,
+                    LanNumber = 80,
+                    Title = "Mökkilan 80",
+                    Description = "Villa Aleksi",
+                    Image = "mokkila",
+                    Status = InvoiceStatus.Aktiivinen,
                     ExpenseItems = new List<ExpenseItem>
                     {
-                        new ExpenseItem
-                        {
-                            ExpenseType = ExpenseType.ShoppingList,
-                            Name = "Kauppalista" ,
-                            OrganizerId = epiUser.Id,
-                            LineItems = new List<ExpenseLineItem>
-                            {
-                                new ExpenseLineItem
-                                {
-                                    Name = "Ruokaostokset",
-                                    Quantity = 1,
-                                    UnitPrice = 234.50m
-                                },
-                                new ExpenseLineItem
-                                {
-                                    Name = "Juomat",
-                                    Quantity = 1,
-                                    UnitPrice = 87.30m
-                                },
-                                new ExpenseLineItem
-                                {
-                                    Name = "Grillitarvikkeet",
-                                    Quantity = 1,
-                                    UnitPrice = 45.60m
-                                }
-                            },
-                            Payers = usualSuspectsUsers.Select(u => new ExpenseItemPayer
-                            {
-                                AppUserId = u.Id,
-                                AppUser = u
-                            }).ToList()
-                        },
+                        // Mökin ennakkomaksu - 325,00 € - Maksaja: Jani (JHattu) - Jaetaan kaikille 8:lle
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.Personal,
-                            Name = "Puulaaki",
-                            OrganizerId = leivoUser?.Id ?? epiUser.Id,
-                            LineItems = new List<ExpenseLineItem>
-                            {
-                                new ExpenseLineItem
-                                {
-                                    Name = "Koivuhalot 2m³",
-                                    Quantity = 2,
-                                    UnitPrice = 85.00m
-                                }
-                            },
-                            Payers = usualSuspectsUsers.Select(u => new ExpenseItemPayer
-                            {
-                                AppUserId = u.Id,
-                                AppUser = u
-                            }).ToList()
-                        },
-                        new ExpenseItem
-                        {
-                            ExpenseType = ExpenseType.Gasoline,
-                            Name = "Polttoaine",
-                            OrganizerId = jaapuUser?.Id ?? epiUser.Id,
-                            LineItems = new List<ExpenseLineItem>
-                            {
-                                new ExpenseLineItem
-                                {
-                                    Name = "Bensiini 95E10",
-                                    Quantity = 50,
-                                    UnitPrice = 1.85m
-                                }
-                            },
-                            Payers = usualSuspectsUsers.Select(u => new ExpenseItemPayer
-                            {
-                                AppUserId = u.Id,
-                                AppUser = u
-                            }).ToList()
-                        },
-                        new ExpenseItem
-                        {
-                            ExpenseType = ExpenseType.Personal,
-                            Name = "Saunatarvikkeet",
-                            OrganizerId = timoUser?.Id ?? epiUser.Id,
-                            LineItems = new List<ExpenseLineItem>
-                            {
-                                new ExpenseLineItem
-                                {
-                                    Name = "Vihdat ja tuoksut",
-                                    Quantity = 1,
-                                    UnitPrice = 34.90m
-                                }
-                            },
-                            Payers = usualSuspectsUsers.Select(u => new ExpenseItemPayer
-                            {
-                                AppUserId = u.Id,
-                                AppUser = u
-                            }).ToList()
-                        },
-                        new ExpenseItem
-                        {
-                            ExpenseType = ExpenseType.Personal,
-                            Name = "Kalusteet",
+                            Name = "Mökin ennakkomaksu",
                             OrganizerId = jhattuUser?.Id ?? epiUser.Id,
                             LineItems = new List<ExpenseLineItem>
                             {
-                                new ExpenseLineItem
-                                {
-                                    Name = "Grillihiiliä",
-                                    Quantity = 3,
-                                    UnitPrice = 8.50m
-                                },
-                                new ExpenseLineItem
-                                {
-                                    Name = "Kertakäyttöastiat",
-                                    Quantity = 1,
-                                    UnitPrice = 15.90m
-                                }
+                                new ExpenseLineItem { Name = "Mökin ennakkomaksu", Quantity = 1, UnitPrice = 325.00m }
                             },
-                            Payers = usualSuspectsUsers.Select(u => new ExpenseItemPayer
-                            {
-                                AppUserId = u.Id,
-                                AppUser = u
-                            }).ToList()
+                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
                         },
+                        // Mökin loppulasku - 760,00 € - Maksaja: Jani (JHattu) - Jaetaan kaikille 8:lle
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.Personal,
-                            Name = "Sähkö",
+                            Name = "Mökin loppulasku",
+                            OrganizerId = jhattuUser?.Id ?? epiUser.Id,
+                            LineItems = new List<ExpenseLineItem>
+                            {
+                                new ExpenseLineItem { Name = "Mökin loppulasku", Quantity = 1, UnitPrice = 760.00m }
+                            },
+                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
+                        },
+                        // Alko - 117,69 € - Maksaja: Zeip - Jaetaan kaikille 8:lle
+                        new ExpenseItem
+                        {
+                            ExpenseType = ExpenseType.ShoppingList,
+                            Name = "Alko",
+                            OrganizerId = zeipUser?.Id ?? epiUser.Id,
+                            LineItems = new List<ExpenseLineItem>
+                            {
+                                new ExpenseLineItem { Name = "Alkoholijuomat", Quantity = 1, UnitPrice = 117.69m }
+                            },
+                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
+                        },
+                        // Ruoat pl. burgerit - 190,79 € - Maksaja: Zeip - Jaetaan kaikille 8:lle
+                        new ExpenseItem
+                        {
+                            ExpenseType = ExpenseType.ShoppingList,
+                            Name = "Ruoat pl. burgerit",
+                            OrganizerId = zeipUser?.Id ?? epiUser.Id,
+                            LineItems = new List<ExpenseLineItem>
+                            {
+                                new ExpenseLineItem { Name = "Ruokaostokset", Quantity = 1, UnitPrice = 190.79m }
+                            },
+                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
+                        },
+                        // Lucifer sytytyspalat - 5,90 € - Maksaja: Epi - Jaetaan kaikille 8:lle
+                        new ExpenseItem
+                        {
+                            ExpenseType = ExpenseType.Personal,
+                            Name = "Lucifer sytytyspalat",
                             OrganizerId = epiUser.Id,
                             LineItems = new List<ExpenseLineItem>
                             {
-                                new ExpenseLineItem
-                                {
-                                    Name = "Sähkölasku",
-                                    Quantity = 1,
-                                    UnitPrice = 67.80m
-                                }
+                                new ExpenseLineItem { Name = "Sytytyspalat", Quantity = 1, UnitPrice = 5.90m }
                             },
-                            Payers = new List<ExpenseItemPayer>
-                            {
-                                new ExpenseItemPayer { AppUserId = epiUser.Id, AppUser = epiUser }
-                            }
+                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
                         },
+                        // Taksi ravintolasta - 64,50 € - Maksaja: Leivo - Jaetaan kaikille 8:lle
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.Personal,
-                            Name = "Kalustevuokra",
+                            Name = "Taksi ravintolasta",
                             OrganizerId = leivoUser?.Id ?? epiUser.Id,
                             LineItems = new List<ExpenseLineItem>
                             {
-                                new ExpenseLineItem
-                                {
-                                    Name = "Telttavuokra viikonlopuksi",
-                                    Quantity = 1,
-                                    UnitPrice = 120.00m
-                                }
+                                new ExpenseLineItem { Name = "Taksimatka", Quantity = 1, UnitPrice = 64.50m }
+                            },
+                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
+                        },
+                        // Jumperin bensat - 106,95 € - Maksaja: Leivo - Jaetaan vain Jarnolle (Jaapu) ja Leivolle
+                        new ExpenseItem
+                        {
+                            ExpenseType = ExpenseType.Gasoline,
+                            Name = "Jumperin bensat (610 km)",
+                            OrganizerId = leivoUser?.Id ?? epiUser.Id,
+                            LineItems = new List<ExpenseLineItem>
+                            {
+                                new ExpenseLineItem { Name = "Bensiini 610 km, 10.6 l/100km, 1.654€/l", Quantity = 1, UnitPrice = 106.95m }
                             },
                             Payers = new List<ExpenseItemPayer>
                             {
-                                new ExpenseItemPayer { AppUserId = leivoUser?.Id ?? epiUser.Id, AppUser = leivoUser ?? epiUser },
-                                new ExpenseItemPayer { AppUserId = jaapuUser?.Id ?? epiUser.Id, AppUser = jaapuUser ?? epiUser }
+                                new ExpenseItemPayer { AppUserId = jaapuUser?.Id ?? epiUser.Id, AppUser = jaapuUser ?? epiUser },
+                                new ExpenseItemPayer { AppUserId = leivoUser?.Id ?? epiUser.Id, AppUser = leivoUser ?? epiUser }
                             }
                         },
+                        // Taksi ravintolaan - 60,40 € - Maksaja: Urpi - Jaetaan kaikille 8:lle
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.Personal,
-                            Name = "Tupakka",
-                            OrganizerId = timoUser?.Id ?? epiUser.Id,
+                            Name = "Taksi ravintolaan",
+                            OrganizerId = urpiUser?.Id ?? epiUser.Id,
                             LineItems = new List<ExpenseLineItem>
                             {
-                                new ExpenseLineItem
-                                {
-                                    Name = "Marlboro Red",
-                                    Quantity = 2,
-                                    UnitPrice = 9.50m
-                                }
+                                new ExpenseLineItem { Name = "Taksimatka", Quantity = 1, UnitPrice = 60.40m }
                             },
-                            Payers = new List<ExpenseItemPayer>
-                            {
-                                new ExpenseItemPayer { AppUserId = timoUser?.Id ?? epiUser.Id, AppUser = timoUser ?? epiUser },
-                                new ExpenseItemPayer { AppUserId = jhattuUser?.Id ?? epiUser.Id, AppUser = jhattuUser ?? epiUser }
-                            }
+                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
                         },
+                        // Burgeri / ruoka 1 - 59,46 € - Maksaja: Urpi - Jaetaan kaikille 8:lle
+                        new ExpenseItem
+                        {
+                            ExpenseType = ExpenseType.ShoppingList,
+                            Name = "Burgeri / ruoka 1",
+                            OrganizerId = urpiUser?.Id ?? epiUser.Id,
+                            LineItems = new List<ExpenseLineItem>
+                            {
+                                new ExpenseLineItem { Name = "Burgerit", Quantity = 1, UnitPrice = 59.46m }
+                            },
+                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
+                        },
+                        // Pyyhkeet, hiilet, jäät - 16,96 € - Maksaja: Urpi - Jaetaan kaikille 8:lle
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.Personal,
-                            Name = "Kalastuslupia",
-                            OrganizerId = jaapuUser?.Id ?? epiUser.Id,
+                            Name = "Pyyhkeet, hiilet, jäät",
+                            OrganizerId = urpiUser?.Id ?? epiUser.Id,
                             LineItems = new List<ExpenseLineItem>
                             {
-                                new ExpenseLineItem
-                                {
-                                    Name = "Viehelupa",
-                                    Quantity = 1,
-                                    UnitPrice = 45.00m
-                                }
+                                new ExpenseLineItem { Name = "Sekalaiset", Quantity = 1, UnitPrice = 16.96m }
                             },
-                            Payers = new List<ExpenseItemPayer>
-                            {
-                                new ExpenseItemPayer { AppUserId = jaapuUser?.Id ?? epiUser.Id, AppUser = jaapuUser ?? epiUser }
-                            }
+                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
                         }
-
                     },
-                    Participants = allUsers.Select(u => new InvoiceParticipant
+                    Participants = mokkila68Participants.Select(u => new InvoiceParticipant
                     {
                         AppUserId = u.Id,
                         AppUser = u

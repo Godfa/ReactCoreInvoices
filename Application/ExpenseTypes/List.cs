@@ -29,7 +29,7 @@ namespace Application.ExpenseTypes
                 {
                     ExpenseType.ShoppingList => "Kauppalista",
                     ExpenseType.Gasoline => "Polttoaine",
-                    ExpenseType.Personal => "Henkilökohtainen",
+                    ExpenseType.Personal => "Muu kulu",
                     _ => type.ToString()
                 };
             }
