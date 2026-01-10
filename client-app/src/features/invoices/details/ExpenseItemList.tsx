@@ -108,7 +108,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                     </Table.Cell>
                                     <Table.Cell>{item.name}</Table.Cell>
                                     <Table.Cell>{getExpenseTypeName(item.expenseType)}</Table.Cell>
-                                    <Table.Cell>{getUserName(item.organizerId)}</Table.Cell>
+                                    <Table.Cell>{item.organizer?.displayName || getUserName(item.organizerId)}</Table.Cell>
                                     <Table.Cell>{(item.lineItems?.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0) ?? 0).toFixed(2)} €</Table.Cell>
                                     <Table.Cell>
                                         <div style={{ marginBottom: '5px' }}>
