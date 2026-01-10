@@ -33,6 +33,8 @@ namespace Application.Invoices
                         .ThenInclude(p => p.AppUser)
                     .Include(i => i.ExpenseItems)
                         .ThenInclude(ei => ei.LineItems)
+                    .Include(i => i.ExpenseItems)
+                        .ThenInclude(ei => ei.Organizer)
                     .Include(i => i.Participants)
                         .ThenInclude(p => p.AppUser)
                     .AsSplitQuery()
