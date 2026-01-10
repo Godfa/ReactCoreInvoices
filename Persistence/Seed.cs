@@ -98,8 +98,8 @@ namespace Persistence
             var zeipUser = await userManager.FindByEmailAsync("zeip@example.com");
             var sakkeUser = await userManager.FindByEmailAsync("sakke@example.com");
 
-            // Mökkilan 68 osallistujat (8 henkilöä)
-            var mokkila68Participants = new List<User> { jaapuUser, leivoUser, timoUser, jhattuUser, urpiUser, epiUser, sakkeUser, zeipUser }
+            // Mökkilan 80 osallistujat (8 henkilöä)
+            var mokkila80Participants = new List<User> { jaapuUser, leivoUser, timoUser, jhattuUser, urpiUser, epiUser, sakkeUser, zeipUser }
                 .Where(u => u != null).ToList();
 
             var invoices = new List<Invoice>
@@ -123,7 +123,7 @@ namespace Persistence
                             {
                                 new ExpenseLineItem { Name = "Mökin ennakkomaksu", Quantity = 1, UnitPrice = 325.00m }
                             },
-                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
+                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
                         },
                         // Mökin loppulasku - 760,00 € - Maksaja: Jani (JHattu) - Jaetaan kaikille 8:lle
                         new ExpenseItem
@@ -135,7 +135,7 @@ namespace Persistence
                             {
                                 new ExpenseLineItem { Name = "Mökin loppulasku", Quantity = 1, UnitPrice = 760.00m }
                             },
-                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
+                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
                         },
                         // Alko - 117,69 € - Maksaja: Zeip - Jaetaan kaikille 8:lle
                         new ExpenseItem
@@ -147,7 +147,7 @@ namespace Persistence
                             {
                                 new ExpenseLineItem { Name = "Alkoholijuomat", Quantity = 1, UnitPrice = 117.69m }
                             },
-                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
+                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
                         },
                         // Ruoat pl. burgerit - 190,79 € - Maksaja: Zeip - Jaetaan kaikille 8:lle
                         new ExpenseItem
@@ -159,7 +159,7 @@ namespace Persistence
                             {
                                 new ExpenseLineItem { Name = "Ruokaostokset", Quantity = 1, UnitPrice = 190.79m }
                             },
-                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
+                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
                         },
                         // Lucifer sytytyspalat - 5,90 € - Maksaja: Epi - Jaetaan kaikille 8:lle
                         new ExpenseItem
@@ -171,7 +171,7 @@ namespace Persistence
                             {
                                 new ExpenseLineItem { Name = "Sytytyspalat", Quantity = 1, UnitPrice = 5.90m }
                             },
-                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
+                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
                         },
                         // Taksi ravintolasta - 64,50 € - Maksaja: Leivo - Jaetaan kaikille 8:lle
                         new ExpenseItem
@@ -183,7 +183,7 @@ namespace Persistence
                             {
                                 new ExpenseLineItem { Name = "Taksimatka", Quantity = 1, UnitPrice = 64.50m }
                             },
-                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
+                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
                         },
                         // Jumperin bensat - 106,95 € - Maksaja: Leivo - Jaetaan vain Jarnolle (Jaapu) ja Leivolle
                         new ExpenseItem
@@ -211,7 +211,7 @@ namespace Persistence
                             {
                                 new ExpenseLineItem { Name = "Taksimatka", Quantity = 1, UnitPrice = 60.40m }
                             },
-                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
+                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
                         },
                         // Burgeri / ruoka 1 - 59,46 € - Maksaja: Urpi - Jaetaan kaikille 8:lle
                         new ExpenseItem
@@ -223,7 +223,7 @@ namespace Persistence
                             {
                                 new ExpenseLineItem { Name = "Burgerit", Quantity = 1, UnitPrice = 59.46m }
                             },
-                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
+                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
                         },
                         // Pyyhkeet, hiilet, jäät - 16,96 € - Maksaja: Urpi - Jaetaan kaikille 8:lle
                         new ExpenseItem
@@ -235,10 +235,10 @@ namespace Persistence
                             {
                                 new ExpenseLineItem { Name = "Sekalaiset", Quantity = 1, UnitPrice = 16.96m }
                             },
-                            Payers = mokkila68Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
+                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id, AppUser = u }).ToList()
                         }
                     },
-                    Participants = mokkila68Participants.Select(u => new InvoiceParticipant
+                    Participants = mokkila80Participants.Select(u => new InvoiceParticipant
                     {
                         AppUserId = u.Id,
                         AppUser = u
