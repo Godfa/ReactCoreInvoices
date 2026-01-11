@@ -2,9 +2,11 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Interfaces;
 using Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Persistence;
 
 namespace Application.Invoices
@@ -22,10 +24,14 @@ namespace Application.Invoices
         public class Handler : IRequestHandler<Command, Invoice>
         {
             private readonly DataContext _context;
+            private readonly IEmailService _emailService;
+            private readonly IConfiguration _config;
 
-            public Handler(DataContext context)
+            public Handler(DataContext context, IEmailService emailService, IConfiguration config)
             {
                 _context = context;
+                _emailService = emailService;
+                _config = config;
             }
 
             public async Task<Invoice> Handle(Command request, CancellationToken cancellationToken)
@@ -95,6 +101,26 @@ namespace Application.Invoices
                     // All participants have approved, change status to Maksussa
                     invoice.Status = InvoiceStatus.Maksussa;
                     await _context.SaveChangesAsync(cancellationToken);
+
+                    // Send email notifications to all participants
+                    var appUrl = _config["Email:AppUrl"] ?? "https://your-app-url.com";
+                    var invoiceUrl = $"{appUrl}/invoices/{invoice.Id}";
+
+                    if (invoice.Participants != null && invoice.Participants.Any())
+                    {
+                        foreach (var participant in invoice.Participants)
+                        {
+                            if (participant.AppUser != null && !string.IsNullOrEmpty(participant.AppUser.Email))
+                            {
+                                await _emailService.SendInvoiceReviewNotificationAsync(
+                                    participant.AppUser.Email,
+                                    participant.AppUser.DisplayName,
+                                    invoice.Title,
+                                    invoiceUrl
+                                );
+                            }
+                        }
+                    }
                 }
 
                 return invoice;
