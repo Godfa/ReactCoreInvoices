@@ -7,13 +7,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'API/**'
-      - 'Application/**'
-      - 'Domain/**'
-      - 'Persistence/**'
-      - 'Tests/**'
-      - '.github/workflows/main_mlan-invoicer-backend.yml'
   workflow_dispatch:
 
 jobs:
@@ -31,17 +24,10 @@ jobs:
           dotnet-version: '8.x'
 
       - name: Build with dotnet
-        run: dotnet build API/API.csproj --configuration Release
+        run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish API/API.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
-
-      - name: List published files
-        run: |
-          echo "Published files:"
-          ls -la ${{env.DOTNET_ROOT}}/myapp
-          echo "Appsettings files:"
-          ls -la ${{env.DOTNET_ROOT}}/myapp/appsettings*.json || echo "No appsettings files found"
+        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -65,9 +51,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_ACA8201DB1BC42F3B2D32C241E8D8F75 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_7C846DEADB904C5D8AFAFF3643A26602 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C452F4A4F3854203BB73411D0E0D29DC }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -76,5 +62,4 @@ jobs:
           app-name: 'mlan-invoicer-backend'
           slot-name: 'Production'
           package: .
-          startup-command: 'dotnet API.dll'
           
