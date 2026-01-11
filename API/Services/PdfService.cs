@@ -143,13 +143,14 @@ namespace API.Services
 
                         page.Footer()
                             .AlignCenter()
-                            .Text(x =>
+                            .Text(text =>
                             {
-                                x.Span("Sivu ");
-                                x.CurrentPageNumber();
-                                x.Span(" / ");
-                                x.TotalPages();
-                            }).FontSize(9);
+                                text.DefaultTextStyle(x => x.FontSize(9));
+                                text.Span("Sivu ");
+                                text.CurrentPageNumber();
+                                text.Span(" / ");
+                                text.TotalPages();
+                            });
                     });
                 });
 
@@ -287,13 +288,14 @@ namespace API.Services
 
                         page.Footer()
                             .AlignCenter()
-                            .Text(x =>
+                            .Text(text =>
                             {
-                                x.Span("Sivu ");
-                                x.CurrentPageNumber();
-                                x.Span(" / ");
-                                x.TotalPages();
-                            }).FontSize(9);
+                                text.DefaultTextStyle(x => x.FontSize(9));
+                                text.Span("Sivu ");
+                                text.CurrentPageNumber();
+                                text.Span(" / ");
+                                text.TotalPages();
+                            });
                     });
                 });
 
