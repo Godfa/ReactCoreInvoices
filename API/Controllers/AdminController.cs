@@ -50,6 +50,8 @@ namespace API.Controllers
                     UserName = user.UserName,
                     DisplayName = user.DisplayName,
                     Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    BankAccount = user.BankAccount,
                     MustChangePassword = user.MustChangePassword,
                     IsAdmin = isAdmin
                 });
@@ -122,6 +124,8 @@ namespace API.Controllers
 
             user.DisplayName = updateUserDto.DisplayName;
             user.Email = updateUserDto.Email;
+            user.PhoneNumber = updateUserDto.PhoneNumber;
+            user.BankAccount = updateUserDto.BankAccount;
 
             var result = await _userManager.UpdateAsync(user);
 

@@ -21,7 +21,9 @@ export default observer(function AdminPage() {
 
     const [editForm, setEditForm] = useState<UpdateUser>({
         displayName: '',
-        email: ''
+        email: '',
+        phoneNumber: '',
+        bankAccount: ''
     });
 
     useEffect(() => {
@@ -80,7 +82,9 @@ export default observer(function AdminPage() {
         setEditingUser(user);
         setEditForm({
             displayName: user.displayName,
-            email: user.email
+            email: user.email,
+            phoneNumber: user.phoneNumber || '',
+            bankAccount: user.bankAccount || ''
         });
         setEditModalOpen(true);
     };
@@ -237,6 +241,18 @@ export default observer(function AdminPage() {
                             type='email'
                             value={editForm.email}
                             onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                        />
+                        <Form.Input
+                            label='Puhelinnumero'
+                            value={editForm.phoneNumber}
+                            onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
+                            placeholder='Esim. +358401234567'
+                        />
+                        <Form.Input
+                            label='Pankkitili (IBAN)'
+                            value={editForm.bankAccount}
+                            onChange={(e) => setEditForm({ ...editForm, bankAccount: e.target.value })}
+                            placeholder='Esim. FI12 3456 7890 1234 56'
                         />
                     </Form>
                 </Modal.Content>

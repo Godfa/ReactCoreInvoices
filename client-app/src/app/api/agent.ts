@@ -133,6 +133,8 @@ export interface UserManagement {
     userName: string;
     displayName: string;
     email: string;
+    phoneNumber?: string;
+    bankAccount?: string;
     mustChangePassword: boolean;
     isAdmin: boolean;
 }
@@ -146,6 +148,8 @@ export interface CreateUser {
 export interface UpdateUser {
     displayName: string;
     email: string;
+    phoneNumber?: string;
+    bankAccount?: string;
 }
 
 export interface UserProfile {
