@@ -106,10 +106,19 @@ namespace Application.Invoices
                     var appUrl = _config["Email:AppUrl"] ?? "https://your-app-url.com";
                     var invoiceUrl = $"{appUrl}/invoices/{invoice.Id}";
 
+                    // Ensure participants with user data are loaded for email notifications
                     if (invoice.Participants != null && invoice.Participants.Any())
                     {
                         foreach (var participant in invoice.Participants)
                         {
+                            // Ensure AppUser is loaded
+                            if (participant.AppUser == null && !string.IsNullOrEmpty(participant.AppUserId))
+                            {
+                                await _context.Entry(participant)
+                                    .Reference(p => p.AppUser)
+                                    .LoadAsync(cancellationToken);
+                            }
+
                             if (participant.AppUser != null && !string.IsNullOrEmpty(participant.AppUser.Email))
                             {
                                 await _emailService.SendInvoiceReviewNotificationAsync(
