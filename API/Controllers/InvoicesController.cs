@@ -97,5 +97,12 @@ namespace API.Controllers
                 IsAdmin = isAdmin
             }));
         }
+
+        [HttpPost("{invoiceId}/send-payment-notifications")]
+        public async Task<IActionResult> SendPaymentNotifications(Guid invoiceId)
+        {
+            await Mediator.Send(new SendPaymentNotifications.Command { InvoiceId = invoiceId });
+            return Ok();
+        }
     }
 }

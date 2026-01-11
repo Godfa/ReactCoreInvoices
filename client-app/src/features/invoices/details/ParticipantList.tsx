@@ -83,11 +83,16 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                 return;
             }
 
+            // Process approvals in parallel
             await Promise.all(
                 unapprovedParticipants.map(p =>
                     approveInvoice(invoiceId, p.appUserId)
                 )
             );
+
+            // After all approvals, check if all participants have approved and send notifications
+            await invoiceStore.sendPaymentNotifications(invoiceId);
+
             toast.success(`${unapprovedParticipants.length} osallistujan hyväksyntä lisätty`);
         } finally {
             invoiceStore.loading = false;
@@ -169,11 +174,13 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                             const isCurrentUser = user?.id === p.appUserId;
                             const canInteractWithApproval = selectedInvoice.status === InvoiceStatus.Aktiivinen && (isCurrentUser || isAdmin);
 
-                            const handleToggleApproval = () => {
+                            const handleToggleApproval = async () => {
                                 if (hasApproved) {
-                                    unapproveInvoice(invoiceId, p.appUserId);
+                                    await unapproveInvoice(invoiceId, p.appUserId);
                                 } else {
-                                    approveInvoice(invoiceId, p.appUserId);
+                                    await approveInvoice(invoiceId, p.appUserId);
+                                    // Check if this might be the last approval and trigger notifications
+                                    await invoiceStore.sendPaymentNotifications(invoiceId);
                                 }
                             };
 

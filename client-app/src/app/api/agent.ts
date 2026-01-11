@@ -72,7 +72,8 @@ const Invoices = {
     removeParticipant: (invoiceId: string, userId: string) => requests.del<void>(`/invoices/${invoiceId}/participants/${userId}`),
     changeStatus: (invoiceId: string, status: InvoiceStatus) => requests.put<Invoice>(`/invoices/${invoiceId}/status/${status}`, {}),
     approveInvoice: (invoiceId: string, userId: string) => requests.post<Invoice>(`/invoices/${invoiceId}/approve/${userId}`, {}),
-    unapproveInvoice: (invoiceId: string, userId: string) => requests.del<Invoice>(`/invoices/${invoiceId}/approve/${userId}`)
+    unapproveInvoice: (invoiceId: string, userId: string) => requests.del<Invoice>(`/invoices/${invoiceId}/approve/${userId}`),
+    sendPaymentNotifications: (invoiceId: string) => requests.post<void>(`/invoices/${invoiceId}/send-payment-notifications`, {})
 }
 
 const ExpenseItems = {

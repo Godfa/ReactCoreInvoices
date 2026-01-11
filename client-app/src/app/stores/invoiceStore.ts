@@ -340,6 +340,15 @@ export default class InvoiceStore {
         }
     }
 
+    sendPaymentNotifications = async (invoiceId: string) => {
+        try {
+            await agent.Invoices.sendPaymentNotifications(invoiceId);
+        } catch (error: any) {
+            console.log(error);
+            // Don't show error toast - notifications are optional
+        }
+    }
+
     updateExpenseItem = async (invoiceId: string, expenseItem: ExpenseItem) => {
         this.loading = true;
         try {

@@ -62,6 +62,8 @@ export default observer(function InvoiceDetails() {
                 await unapproveInvoice(invoice.id, user.id);
             } else {
                 await approveInvoice(invoice.id, user.id);
+                // Check if this might be the last approval and trigger notifications
+                await invoiceStore.sendPaymentNotifications(invoice.id);
             }
         }
     };
