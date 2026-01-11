@@ -34,25 +34,28 @@ namespace Persistence
                 ("Lasse", "lasse", "lasse@example.com")
             };
 
-            // Create or update users
+            // Create users if they don't exist (never overwrite existing user data)
             foreach (var (displayName, userName, email) in expectedUsers)
             {
                 var existingUser = await userManager.FindByEmailAsync(email);
                 if (existingUser == null)
                 {
-                    // Create new user
+                    // Create new user with minimal data
+                    // Note: Sensitive fields (PhoneNumber, BankAccount) are intentionally not set here
                     var newUser = new User
                     {
                         DisplayName = displayName,
                         UserName = userName,
                         Email = email,
                         MustChangePassword = true
+                        // PhoneNumber and BankAccount are null by default - users set these in their profile
                     };
                     await userManager.CreateAsync(newUser, "Pa$$w0rd");
                 }
                 else
                 {
-                    // User already exists - don't reset their password change flag
+                    // User already exists - preserve all their data including profile information
+                    // Never overwrite DisplayName, Email, PhoneNumber, BankAccount, or any other user data
                 }
             }
 
