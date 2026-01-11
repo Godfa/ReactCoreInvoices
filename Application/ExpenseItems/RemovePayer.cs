@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
@@ -32,6 +33,25 @@ namespace Application.ExpenseItems
 
                 if (payer == null)
                     return Unit.Value; // Payer not found, nothing to remove
+
+                // Get the expense item to check invoice status
+                var expenseItem = await _context.ExpenseItems.FindAsync(request.ExpenseItemId);
+
+                if (expenseItem != null)
+                {
+                    // Get the InvoiceId from the shadow property
+                    var invoiceId = _context.Entry(expenseItem).Property<Guid?>("InvoiceId").CurrentValue;
+
+                    if (invoiceId.HasValue)
+                    {
+                        var invoice = await _context.Invoices.FindAsync(invoiceId.Value);
+
+                        if (invoice != null && (invoice.Status == InvoiceStatus.Maksussa || invoice.Status == InvoiceStatus.Arkistoitu))
+                        {
+                            throw new Exception("Maksajia ei voi poistaa, kun lasku on maksussa tai arkistoitu.");
+                        }
+                    }
+                }
 
                 _context.ExpenseItemPayers.Remove(payer);
                 await _context.SaveChangesAsync(cancellationToken);

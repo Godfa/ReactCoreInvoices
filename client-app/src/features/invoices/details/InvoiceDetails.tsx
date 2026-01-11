@@ -17,14 +17,14 @@ export default observer(function InvoiceDetails() {
 
     const statusOptions = [
         { key: InvoiceStatus.Aktiivinen, text: 'Aktiivinen', value: InvoiceStatus.Aktiivinen },
-        { key: InvoiceStatus.Katselmoitavana, text: 'Katselmoitavana', value: InvoiceStatus.Katselmoitavana },
+        { key: InvoiceStatus.Maksussa, text: 'Maksussa', value: InvoiceStatus.Maksussa },
         { key: InvoiceStatus.Arkistoitu, text: 'Arkistoitu', value: InvoiceStatus.Arkistoitu }
     ];
 
     function getStatusLabel(status: InvoiceStatus): string {
         switch (status) {
             case InvoiceStatus.Aktiivinen: return 'Aktiivinen';
-            case InvoiceStatus.Katselmoitavana: return 'Katselmoitavana';
+            case InvoiceStatus.Maksussa: return 'Maksussa';
             case InvoiceStatus.Arkistoitu: return 'Arkistoitu';
             default: return 'Tuntematon';
         }
@@ -126,9 +126,13 @@ export default observer(function InvoiceDetails() {
             </div>
 
             {/* Actions */}
-            {/* Actions */}
             <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)', flexWrap: 'wrap' }}>
-                <Button as={Link} to={`/manage/${invoice.id}`} className="btn-primary">
+                <Button
+                    as={Link}
+                    to={`/manage/${invoice.id}`}
+                    className="btn-primary"
+                    disabled={invoice.status === InvoiceStatus.Maksussa || invoice.status === InvoiceStatus.Arkistoitu}
+                >
                     <Icon name="edit" /> Muokkaa laskua
                 </Button>
                 <Button as={Link} to={`/invoices/${invoice.id}/print`} color='blue'>

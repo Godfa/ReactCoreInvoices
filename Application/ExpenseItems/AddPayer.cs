@@ -34,6 +34,19 @@ namespace Application.ExpenseItems
                 if (expenseItem == null)
                     throw new Exception("Expense item not found");
 
+                // Get the InvoiceId from the shadow property
+                var invoiceId = _context.Entry(expenseItem).Property<Guid?>("InvoiceId").CurrentValue;
+
+                if (invoiceId.HasValue)
+                {
+                    var invoice = await _context.Invoices.FindAsync(invoiceId.Value);
+
+                    if (invoice != null && (invoice.Status == InvoiceStatus.Maksussa || invoice.Status == InvoiceStatus.Arkistoitu))
+                    {
+                        throw new Exception("Maksajia ei voi lisätä, kun lasku on maksussa tai arkistoitu.");
+                    }
+                }
+
                 var user = await _context.Users
                     .FirstOrDefaultAsync(c => c.Id == request.AppUserId, cancellationToken);
 

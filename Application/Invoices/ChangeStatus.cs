@@ -49,8 +49,8 @@ namespace Application.Invoices
 
                 await _context.SaveChangesAsync(cancellationToken);
 
-                // Send email notifications when status changes to Katselmoitavana (Under Review)
-                if (request.NewStatus == InvoiceStatus.Katselmoitavana && oldStatus != InvoiceStatus.Katselmoitavana)
+                // Send email notifications when status changes to Maksussa (In Payment)
+                if (request.NewStatus == InvoiceStatus.Maksussa && oldStatus != InvoiceStatus.Maksussa)
                 {
                     var appUrl = _config["Email:AppUrl"] ?? "https://your-app-url.com";
                     var invoiceUrl = $"{appUrl}/invoices/{invoice.Id}";

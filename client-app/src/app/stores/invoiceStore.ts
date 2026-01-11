@@ -223,8 +223,11 @@ export default class InvoiceStore {
                 );
                 toast.success(`${invoice.participants.length} payers added automatically`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.log(error);
+            const errorMessage = error?.response?.data || 'Kulun lisääminen epäonnistui';
+            toast.error(errorMessage);
+            throw error;
         } finally {
             runInAction(() => {
                 this.loading = false;

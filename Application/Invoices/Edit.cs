@@ -32,6 +32,12 @@ namespace Application.Invoices
 
                 if (invoice == null) return Unit.Value;
 
+                // Prevent editing invoices that are in payment or archived status
+                if (invoice.Status == InvoiceStatus.Maksussa || invoice.Status == InvoiceStatus.Arkistoitu)
+                {
+                    throw new Exception("Laskua ei voi muokata, kun se on maksussa tai arkistoitu.");
+                }
+
                 // Only map simple properties, not navigation properties
                 // to avoid entity tracking conflicts
                 invoice.Title = request.Invoice.Title;

@@ -5,6 +5,7 @@ import { Button, Icon } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import { toast } from "react-toastify";
 import PaymentSettlement from "./PaymentSettlement";
+import { InvoiceStatus } from "../../../app/models/invoice";
 
 interface Props {
     invoiceId: string;
@@ -19,6 +20,8 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
     }, [loadUsers]);
 
     if (!selectedInvoice) return null;
+
+    const isInvoiceLocked = selectedInvoice.status === InvoiceStatus.Maksussa || selectedInvoice.status === InvoiceStatus.Arkistoitu;
 
     const participants = selectedInvoice.participants || [];
     const participantIds = participants.map(p => p.appUserId);
@@ -92,7 +95,7 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                             className='btn-danger'
                             onClick={handleRemoveAllParticipants}
                             loading={loading}
-                            disabled={loading}
+                            disabled={loading || isInvoiceLocked}
                         >
                             <Icon name='trash' /> Poista kaikki
                         </Button>
@@ -103,7 +106,7 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                             className='btn-primary'
                             onClick={handleAddUsualSuspects}
                             loading={loading}
-                            disabled={loading}
+                            disabled={loading || isInvoiceLocked}
                         >
                             <Icon name='users' /> Vakkarit ({usualSuspectsToAdd})
                         </Button>
@@ -114,7 +117,7 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                             className='btn-success'
                             onClick={handleAddAllParticipants}
                             loading={loading}
-                            disabled={loading}
+                            disabled={loading || isInvoiceLocked}
                         >
                             <Icon name='plus' /> Lisää kaikki ({nonParticipantCount})
                         </Button>
@@ -144,7 +147,7 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                                 icon='close'
                                 onClick={() => handleRemoveParticipant(p.appUserId)}
                                 loading={loading}
-                                disabled={loading}
+                                disabled={loading || isInvoiceLocked}
                                 style={{ padding: '4px', background: 'transparent', color: 'var(--text-muted)' }}
                             />
                         </div>
@@ -168,7 +171,7 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                                         className='btn-secondary'
                                         onClick={() => handleAddParticipant(user.key)}
                                         loading={loading}
-                                        disabled={loading}
+                                        disabled={loading || isInvoiceLocked}
                                     >
                                         <Icon name='plus' /> {user.value}
                                     </Button>

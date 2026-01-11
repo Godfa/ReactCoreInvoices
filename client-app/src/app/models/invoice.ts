@@ -1,6 +1,6 @@
 export enum InvoiceStatus {
     Aktiivinen = 0,
-    Katselmoitavana = 1,
+    Maksussa = 1,
     Arkistoitu = 2
 }
 

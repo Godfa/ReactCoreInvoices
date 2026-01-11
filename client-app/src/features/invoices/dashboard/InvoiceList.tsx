@@ -20,7 +20,7 @@ export default observer(function InvoiceList() {
     function getStatusLabel(status: InvoiceStatus): string {
         switch(status) {
             case InvoiceStatus.Aktiivinen: return 'Aktiivinen';
-            case InvoiceStatus.Katselmoitavana: return 'Katselmoitavana';
+            case InvoiceStatus.Maksussa: return 'Maksussa';
             case InvoiceStatus.Arkistoitu: return 'Arkistoitu';
             default: return 'Tuntematon';
         }
@@ -29,7 +29,7 @@ export default observer(function InvoiceList() {
     function getStatusColor(status: InvoiceStatus): "red" | "orange" | "green" | "grey" {
         switch(status) {
             case InvoiceStatus.Aktiivinen: return 'green';
-            case InvoiceStatus.Katselmoitavana: return 'orange';
+            case InvoiceStatus.Maksussa: return 'orange';
             case InvoiceStatus.Arkistoitu: return 'grey';
             default: return 'grey';
         }

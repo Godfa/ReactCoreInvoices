@@ -95,7 +95,7 @@ export default observer(function InvoiceForm() {
             {!isEditing && !canCreateInvoice && (
                 <Message warning>
                     <Message.Header>Uutta laskua ei voi luoda</Message.Header>
-                    <p>Olemassa oleva lasku on aktiivinen tai katselmoitavana. Arkistoi ensin nykyinen lasku ennen uuden luomista.</p>
+                    <p>Olemassa oleva lasku on aktiivinen. Arkistoi ensin nykyinen lasku ennen uuden luomista.</p>
                 </Message>
             )}
 

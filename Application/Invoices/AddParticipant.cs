@@ -34,6 +34,12 @@ namespace Application.Invoices
                 if (invoice == null)
                     throw new Exception($"Invoice with id {request.InvoiceId} not found");
 
+                // Prevent adding participants to invoices that are in payment or archived
+                if (invoice.Status == InvoiceStatus.Maksussa || invoice.Status == InvoiceStatus.Arkistoitu)
+                {
+                    throw new Exception("Osallistujia ei voi lisätä, kun lasku on maksussa tai arkistoitu.");
+                }
+
                 var user = await _context.Users.FindAsync(new object[] { request.AppUserId }, cancellationToken);
 
                 if (user == null)

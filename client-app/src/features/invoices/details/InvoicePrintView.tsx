@@ -134,7 +134,7 @@ export default observer(function InvoicePrintView() {
                             {invoice.amount?.toFixed(2)} €
                         </Header>
                         <Label size='large' color={invoice.status === 0 ? 'green' : invoice.status === 1 ? 'yellow' : 'grey'}>
-                            {invoice.status === 0 ? 'Aktiivinen' : invoice.status === 1 ? 'Katselmoitavana' : 'Arkistoitu'}
+                            {invoice.status === 0 ? 'Aktiivinen' : invoice.status === 1 ? 'Maksussa' : 'Arkistoitu'}
                         </Label>
                     </div>
                 </div>

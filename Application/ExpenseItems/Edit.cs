@@ -6,6 +6,7 @@ using AutoMapper;
 using FluentValidation;
 using Domain;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Persistence;
 
 namespace Application.ExpenseItems
@@ -41,8 +42,21 @@ namespace Application.ExpenseItems
 
                 if (expenseItem == null) return Unit.Value; // Or throw NotFound
 
+                // Get the InvoiceId from the shadow property
+                var invoiceId = _context.Entry(expenseItem).Property<Guid?>("InvoiceId").CurrentValue;
+
+                if (invoiceId.HasValue)
+                {
+                    var invoice = await _context.Invoices.FindAsync(invoiceId.Value);
+
+                    if (invoice != null && (invoice.Status == InvoiceStatus.Maksussa || invoice.Status == InvoiceStatus.Arkistoitu))
+                    {
+                        throw new Exception("Kuluja ei voi muokata, kun lasku on maksussa tai arkistoitu.");
+                    }
+                }
+
                 _mapper.Map(request.ExpenseItem, expenseItem);
-                
+
                 await _context.SaveChangesAsync(cancellationToken);
 
                 return Unit.Value;

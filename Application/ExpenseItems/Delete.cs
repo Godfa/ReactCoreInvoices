@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Domain;
 using MediatR;
 using Persistence;
 
@@ -28,8 +29,21 @@ namespace Application.ExpenseItems
 
                 if (expenseItem == null) return Unit.Value;
 
+                // Get the InvoiceId from the shadow property
+                var invoiceId = _context.Entry(expenseItem).Property<Guid?>("InvoiceId").CurrentValue;
+
+                if (invoiceId.HasValue)
+                {
+                    var invoice = await _context.Invoices.FindAsync(invoiceId.Value);
+
+                    if (invoice != null && (invoice.Status == InvoiceStatus.Maksussa || invoice.Status == InvoiceStatus.Arkistoitu))
+                    {
+                        throw new Exception("Kuluja ei voi poistaa, kun lasku on maksussa tai arkistoitu.");
+                    }
+                }
+
                 _context.Remove(expenseItem);
-                
+
                 await _context.SaveChangesAsync(cancellationToken);
 
                 return Unit.Value;

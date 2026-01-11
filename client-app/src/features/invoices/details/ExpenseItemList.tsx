@@ -4,7 +4,7 @@ import { Button, Icon, Label, Segment, Table } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import ExpenseItemForm from "../form/ExpenseItemForm";
 import ExpenseLineItemForm from "../form/ExpenseLineItemForm";
-import { ExpenseItem, ExpenseLineItem } from "../../../app/models/invoice";
+import { ExpenseItem, ExpenseLineItem, InvoiceStatus } from "../../../app/models/invoice";
 import { toast } from "react-toastify";
 
 interface Props {
@@ -27,6 +27,8 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
     }, [loadExpenseTypes]);
 
     if (!selectedInvoice) return null;
+
+    const isInvoiceLocked = selectedInvoice.status === InvoiceStatus.Maksussa || selectedInvoice.status === InvoiceStatus.Arkistoitu;
 
     const handleEdit = (item: ExpenseItem) => {
         setEditingItem(item);
@@ -69,7 +71,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                         setEditingItem(null);
                     }}
                     loading={loading}
-                    disabled={loading}
+                    disabled={loading || isInvoiceLocked}
                 >
                     <Icon name='plus' /> Lisää kulu
                 </Button>
@@ -126,7 +128,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                                 icon='delete'
                                                                 onClick={() => removePayer(invoiceId, item.id, p.appUserId)}
                                                                 loading={loading}
-                                                                disabled={loading}
+                                                                disabled={loading || isInvoiceLocked}
                                                                 style={{ marginLeft: '5px', padding: '3px' }}
                                                             />
                                                         </Label.Detail>
@@ -157,7 +159,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                                 }
                                                             }}
                                                             loading={loading}
-                                                            disabled={loading}
+                                                            disabled={loading || isInvoiceLocked}
                                                             style={{ marginRight: '5px', marginBottom: '5px' }}
                                                         />
                                                     )}
@@ -179,7 +181,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                                 }
                                                             }}
                                                             loading={loading}
-                                                            disabled={loading}
+                                                            disabled={loading || isInvoiceLocked}
                                                             style={{ marginRight: '5px', marginBottom: '5px' }}
                                                         />
                                                     )}
@@ -191,7 +193,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                     className='btn-secondary'
                                                     content='Lisää maksaja'
                                                     onClick={() => setPayerMenuOpen(item.id)}
-                                                    disabled={loading}
+                                                    disabled={loading || isInvoiceLocked}
                                                     style={{ marginBottom: '5px' }}
                                                 />
                                             )}
@@ -212,7 +214,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                                 setPayerMenuOpen(null);
                                                             }}
                                                             loading={loading}
-                                                            disabled={loading}
+                                                            disabled={loading || isInvoiceLocked}
                                                             style={{ marginRight: '5px', marginBottom: '5px' }}
                                                         />
                                                     ))}
@@ -232,7 +234,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                             color='blue'
                                             icon='edit'
                                             size='tiny'
-                                            disabled={loading}
+                                            disabled={loading || isInvoiceLocked}
                                         />
                                         <Button
                                             loading={loading && deletingId === item.id}
@@ -257,7 +259,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                         setAddingLineItemFor(item.id);
                                                         setEditingLineItem(null);
                                                     }}
-                                                    disabled={loading}
+                                                    disabled={loading || isInvoiceLocked}
                                                 >
                                                     <Icon name='plus' /> Lisää rivi
                                                 </Button>
@@ -302,7 +304,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                                             setEditingLineItem({ expenseItemId: item.id, lineItem });
                                                                             setAddingLineItemFor(null);
                                                                         }}
-                                                                        disabled={loading}
+                                                                        disabled={loading || isInvoiceLocked}
                                                                     />
                                                                     <Button
                                                                         icon='trash'
@@ -310,7 +312,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                                                         color='red'
                                                                         onClick={() => handleDeleteLineItem(item.id, lineItem.id)}
                                                                         loading={loading}
-                                                                        disabled={loading}
+                                                                        disabled={loading || isInvoiceLocked}
                                                                     />
                                                                 </Table.Cell>
                                                             </Table.Row>

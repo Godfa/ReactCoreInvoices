@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
@@ -31,6 +32,14 @@ namespace Application.Invoices
 
                 if (participant == null)
                     throw new Exception("Participant not found");
+
+                // Check invoice status before removing participant
+                var invoice = await _context.Invoices.FindAsync(request.InvoiceId);
+
+                if (invoice != null && (invoice.Status == InvoiceStatus.Maksussa || invoice.Status == InvoiceStatus.Arkistoitu))
+                {
+                    throw new Exception("Osallistujia ei voi poistaa, kun lasku on maksussa tai arkistoitu.");
+                }
 
                 _context.InvoiceParticipants.Remove(participant);
                 await _context.SaveChangesAsync(cancellationToken);

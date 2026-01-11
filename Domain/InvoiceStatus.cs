@@ -3,7 +3,7 @@ namespace Domain
     public enum InvoiceStatus
     {
         Aktiivinen = 0,      // Active
-        Katselmoitavana = 1, // Under Review
+        Maksussa = 1,        // In Payment
         Arkistoitu = 2       // Archived
     }
 }
