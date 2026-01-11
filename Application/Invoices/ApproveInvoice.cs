@@ -15,6 +15,8 @@ namespace Application.Invoices
         {
             public Guid InvoiceId { get; set; }
             public string AppUserId { get; set; }
+            public string CurrentUserId { get; set; }
+            public bool IsAdmin { get; set; }
         }
 
         public class Handler : IRequestHandler<Command, Invoice>
@@ -40,6 +42,10 @@ namespace Application.Invoices
                 var isParticipant = invoice.Participants?.Any(p => p.AppUserId == request.AppUserId) ?? false;
                 if (!isParticipant)
                     throw new Exception("Only participants can approve the invoice");
+
+                // Check if current user is trying to approve for someone else (only admin can do this)
+                if (request.CurrentUserId != request.AppUserId && !request.IsAdmin)
+                    throw new Exception("Voit hyväksyä vain omasta puolestasi");
 
                 // Check if invoice is in active status
                 if (invoice.Status != InvoiceStatus.Aktiivinen)

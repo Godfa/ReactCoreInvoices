@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.Invoices;
 using Domain;
 using Microsoft.AspNetCore.Authorization;
@@ -69,10 +70,15 @@ namespace API.Controllers
         [HttpPost("{invoiceId}/approve/{userId}")]
         public async Task<IActionResult> ApproveInvoice(Guid invoiceId, string userId)
         {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+
             return Ok(await Mediator.Send(new ApproveInvoice.Command
             {
                 InvoiceId = invoiceId,
-                AppUserId = userId
+                AppUserId = userId,
+                CurrentUserId = currentUserId,
+                IsAdmin = isAdmin
             }));
         }
     }
