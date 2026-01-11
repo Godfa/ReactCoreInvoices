@@ -22,6 +22,11 @@ export interface PaymentTransaction {
 export function calculateParticipantBalances(invoice: Invoice): ParticipantBalance[] {
     const balances: Map<string, ParticipantBalance> = new Map();
 
+    // Tarkista että tarvittavat kentät ovat olemassa
+    if (!invoice.participants || !invoice.expenseItems) {
+        return [];
+    }
+
     // Alusta kaikki osallistujat
     invoice.participants.forEach(participant => {
         balances.set(participant.appUserId, {

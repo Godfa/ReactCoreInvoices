@@ -71,12 +71,19 @@ namespace Application.Invoices
                 _context.InvoiceApprovals.Add(approval);
                 await _context.SaveChangesAsync(cancellationToken);
 
-                // Reload invoice with updated approvals
+                // Reload invoice with updated approvals and all related data
                 invoice = await _context.Invoices
                     .Include(i => i.Participants)
                         .ThenInclude(p => p.AppUser)
                     .Include(i => i.Approvals)
                         .ThenInclude(a => a.AppUser)
+                    .Include(i => i.ExpenseItems)
+                        .ThenInclude(ei => ei.Organizer)
+                    .Include(i => i.ExpenseItems)
+                        .ThenInclude(ei => ei.Payers)
+                            .ThenInclude(p => p.AppUser)
+                    .Include(i => i.ExpenseItems)
+                        .ThenInclude(ei => ei.LineItems)
                     .FirstOrDefaultAsync(i => i.Id == request.InvoiceId, cancellationToken);
 
                 // Check if all participants have approved
