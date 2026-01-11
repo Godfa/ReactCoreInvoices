@@ -148,13 +148,31 @@ export interface UpdateUser {
     email: string;
 }
 
+export interface UserProfile {
+    id: string;
+    userName: string;
+    displayName: string;
+    email: string;
+    phoneNumber?: string;
+    bankAccount?: string;
+}
+
+export interface UpdateProfile {
+    displayName: string;
+    email: string;
+    phoneNumber?: string;
+    bankAccount?: string;
+}
+
 const Account = {
     current: () => requests.get<User>('/account'),
     login: (user: UserFormValues) => requests.post<User>('/account/login', user),
     register: (user: UserFormValues) => requests.post<User>('/account/register', user),
     changePassword: (passwords: ChangePasswordValues) => requests.post<void>('/account/changePassword', passwords),
     forgotPassword: (values: ForgotPasswordValues) => requests.post<{ message: string }>('/account/forgotPassword', values),
-    resetPassword: (values: ResetPasswordValues) => requests.post<{ message: string }>('/account/resetPassword', values)
+    resetPassword: (values: ResetPasswordValues) => requests.post<{ message: string }>('/account/resetPassword', values),
+    getProfile: () => requests.get<UserProfile>('/account/profile'),
+    updateProfile: (profile: UpdateProfile) => requests.put<void>('/account/profile', profile)
 }
 
 const Admin = {

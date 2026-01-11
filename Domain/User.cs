@@ -11,6 +11,9 @@ namespace Domain
         public string DisplayName { get; set; }
         public bool MustChangePassword { get; set; }
 
+        // Sensitive user profile data - not included in tokens or seed data
+        public string BankAccount { get; set; }
+
         public ICollection<InvoiceParticipant> Invoices { get; set; }
         public ICollection<ExpenseItemPayer> ExpenseItemPayers { get; set; }
     }

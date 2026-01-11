@@ -177,6 +177,63 @@ namespace API.Controllers
             return BadRequest($"Failed to reset password: {errors}");
         }
 
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<ActionResult<UserProfileDto>> GetProfile()
+        {
+            var username = User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue("unique_name");
+            if (string.IsNullOrEmpty(username)) return Unauthorized();
+
+            var user = await _userManager.FindByNameAsync(username);
+            if (user == null) return Unauthorized();
+
+            return new UserProfileDto
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                DisplayName = user.DisplayName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                BankAccount = user.BankAccount
+            };
+        }
+
+        [Authorize]
+        [HttpPut("profile")]
+        public async Task<ActionResult> UpdateProfile(UpdateProfileDto updateProfileDto)
+        {
+            var username = User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue("unique_name");
+            if (string.IsNullOrEmpty(username)) return Unauthorized();
+
+            var user = await _userManager.FindByNameAsync(username);
+            if (user == null) return Unauthorized();
+
+            // Check if email is taken by another user
+            if (!string.IsNullOrEmpty(updateProfileDto.Email) &&
+                updateProfileDto.Email != user.Email)
+            {
+                if (await _userManager.Users.AnyAsync(x => x.Email == updateProfileDto.Email && x.Id != user.Id))
+                {
+                    return BadRequest("Sähköpostiosoite on jo käytössä");
+                }
+                user.Email = updateProfileDto.Email;
+            }
+
+            // Update fields
+            user.DisplayName = updateProfileDto.DisplayName ?? user.DisplayName;
+            user.PhoneNumber = updateProfileDto.PhoneNumber;
+            user.BankAccount = updateProfileDto.BankAccount;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest("Profiilin päivitys epäonnistui");
+            }
+
+            return Ok();
+        }
+
         private async Task<UserDto> CreateUserObject(User user)
         {
             return new UserDto

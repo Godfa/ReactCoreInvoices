@@ -121,6 +121,13 @@ export default observer(function Sidebar({ mobileOpen, onMobileClose }: Props) {
                         <Dropdown.Menu>
                             <Dropdown.Item
                                 as={NavLink}
+                                to="/profile"
+                                icon="user"
+                                text="Profiili"
+                                onClick={handleNavClick}
+                            />
+                            <Dropdown.Item
+                                as={NavLink}
                                 to="/changePassword"
                                 icon="key"
                                 text="Vaihda salasana"
