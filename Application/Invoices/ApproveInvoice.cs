@@ -32,7 +32,9 @@ namespace Application.Invoices
             {
                 var invoice = await _context.Invoices
                     .Include(i => i.Participants)
+                        .ThenInclude(p => p.AppUser)
                     .Include(i => i.Approvals)
+                        .ThenInclude(a => a.AppUser)
                     .FirstOrDefaultAsync(i => i.Id == request.InvoiceId, cancellationToken);
 
                 if (invoice == null)
@@ -72,7 +74,9 @@ namespace Application.Invoices
                 // Reload invoice with updated approvals
                 invoice = await _context.Invoices
                     .Include(i => i.Participants)
+                        .ThenInclude(p => p.AppUser)
                     .Include(i => i.Approvals)
+                        .ThenInclude(a => a.AppUser)
                     .FirstOrDefaultAsync(i => i.Id == request.InvoiceId, cancellationToken);
 
                 // Check if all participants have approved

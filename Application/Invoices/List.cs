@@ -35,6 +35,8 @@ namespace Application.Invoices
                         .ThenInclude(ei => ei.Organizer)
                     .Include(i => i.Participants)
                         .ThenInclude(p => p.AppUser)
+                    .Include(i => i.Approvals)
+                        .ThenInclude(a => a.AppUser)
                     .ToListAsync(cancellationToken);
             }
 

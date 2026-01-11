@@ -23,6 +23,7 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
     if (!selectedInvoice) return null;
 
     const isInvoiceLocked = selectedInvoice.status === InvoiceStatus.Maksussa || selectedInvoice.status === InvoiceStatus.Arkistoitu;
+    const isAdmin = user?.roles?.includes('Admin') || false;
 
     const participants = selectedInvoice.participants || [];
     const participantIds = participants.map(p => p.appUserId);
@@ -132,7 +133,7 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                     participants.map(p => {
                         const hasApproved = selectedInvoice.approvals?.some(a => a.appUserId === p.appUserId) || false;
                         const isCurrentUser = user?.id === p.appUserId;
-                        const canApprove = selectedInvoice.status === InvoiceStatus.Aktiivinen && isCurrentUser && !hasApproved;
+                        const canApprove = selectedInvoice.status === InvoiceStatus.Aktiivinen && (isCurrentUser || isAdmin) && !hasApproved;
 
                         return (
                             <div key={p.appUserId} className="participant-card" style={{ position: 'relative' }}>

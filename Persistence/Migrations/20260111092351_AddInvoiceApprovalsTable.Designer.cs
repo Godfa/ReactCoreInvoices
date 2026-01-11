@@ -12,8 +12,8 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20260111090741_AddInvoiceApprovals")]
-    partial class AddInvoiceApprovals
+    [Migration("20260111092351_AddInvoiceApprovalsTable")]
+    partial class AddInvoiceApprovalsTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -116,6 +116,24 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Invoices");
+                });
+
+            modelBuilder.Entity("Domain.InvoiceApproval", b =>
+                {
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AppUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("ApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("InvoiceId", "AppUserId");
+
+                    b.HasIndex("AppUserId");
+
+                    b.ToTable("InvoiceApprovals");
                 });
 
             modelBuilder.Entity("Domain.InvoiceParticipant", b =>
@@ -381,6 +399,25 @@ namespace Persistence.Migrations
                     b.Navigation("ExpenseItem");
                 });
 
+            modelBuilder.Entity("Domain.InvoiceApproval", b =>
+                {
+                    b.HasOne("Domain.User", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Invoice", "Invoice")
+                        .WithMany("Approvals")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Invoice");
+                });
+
             modelBuilder.Entity("Domain.InvoiceParticipant", b =>
                 {
                     b.HasOne("Domain.User", "AppUser")
@@ -460,6 +497,8 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Invoice", b =>
                 {
+                    b.Navigation("Approvals");
+
                     b.Navigation("ExpenseItems");
 
                     b.Navigation("Participants");
