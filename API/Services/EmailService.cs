@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Application.Interfaces;
 using MailKit.Net.Smtp;
@@ -179,6 +181,47 @@ Mökkilan Invoices
             return await SendEmailAsync(email, displayName, subject, plainTextContent, htmlContent);
         }
 
+        public async Task<bool> SendInvoicePaymentNotificationAsync(string email, string displayName, string invoiceTitle, string invoiceUrl, List<EmailAttachment> attachments)
+        {
+            var subject = "Lasku siirtynyt maksuun - Mökkilan Invoices";
+            var htmlContent = $@"
+                <h2>Lasku on siirtynyt maksuun</h2>
+                <p>Hei {displayName},</p>
+                <p>Lasku <strong>{invoiceTitle}</strong> on hyväksytty ja siirtynyt maksuun.</p>
+                <p>Liitteenä löydät:</p>
+                <ul>
+                    <li>Henkilökohtainen laskusi maksuosuuksineen</li>
+                    <li>Kokonaiserittely kaikista kuluista</li>
+                </ul>
+                <p>Voit myös tarkastella laskua verkossa:</p>
+                <p><a href=""{invoiceUrl}"" style=""display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;"">Avaa lasku</a></p>
+                <p>Tai kopioi linkki selaimeesi:</p>
+                <p>{invoiceUrl}</p>
+                <br>
+                <p>Terveisin,<br>Mökkilan Invoices</p>
+            ";
+
+            var plainTextContent = $@"
+Lasku on siirtynyt maksuun
+
+Hei {displayName},
+
+Lasku {invoiceTitle} on hyväksytty ja siirtynyt maksuun.
+
+Liitteenä löydät:
+- Henkilökohtainen laskusi maksuosuuksineen
+- Kokonaiserittely kaikista kuluista
+
+Voit myös tarkastella laskua verkossa:
+{invoiceUrl}
+
+Terveisin,
+Mökkilan Invoices
+            ";
+
+            return await SendEmailWithAttachmentsAsync(email, displayName, subject, plainTextContent, htmlContent, attachments);
+        }
+
         private async Task<bool> SendEmailAsync(string toEmail, string toName, string subject, string plainTextContent, string htmlContent)
         {
             if (string.IsNullOrEmpty(_smtpHost))
@@ -227,6 +270,67 @@ Mökkilan Invoices
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Exception occurred while sending email to {Email}", toEmail);
+                return false;
+            }
+        }
+
+        private async Task<bool> SendEmailWithAttachmentsAsync(string toEmail, string toName, string subject, string plainTextContent, string htmlContent, List<EmailAttachment> attachments)
+        {
+            if (string.IsNullOrEmpty(_smtpHost))
+            {
+                _logger.LogWarning("SMTP host is not configured. Email will not be sent to {Email}", toEmail);
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(_fromEmail))
+            {
+                _logger.LogWarning("FromEmail is not configured. Email will not be sent to {Email}", toEmail);
+                return false;
+            }
+
+            try
+            {
+                var message = new MimeMessage();
+                message.From.Add(new MailboxAddress(_fromName, _fromEmail));
+                message.To.Add(new MailboxAddress(toName, toEmail));
+                message.Subject = subject;
+
+                var bodyBuilder = new BodyBuilder
+                {
+                    TextBody = plainTextContent,
+                    HtmlBody = htmlContent
+                };
+
+                // Add attachments if any
+                if (attachments != null && attachments.Any())
+                {
+                    foreach (var attachment in attachments)
+                    {
+                        bodyBuilder.Attachments.Add(attachment.FileName, attachment.Content, ContentType.Parse(attachment.ContentType));
+                    }
+                }
+
+                message.Body = bodyBuilder.ToMessageBody();
+
+                using var client = new SmtpClient();
+
+                await client.ConnectAsync(_smtpHost, _smtpPort, MailKit.Security.SecureSocketOptions.StartTls);
+
+                // Authenticate if credentials are provided
+                if (!string.IsNullOrEmpty(_smtpUsername) && !string.IsNullOrEmpty(_smtpPassword))
+                {
+                    await client.AuthenticateAsync(_smtpUsername, _smtpPassword);
+                }
+
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
+
+                _logger.LogInformation("Email with {AttachmentCount} attachments sent successfully to {Email}", attachments?.Count ?? 0, toEmail);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occurred while sending email with attachments to {Email}", toEmail);
                 return false;
             }
         }

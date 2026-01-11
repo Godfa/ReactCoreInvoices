@@ -72,6 +72,7 @@ namespace API.Extensions
             services.AddFluentValidationAutoValidation();
             services.AddValidatorsFromAssemblyContaining<ExpenseItemValidator>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddSingleton<IPdfService, PdfService>();
 
             return services;
         }
