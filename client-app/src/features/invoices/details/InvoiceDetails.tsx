@@ -98,16 +98,20 @@ export default observer(function InvoiceDetails() {
                 <div className="invoice-info-item">
                     <div className="invoice-info-label">Tila</div>
                     <div className="invoice-info-value">
-                        <Dropdown
-                            selection
-                            value={invoice.status}
-                            options={statusOptions}
-                            onChange={(e, { value }) => {
-                                if (value !== undefined && invoice.id) {
-                                    changeInvoiceStatus(invoice.id, value as InvoiceStatus);
-                                }
-                            }}
-                        />
+                        {isAdmin ? (
+                            <Dropdown
+                                selection
+                                value={invoice.status}
+                                options={statusOptions}
+                                onChange={(_, { value }) => {
+                                    if (value !== undefined && invoice.id) {
+                                        changeInvoiceStatus(invoice.id, value as InvoiceStatus);
+                                    }
+                                }}
+                            />
+                        ) : (
+                            <span>{getStatusLabel(invoice.status)}</span>
+                        )}
                     </div>
                 </div>
             </div>
