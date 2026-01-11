@@ -8,6 +8,18 @@ import { ToastContainer } from 'react-toastify';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './app/router/Routes';
 
+// Suppress defaultProps warnings from third-party libraries
+const originalWarn = console.warn;
+console.warn = (...args) => {
+  if (
+    typeof args[0] === 'string' &&
+    args[0].includes('Support for defaultProps will be removed')
+  ) {
+    return;
+  }
+  originalWarn(...args);
+};
+
 const container = document.getElementById('root');
 const root = createRoot(container!);
 
