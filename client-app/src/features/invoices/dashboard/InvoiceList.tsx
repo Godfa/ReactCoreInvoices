@@ -8,7 +8,7 @@ import { InvoiceStatus } from "../../../app/models/invoice";
 
 export default observer(function InvoiceList() {
     const { invoiceStore, userStore } = useStore();
-    const { deleteInvoice, Invoices, loading, approveInvoice } = invoiceStore;
+    const { deleteInvoice, Invoices, loading, approveInvoice, unapproveInvoice } = invoiceStore;
     const { user } = userStore;
 
     const [target, setTarget] = useState('');
@@ -19,7 +19,7 @@ export default observer(function InvoiceList() {
     }
 
     function getStatusLabel(status: InvoiceStatus): string {
-        switch(status) {
+        switch (status) {
             case InvoiceStatus.Aktiivinen: return 'Aktiivinen';
             case InvoiceStatus.Maksussa: return 'Maksussa';
             case InvoiceStatus.Arkistoitu: return 'Arkistoitu';
@@ -28,7 +28,7 @@ export default observer(function InvoiceList() {
     }
 
     function getStatusColor(status: InvoiceStatus): "red" | "orange" | "green" | "grey" {
-        switch(status) {
+        switch (status) {
             case InvoiceStatus.Aktiivinen: return 'green';
             case InvoiceStatus.Maksussa: return 'orange';
             case InvoiceStatus.Arkistoitu: return 'grey';
@@ -63,7 +63,23 @@ export default observer(function InvoiceList() {
             {Invoices.map(invoice => {
                 const hasApproved = invoice.approvals?.some(a => a.appUserId === user?.id) || false;
                 const isParticipant = invoice.participants?.some(p => p.appUserId === user?.id) || false;
-                const canApprove = invoice.status === InvoiceStatus.Aktiivinen && isParticipant && !hasApproved;
+                const isAdmin = user?.roles?.includes('Admin') || false;
+                const canInteractWithApproval = invoice.status === InvoiceStatus.Aktiivinen && (isParticipant || isAdmin);
+
+                const approvalCount = invoice.approvals?.length || 0;
+                const participantCount = invoice.participants?.length || 0;
+                const allApproved = participantCount > 0 && approvalCount === participantCount;
+
+                const handleToggleApproval = () => {
+                    if (user?.id) {
+                        setTarget(`approve-${invoice.id}`);
+                        if (hasApproved) {
+                            unapproveInvoice(invoice.id, user.id);
+                        } else {
+                            approveInvoice(invoice.id, user.id);
+                        }
+                    }
+                };
 
                 return (
                     <div key={invoice.id} className="invoice-card">
@@ -76,6 +92,11 @@ export default observer(function InvoiceList() {
                                     </Label>
                                     {hasApproved && (
                                         <Icon name="check circle" style={{ color: '#21ba45' }} title="Olet hyväksynyt" />
+                                    )}
+                                    {participantCount > 0 && (
+                                        <Label size="small" style={{ backgroundColor: allApproved ? '#21ba45' : '#767676', color: 'white' }}>
+                                            {approvalCount}/{participantCount} hyväksytty
+                                        </Label>
                                     )}
                                 </div>
                                 <div className="invoice-card-meta">
@@ -94,15 +115,16 @@ export default observer(function InvoiceList() {
                         )}
 
                         <div className="invoice-card-actions">
-                            {canApprove && (
+                            {canInteractWithApproval && (
                                 <Button
-                                    onClick={() => user?.id && approveInvoice(invoice.id, user.id)}
-                                    className="btn-success"
+                                    onClick={handleToggleApproval}
+                                    className={hasApproved ? "btn-secondary" : "btn-success"}
                                     size="small"
                                     loading={loading && target === `approve-${invoice.id}`}
                                     disabled={loading}
                                 >
-                                    <Icon name="check" /> Hyväksy
+                                    <Icon name={hasApproved ? "times" : "check"} />
+                                    {hasApproved ? "Peru hyväksyntä" : "Hyväksy lasku"}
                                 </Button>
                             )}
                             <Button

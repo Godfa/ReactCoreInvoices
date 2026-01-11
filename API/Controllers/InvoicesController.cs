@@ -81,5 +81,20 @@ namespace API.Controllers
                 IsAdmin = isAdmin
             }));
         }
+
+        [HttpDelete("{invoiceId}/approve/{userId}")]
+        public async Task<IActionResult> UnapproveInvoice(Guid invoiceId, string userId)
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+
+            return Ok(await Mediator.Send(new UnapproveInvoice.Command
+            {
+                InvoiceId = invoiceId,
+                AppUserId = userId,
+                CurrentUserId = currentUserId,
+                IsAdmin = isAdmin
+            }));
+        }
     }
 }

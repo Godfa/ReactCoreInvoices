@@ -318,6 +318,28 @@ export default class InvoiceStore {
         }
     }
 
+    unapproveInvoice = async (invoiceId: string, userId: string) => {
+        this.loading = true;
+        try {
+            const updatedInvoice = await agent.Invoices.unapproveInvoice(invoiceId, userId);
+            runInAction(() => {
+                this.invoiceRegistry.set(invoiceId, updatedInvoice);
+                if (this.selectedInvoice?.id === invoiceId) {
+                    this.selectedInvoice = updatedInvoice;
+                }
+                this.loading = false;
+            });
+            toast.success('Hyväksyntä peruttu');
+        } catch (error: any) {
+            console.log(error);
+            const errorMessage = error?.response?.data || 'Hyväksynnän peruminen epäonnistui';
+            toast.error(errorMessage);
+            runInAction(() => {
+                this.loading = false;
+            });
+        }
+    }
+
     updateExpenseItem = async (invoiceId: string, expenseItem: ExpenseItem) => {
         this.loading = true;
         try {

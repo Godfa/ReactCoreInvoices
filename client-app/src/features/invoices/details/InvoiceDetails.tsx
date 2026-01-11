@@ -10,7 +10,7 @@ import { InvoiceStatus } from "../../../app/models/invoice";
 
 export default observer(function InvoiceDetails() {
     const { invoiceStore, userStore } = useStore();
-    const { selectedInvoice: invoice, loadInvoice, loadingInitial, changeInvoiceStatus, loading, approveInvoice } = invoiceStore;
+    const { selectedInvoice: invoice, loadInvoice, loadingInitial, changeInvoiceStatus, loading, approveInvoice, unapproveInvoice } = invoiceStore;
     const { user } = userStore;
     const { id } = useParams<{ id: string }>();
     const location = useLocation();
@@ -54,11 +54,15 @@ export default observer(function InvoiceDetails() {
     const isAdmin = user?.roles?.includes('Admin') || false;
     const hasApproved = invoice.approvals?.some(a => a.appUserId === user?.id) || false;
     const isParticipant = invoice.participants?.some(p => p.appUserId === user?.id) || false;
-    const canApprove = invoice.status === InvoiceStatus.Aktiivinen && isParticipant && !hasApproved;
+    const canInteractWithApproval = invoice.status === InvoiceStatus.Aktiivinen && (isParticipant || isAdmin);
 
-    const handleApprove = async () => {
+    const handleToggleApproval = async () => {
         if (user?.id && invoice.id) {
-            await approveInvoice(invoice.id, user.id);
+            if (hasApproved) {
+                await unapproveInvoice(invoice.id, user.id);
+            } else {
+                await approveInvoice(invoice.id, user.id);
+            }
         }
     };
 
@@ -140,22 +144,15 @@ export default observer(function InvoiceDetails() {
 
             {/* Actions */}
             <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)', flexWrap: 'wrap' }}>
-                {canApprove && (
+                {canInteractWithApproval && (
                     <Button
-                        className="btn-success"
-                        onClick={handleApprove}
+                        className={hasApproved ? "btn-secondary" : "btn-success"}
+                        onClick={handleToggleApproval}
                         loading={loading}
                         disabled={loading}
                     >
-                        <Icon name="check" /> Hyväksy lasku
-                    </Button>
-                )}
-                {hasApproved && (
-                    <Button
-                        className="btn-success"
-                        disabled
-                    >
-                        <Icon name="check circle" /> Hyväksytty
+                        <Icon name={hasApproved ? "times" : "check"} />
+                        {hasApproved ? "Peru hyväksyntä" : "Hyväksy lasku"}
                     </Button>
                 )}
                 <Button
