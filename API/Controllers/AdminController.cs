@@ -39,14 +39,21 @@ namespace API.Controllers
         public async Task<ActionResult<List<UserManagementDto>>> GetUsers()
         {
             var users = await _userManager.Users.ToListAsync();
-            var userDtos = users.Select(u => new UserManagementDto
+            var userDtos = new List<UserManagementDto>();
+
+            foreach (var user in users)
             {
-                Id = u.Id,
-                UserName = u.UserName,
-                DisplayName = u.DisplayName,
-                Email = u.Email,
-                MustChangePassword = u.MustChangePassword
-            }).ToList();
+                var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                userDtos.Add(new UserManagementDto
+                {
+                    Id = user.Id,
+                    UserName = user.UserName,
+                    DisplayName = user.DisplayName,
+                    Email = user.Email,
+                    MustChangePassword = user.MustChangePassword,
+                    IsAdmin = isAdmin
+                });
+            }
 
             return userDtos;
         }
@@ -207,6 +214,63 @@ namespace API.Controllers
             if (!result.Succeeded)
             {
                 return BadRequest("Käyttäjän poisto epäonnistui");
+            }
+
+            return Ok();
+        }
+
+        [HttpPost("users/{id}/grant-admin")]
+        public async Task<ActionResult> GrantAdminRole(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            // Check if user is already an admin
+            if (await _userManager.IsInRoleAsync(user, "Admin"))
+            {
+                return BadRequest("Käyttäjä on jo admin");
+            }
+
+            // Ensure Admin role exists
+            if (!await _roleManager.RoleExistsAsync("Admin"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("Admin"));
+            }
+
+            var result = await _userManager.AddToRoleAsync(user, "Admin");
+
+            if (!result.Succeeded)
+            {
+                return BadRequest("Admin-oikeuksien myöntäminen epäonnistui");
+            }
+
+            return Ok();
+        }
+
+        [HttpDelete("users/{id}/revoke-admin")]
+        public async Task<ActionResult> RevokeAdminRole(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            // Prevent revoking current user's admin rights
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (user.Id == currentUserId)
+            {
+                return BadRequest("Et voi poistaa omia admin-oikeuksiasi");
+            }
+
+            // Check if user is an admin
+            if (!await _userManager.IsInRoleAsync(user, "Admin"))
+            {
+                return BadRequest("Käyttäjä ei ole admin");
+            }
+
+            var result = await _userManager.RemoveFromRoleAsync(user, "Admin");
+
+            if (!result.Succeeded)
+            {
+                return BadRequest("Admin-oikeuksien poistaminen epäonnistui");
             }
 
             return Ok();

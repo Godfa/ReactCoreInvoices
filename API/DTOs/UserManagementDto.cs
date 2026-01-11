@@ -7,6 +7,7 @@ namespace API.DTOs
         public string DisplayName { get; set; }
         public string Email { get; set; }
         public bool MustChangePassword { get; set; }
+        public bool IsAdmin { get; set; }
     }
 
     public class CreateUserDto

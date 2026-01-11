@@ -103,6 +103,21 @@ export default observer(function AdminPage() {
         }
     };
 
+    const handleToggleAdminRole = async (userId: string, isCurrentlyAdmin: boolean) => {
+        try {
+            if (isCurrentlyAdmin) {
+                await agent.Admin.revokeAdminRole(userId);
+                toast.success('Admin-oikeudet poistettu');
+            } else {
+                await agent.Admin.grantAdminRole(userId);
+                toast.success('Admin-oikeudet myönnetty');
+            }
+            await loadUsers();
+        } catch (error: any) {
+            toast.error(error.response?.data || 'Admin-oikeuksien muutos epäonnistui');
+        }
+    };
+
     return (
         <div className="animate-fade-in">
             <h1 style={{ marginBottom: 'var(--spacing-xl)' }}>
@@ -123,6 +138,7 @@ export default observer(function AdminPage() {
                                 <Table.HeaderCell>Käyttäjänimi</Table.HeaderCell>
                                 <Table.HeaderCell>Näyttönimi</Table.HeaderCell>
                                 <Table.HeaderCell>Sähköposti</Table.HeaderCell>
+                                <Table.HeaderCell>Admin</Table.HeaderCell>
                                 <Table.HeaderCell>Salasana vaihdettava</Table.HeaderCell>
                                 <Table.HeaderCell>Toiminnot</Table.HeaderCell>
                             </Table.Row>
@@ -134,6 +150,17 @@ export default observer(function AdminPage() {
                                     <Table.Cell>{user.userName}</Table.Cell>
                                     <Table.Cell>{user.displayName}</Table.Cell>
                                     <Table.Cell>{user.email}</Table.Cell>
+                                    <Table.Cell>
+                                        <Button
+                                            size='small'
+                                            toggle
+                                            active={user.isAdmin}
+                                            onClick={() => handleToggleAdminRole(user.id, user.isAdmin)}
+                                            className={user.isAdmin ? "btn-success" : "btn-secondary"}
+                                        >
+                                            {user.isAdmin ? 'Kyllä' : 'Ei'}
+                                        </Button>
+                                    </Table.Cell>
                                     <Table.Cell>{user.mustChangePassword ? 'Kyllä' : 'Ei'}</Table.Cell>
                                     <Table.Cell>
                                         <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>

@@ -134,6 +134,7 @@ export interface UserManagement {
     displayName: string;
     email: string;
     mustChangePassword: boolean;
+    isAdmin: boolean;
 }
 
 export interface CreateUser {
@@ -161,6 +162,8 @@ const Admin = {
     createUser: (user: CreateUser) => requests.post<UserManagement>('/admin/users', user),
     updateUser: (id: string, user: UpdateUser) => requests.put<void>(`/admin/users/${id}`, user),
     deleteUser: (id: string) => requests.del<void>(`/admin/users/${id}`),
+    grantAdminRole: (id: string) => requests.post<void>(`/admin/users/${id}/grant-admin`, {}),
+    revokeAdminRole: (id: string) => requests.del<void>(`/admin/users/${id}/revoke-admin`),
     sendPasswordResetLink: (id: string) => requests.post<{ message: string }>(`/admin/users/${id}/reset-password`, {})
 }
 
