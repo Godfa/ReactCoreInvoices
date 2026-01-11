@@ -131,7 +131,7 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                 {participants.length > 0 ? (
                     participants.map(p => {
                         const hasApproved = selectedInvoice.approvals?.some(a => a.appUserId === p.appUserId) || false;
-                        const isCurrentUser = user?.userName === p.appUser.userName;
+                        const isCurrentUser = user?.id === p.appUserId;
                         const canApprove = selectedInvoice.status === InvoiceStatus.Aktiivinen && isCurrentUser && !hasApproved;
 
                         return (
