@@ -71,6 +71,29 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
         }
     };
 
+    const handleApproveAllParticipants = async () => {
+        invoiceStore.loading = true;
+        try {
+            const unapprovedParticipants = participants.filter(p =>
+                !selectedInvoice.approvals?.some(a => a.appUserId === p.appUserId)
+            );
+
+            if (unapprovedParticipants.length === 0) {
+                toast.info('Kaikki osallistujat on jo hyväksynyt');
+                return;
+            }
+
+            await Promise.all(
+                unapprovedParticipants.map(p =>
+                    approveInvoice(invoiceId, p.appUserId)
+                )
+            );
+            toast.success(`${unapprovedParticipants.length} osallistujan hyväksyntä lisätty`);
+        } finally {
+            invoiceStore.loading = false;
+        }
+    };
+
     const nonParticipantCount = PotentialParticipants.filter(c => !participantIds.includes(c.key)).length;
     const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
     const usualSuspectsToAdd = PotentialParticipants.filter(c =>
@@ -91,6 +114,17 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
                     <h3 style={{ margin: 0 }}>Osallistujat</h3>
                     <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
+                        {isAdmin && selectedInvoice.status === InvoiceStatus.Aktiivinen && participants.length > 0 && (
+                            <Button
+                                size='tiny'
+                                className='btn-success'
+                                onClick={handleApproveAllParticipants}
+                                loading={loading}
+                                disabled={loading}
+                            >
+                                <Icon name='check circle' /> Hyväksy kaikkien puolesta
+                            </Button>
+                        )}
                         {participants.length > 0 && (
                             <Button
                                 size='tiny'
