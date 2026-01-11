@@ -20,6 +20,7 @@ namespace Domain
 
         public virtual List<ExpenseItem> ExpenseItems { get; set; }
         public virtual List<InvoiceParticipant> Participants { get; set; }
+        public virtual List<InvoiceApproval> Approvals { get; set; }
 
         [NotMapped]
         public decimal Amount => ExpenseItems?.Sum(ei => ei.Amount) ?? 0;

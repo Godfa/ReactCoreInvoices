@@ -48,6 +48,13 @@ export interface InvoiceParticipant {
     appUser: AppUser;
 }
 
+export interface InvoiceApproval {
+    invoiceId: string;
+    appUserId: string;
+    appUser: AppUser;
+    approvedAt: string;
+}
+
 export interface Invoice {
     id: string;
     lanNumber: number;
@@ -58,5 +65,6 @@ export interface Invoice {
     amount: number;
     expenseItems: ExpenseItem[];
     participants: InvoiceParticipant[];
+    approvals: InvoiceApproval[];
 }
 

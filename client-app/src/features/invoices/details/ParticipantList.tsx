@@ -12,8 +12,9 @@ interface Props {
 }
 
 export default observer(function ParticipantList({ invoiceId }: Props) {
-    const { invoiceStore } = useStore();
-    const { selectedInvoice, addParticipant, removeParticipant, loadUsers, PotentialParticipants, loading, addUsualSuspects } = invoiceStore;
+    const { invoiceStore, userStore } = useStore();
+    const { selectedInvoice, addParticipant, removeParticipant, loadUsers, PotentialParticipants, loading, addUsualSuspects, approveInvoice } = invoiceStore;
+    const { user } = userStore;
 
     useEffect(() => {
         loadUsers();
@@ -128,30 +129,61 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
                 {/* Current Participants */}
                 <div className="participant-grid" style={{ marginBottom: 'var(--spacing-lg)' }}>
                 {participants.length > 0 ? (
-                    participants.map(p => (
-                        <div key={p.appUserId} className="participant-card">
-                            <div className="participant-avatar">
-                                {getInitials(p.appUser.displayName)}
+                    participants.map(p => {
+                        const hasApproved = selectedInvoice.approvals?.some(a => a.appUserId === p.appUserId) || false;
+                        const isCurrentUser = user?.userName === p.appUser.userName;
+                        const canApprove = selectedInvoice.status === InvoiceStatus.Aktiivinen && isCurrentUser && !hasApproved;
+
+                        return (
+                            <div key={p.appUserId} className="participant-card" style={{ position: 'relative' }}>
+                                {hasApproved && (
+                                    <Icon
+                                        name='check circle'
+                                        style={{
+                                            position: 'absolute',
+                                            top: '8px',
+                                            right: '8px',
+                                            color: '#21ba45',
+                                            fontSize: '1.2em'
+                                        }}
+                                        title="Hyväksytty"
+                                    />
+                                )}
+                                <div className="participant-avatar">
+                                    {getInitials(p.appUser.displayName)}
+                                </div>
+                                <span className="participant-name">{p.appUser.displayName}</span>
+                                {canApprove && (
+                                    <Button
+                                        size='mini'
+                                        className='btn-success'
+                                        onClick={() => approveInvoice(invoiceId, p.appUserId)}
+                                        loading={loading}
+                                        disabled={loading}
+                                        style={{ marginLeft: 'auto' }}
+                                    >
+                                        <Icon name='check' /> Hyväksy
+                                    </Button>
+                                )}
+                                <Button
+                                    size='mini'
+                                    icon='print'
+                                    as={Link}
+                                    to={`/invoices/${invoiceId}/print/${p.appUserId}`}
+                                    style={{ marginLeft: canApprove ? '0' : 'auto', padding: '4px', background: 'transparent', color: 'var(--text-muted)' }}
+                                    title="Tulosta osuus"
+                                />
+                                <Button
+                                    size='mini'
+                                    icon='close'
+                                    onClick={() => handleRemoveParticipant(p.appUserId)}
+                                    loading={loading}
+                                    disabled={loading || isInvoiceLocked}
+                                    style={{ padding: '4px', background: 'transparent', color: 'var(--text-muted)' }}
+                                />
                             </div>
-                            <span className="participant-name">{p.appUser.displayName}</span>
-                            <Button
-                                size='mini'
-                                icon='print'
-                                as={Link}
-                                to={`/invoices/${invoiceId}/print/${p.appUserId}`}
-                                style={{ marginLeft: 'auto', padding: '4px', background: 'transparent', color: 'var(--text-muted)' }}
-                                title="Tulosta osuus"
-                            />
-                            <Button
-                                size='mini'
-                                icon='close'
-                                onClick={() => handleRemoveParticipant(p.appUserId)}
-                                loading={loading}
-                                disabled={loading || isInvoiceLocked}
-                                style={{ padding: '4px', background: 'transparent', color: 'var(--text-muted)' }}
-                            />
-                        </div>
-                    ))
+                        );
+                    })
                 ) : (
                     <p style={{ color: 'var(--text-muted)' }}>Ei osallistujia vielä</p>
                 )}

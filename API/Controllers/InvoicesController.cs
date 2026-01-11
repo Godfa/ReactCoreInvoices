@@ -65,5 +65,15 @@ namespace API.Controllers
                 NewStatus = (InvoiceStatus)status
             }));
         }
+
+        [HttpPost("{invoiceId}/approve/{userId}")]
+        public async Task<IActionResult> ApproveInvoice(Guid invoiceId, string userId)
+        {
+            return Ok(await Mediator.Send(new ApproveInvoice.Command
+            {
+                InvoiceId = invoiceId,
+                AppUserId = userId
+            }));
+        }
     }
 }

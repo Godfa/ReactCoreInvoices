@@ -20,6 +20,7 @@ namespace Persistence
         // public DbSet<Creditor> Creditors { get; set; } // Removed
         public DbSet<InvoiceParticipant> InvoiceParticipants { get; set; }
         public DbSet<ExpenseItemPayer> ExpenseItemPayers { get; set; }
+        public DbSet<InvoiceApproval> InvoiceApprovals { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -69,6 +70,22 @@ namespace Persistence
                 .HasOne(eli => eli.ExpenseItem)
                 .WithMany(ei => ei.LineItems)
                 .HasForeignKey(eli => eli.ExpenseItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure Invoice -> InvoiceApproval relationship with cascade delete
+            modelBuilder.Entity<InvoiceApproval>()
+                .HasKey(ia => new { ia.InvoiceId, ia.AppUserId });
+
+            modelBuilder.Entity<InvoiceApproval>()
+                .HasOne(ia => ia.Invoice)
+                .WithMany(i => i.Approvals)
+                .HasForeignKey(ia => ia.InvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<InvoiceApproval>()
+                .HasOne(ia => ia.AppUser)
+                .WithMany()
+                .HasForeignKey(ia => ia.AppUserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
