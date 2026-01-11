@@ -153,7 +153,9 @@ namespace API.Services
                     });
                 });
 
-                var pdfBytes = document.GeneratePdf();
+                using var stream = new System.IO.MemoryStream();
+                document.GeneratePdf(stream);
+                var pdfBytes = stream.ToArray();
                 _logger.LogInformation("Successfully generated full invoice PDF for invoice {InvoiceId}", invoiceId);
                 return pdfBytes;
             }
@@ -295,7 +297,9 @@ namespace API.Services
                     });
                 });
 
-                var pdfBytes = document.GeneratePdf();
+                using var stream = new System.IO.MemoryStream();
+                document.GeneratePdf(stream);
+                var pdfBytes = stream.ToArray();
                 _logger.LogInformation("Successfully generated participant invoice PDF for invoice {InvoiceId}, participant {ParticipantId}", invoiceId, participantId);
                 return pdfBytes;
             }
