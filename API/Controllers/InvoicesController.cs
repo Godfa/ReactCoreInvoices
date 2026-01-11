@@ -38,6 +38,7 @@ namespace API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteInvoice(Guid id)
         {
             return Ok(await Mediator.Send(new Delete.Command{Id = id}));

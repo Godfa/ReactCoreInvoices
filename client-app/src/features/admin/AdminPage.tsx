@@ -10,6 +10,8 @@ export default observer(function AdminPage() {
     const [editingUser, setEditingUser] = useState<UserManagement | null>(null);
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [userToDelete, setUserToDelete] = useState<UserManagement | null>(null);
 
     const [createForm, setCreateForm] = useState<CreateUser>({
         userName: '',
@@ -83,6 +85,24 @@ export default observer(function AdminPage() {
         setEditModalOpen(true);
     };
 
+    const openDeleteModal = (user: UserManagement) => {
+        setUserToDelete(user);
+        setDeleteModalOpen(true);
+    };
+
+    const handleDeleteUser = async () => {
+        if (!userToDelete) return;
+        try {
+            await agent.Admin.deleteUser(userToDelete.id);
+            setUsers(users.filter(u => u.id !== userToDelete.id));
+            setDeleteModalOpen(false);
+            setUserToDelete(null);
+            toast.success('Käyttäjä poistettu onnistuneesti');
+        } catch (error: any) {
+            toast.error(error.response?.data || 'Käyttäjän poisto epäonnistui');
+        }
+    };
+
     return (
         <div className="animate-fade-in">
             <h1 style={{ marginBottom: 'var(--spacing-xl)' }}>
@@ -126,6 +146,13 @@ export default observer(function AdminPage() {
                                                 onClick={() => handleSendPasswordReset(user.id, user.email)}
                                             >
                                                 <Icon name='key' /> Nollaa salasana
+                                            </Button>
+                                            <Button
+                                                size='small'
+                                                color='red'
+                                                onClick={() => openDeleteModal(user)}
+                                            >
+                                                <Icon name='trash' /> Poista
                                             </Button>
                                         </div>
                                     </Table.Cell>
@@ -189,6 +216,23 @@ export default observer(function AdminPage() {
                 <Modal.Actions>
                     <Button className="btn-secondary" onClick={() => setEditModalOpen(false)}>Peruuta</Button>
                     <Button className="btn-primary" onClick={handleUpdateUser}>Tallenna</Button>
+                </Modal.Actions>
+            </Modal>
+
+            {/* Delete User Confirmation Modal */}
+            <Modal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} size='small'>
+                <Modal.Header>Poista käyttäjä</Modal.Header>
+                <Modal.Content>
+                    <p>Haluatko varmasti poistaa käyttäjän <strong>{userToDelete?.displayName}</strong> ({userToDelete?.userName})?</p>
+                    <p style={{ color: 'var(--text-secondary)', marginTop: 'var(--spacing-md)' }}>
+                        Tämä toiminto ei ole palautettavissa.
+                    </p>
+                </Modal.Content>
+                <Modal.Actions>
+                    <Button className="btn-secondary" onClick={() => setDeleteModalOpen(false)}>Peruuta</Button>
+                    <Button color='red' onClick={handleDeleteUser}>
+                        <Icon name='trash' /> Poista käyttäjä
+                    </Button>
                 </Modal.Actions>
             </Modal>
         </div>

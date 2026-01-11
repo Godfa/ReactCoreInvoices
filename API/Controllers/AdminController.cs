@@ -189,6 +189,29 @@ namespace API.Controllers
             return new string(password.OrderBy(x => random.Next()).ToArray());
         }
 
+        [HttpDelete("users/{id}")]
+        public async Task<ActionResult> DeleteUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            // Prevent deleting the current user (admin deleting themselves)
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (user.Id == currentUserId)
+            {
+                return BadRequest("Et voi poistaa omaa käyttäjätunnustasi");
+            }
+
+            var result = await _userManager.DeleteAsync(user);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest("Käyttäjän poisto epäonnistui");
+            }
+
+            return Ok();
+        }
+
         [HttpPost("reseed-database")]
         public async Task<ActionResult> ReseedDatabase()
         {

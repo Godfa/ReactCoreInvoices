@@ -160,6 +160,7 @@ const Admin = {
     listUsers: () => requests.get<UserManagement[]>('/admin/users'),
     createUser: (user: CreateUser) => requests.post<UserManagement>('/admin/users', user),
     updateUser: (id: string, user: UpdateUser) => requests.put<void>(`/admin/users/${id}`, user),
+    deleteUser: (id: string) => requests.del<void>(`/admin/users/${id}`),
     sendPasswordResetLink: (id: string) => requests.post<{ message: string }>(`/admin/users/${id}/reset-password`, {})
 }
 

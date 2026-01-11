@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
-import React, { SyntheticEvent, useState } from "react";
-import { Button, Icon, Label } from "semantic-ui-react";
+import React, { useState } from "react";
+import { Button, Icon, Label, Modal } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import { Link } from "react-router-dom";
 import { InvoiceStatus } from "../../../app/models/invoice";
@@ -12,10 +12,20 @@ export default observer(function InvoiceList() {
     const { user } = userStore;
 
     const [target, setTarget] = useState('');
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [invoiceToDelete, setInvoiceToDelete] = useState<{ id: string; title: string } | null>(null);
 
-    function handleInvoiceDelete(e: SyntheticEvent<HTMLButtonElement>, id: string) {
-        setTarget(e.currentTarget.name);
-        deleteInvoice(id);
+    function openDeleteModal(invoice: { id: string; title: string }) {
+        setInvoiceToDelete(invoice);
+        setDeleteModalOpen(true);
+    }
+
+    function handleInvoiceDelete() {
+        if (!invoiceToDelete) return;
+        setTarget(invoiceToDelete.id);
+        deleteInvoice(invoiceToDelete.id);
+        setDeleteModalOpen(false);
+        setInvoiceToDelete(null);
     }
 
     function getStatusLabel(status: InvoiceStatus): string {
@@ -135,19 +145,40 @@ export default observer(function InvoiceList() {
                             >
                                 <Icon name="eye" /> Näytä
                             </Button>
-                            <Button
-                                name={invoice.id}
-                                loading={loading && target === invoice.id}
-                                onClick={(e) => handleInvoiceDelete(e, invoice.id)}
-                                className="btn-danger"
-                                size="small"
-                            >
-                                <Icon name="trash" /> Poista
-                            </Button>
+                            {isAdmin && (
+                                <Button
+                                    onClick={() => openDeleteModal({ id: invoice.id, title: invoice.title })}
+                                    className="btn-danger"
+                                    size="small"
+                                >
+                                    <Icon name="trash" /> Poista
+                                </Button>
+                            )}
                         </div>
                     </div>
                 );
             })}
+
+            {/* Delete Invoice Confirmation Modal */}
+            <Modal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} size='small'>
+                <Modal.Header>Poista lasku</Modal.Header>
+                <Modal.Content>
+                    <p>Haluatko varmasti poistaa laskun <strong>{invoiceToDelete?.title}</strong>?</p>
+                    <p style={{ color: 'var(--text-secondary)', marginTop: 'var(--spacing-md)' }}>
+                        Tämä toiminto ei ole palautettavissa.
+                    </p>
+                </Modal.Content>
+                <Modal.Actions>
+                    <Button className="btn-secondary" onClick={() => setDeleteModalOpen(false)}>Peruuta</Button>
+                    <Button
+                        color='red'
+                        onClick={handleInvoiceDelete}
+                        loading={loading && target === invoiceToDelete?.id}
+                    >
+                        <Icon name='trash' /> Poista lasku
+                    </Button>
+                </Modal.Actions>
+            </Modal>
         </div>
     )
 })
