@@ -7,8 +7,9 @@ import { InvoiceStatus } from "../../../app/models/invoice";
 
 
 export default observer(function InvoiceList() {
-    const { invoiceStore } = useStore();
-    const { deleteInvoice, Invoices, loading } = invoiceStore;
+    const { invoiceStore, userStore } = useStore();
+    const { deleteInvoice, Invoices, loading, approveInvoice } = invoiceStore;
+    const { user } = userStore;
 
     const [target, setTarget] = useState('');
 
@@ -59,52 +60,72 @@ export default observer(function InvoiceList() {
 
     return (
         <div className="invoice-grid">
-            {Invoices.map(invoice => (
-                <div key={invoice.id} className="invoice-card">
-                    <div className="invoice-card-header">
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                                <h3 className="invoice-card-title" style={{ margin: 0 }}>{invoice.title}</h3>
-                                <Label color={getStatusColor(invoice.status)} size="small">
-                                    {getStatusLabel(invoice.status)}
-                                </Label>
+            {Invoices.map(invoice => {
+                const hasApproved = invoice.approvals?.some(a => a.appUserId === user?.id) || false;
+                const isParticipant = invoice.participants?.some(p => p.appUserId === user?.id) || false;
+                const canApprove = invoice.status === InvoiceStatus.Aktiivinen && isParticipant && !hasApproved;
+
+                return (
+                    <div key={invoice.id} className="invoice-card">
+                        <div className="invoice-card-header">
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                                    <h3 className="invoice-card-title" style={{ margin: 0 }}>{invoice.title}</h3>
+                                    <Label color={getStatusColor(invoice.status)} size="small">
+                                        {getStatusLabel(invoice.status)}
+                                    </Label>
+                                    {hasApproved && (
+                                        <Icon name="check circle" style={{ color: '#21ba45' }} title="Olet hyväksynyt" />
+                                    )}
+                                </div>
+                                <div className="invoice-card-meta">
+                                    LAN #{invoice.lanNumber}
+                                </div>
                             </div>
-                            <div className="invoice-card-meta">
-                                LAN #{invoice.lanNumber}
+                            <div className="invoice-card-amount">
+                                {invoice.amount?.toFixed(2)}€
                             </div>
                         </div>
-                        <div className="invoice-card-amount">
-                            {invoice.amount?.toFixed(2)}€
+
+                        {invoice.description && (
+                            <div className="invoice-card-description">
+                                {invoice.description}
+                            </div>
+                        )}
+
+                        <div className="invoice-card-actions">
+                            {canApprove && (
+                                <Button
+                                    onClick={() => user?.id && approveInvoice(invoice.id, user.id)}
+                                    className="btn-success"
+                                    size="small"
+                                    loading={loading && target === `approve-${invoice.id}`}
+                                    disabled={loading}
+                                >
+                                    <Icon name="check" /> Hyväksy
+                                </Button>
+                            )}
+                            <Button
+                                as={Link}
+                                to={`/invoices/${invoice.id}`}
+                                className="btn-primary"
+                                size="small"
+                            >
+                                <Icon name="eye" /> Näytä
+                            </Button>
+                            <Button
+                                name={invoice.id}
+                                loading={loading && target === invoice.id}
+                                onClick={(e) => handleInvoiceDelete(e, invoice.id)}
+                                className="btn-danger"
+                                size="small"
+                            >
+                                <Icon name="trash" /> Poista
+                            </Button>
                         </div>
                     </div>
-
-                    {invoice.description && (
-                        <div className="invoice-card-description">
-                            {invoice.description}
-                        </div>
-                    )}
-
-                    <div className="invoice-card-actions">
-                        <Button
-                            as={Link}
-                            to={`/invoices/${invoice.id}`}
-                            className="btn-primary"
-                            size="small"
-                        >
-                            <Icon name="eye" /> Näytä
-                        </Button>
-                        <Button
-                            name={invoice.id}
-                            loading={loading && target === invoice.id}
-                            onClick={(e) => handleInvoiceDelete(e, invoice.id)}
-                            className="btn-danger"
-                            size="small"
-                        >
-                            <Icon name="trash" /> Poista
-                        </Button>
-                    </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     )
 })

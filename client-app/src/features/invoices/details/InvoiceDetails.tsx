@@ -9,8 +9,9 @@ import { observer } from "mobx-react-lite";
 import { InvoiceStatus } from "../../../app/models/invoice";
 
 export default observer(function InvoiceDetails() {
-    const { invoiceStore } = useStore();
-    const { selectedInvoice: invoice, loadInvoice, loadingInitial, changeInvoiceStatus } = invoiceStore;
+    const { invoiceStore, userStore } = useStore();
+    const { selectedInvoice: invoice, loadInvoice, loadingInitial, changeInvoiceStatus, loading, approveInvoice } = invoiceStore;
+    const { user } = userStore;
     const { id } = useParams<{ id: string }>();
     const location = useLocation();
     const [activeTab, setActiveTab] = useState<'expenses' | 'participants'>('expenses');
@@ -48,6 +49,18 @@ export default observer(function InvoiceDetails() {
     }, [location.search]);
 
     if (loadingInitial || !invoice) return <LoadingComponent content="Ladataan laskua..." />;
+
+    // Check if current user can approve
+    const isAdmin = user?.roles?.includes('Admin') || false;
+    const hasApproved = invoice.approvals?.some(a => a.appUserId === user?.id) || false;
+    const isParticipant = invoice.participants?.some(p => p.appUserId === user?.id) || false;
+    const canApprove = invoice.status === InvoiceStatus.Aktiivinen && isParticipant && !hasApproved;
+
+    const handleApprove = async () => {
+        if (user?.id && invoice.id) {
+            await approveInvoice(invoice.id, user.id);
+        }
+    };
 
     return (
         <div className="animate-fade-in">
@@ -127,6 +140,24 @@ export default observer(function InvoiceDetails() {
 
             {/* Actions */}
             <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)', flexWrap: 'wrap' }}>
+                {canApprove && (
+                    <Button
+                        className="btn-success"
+                        onClick={handleApprove}
+                        loading={loading}
+                        disabled={loading}
+                    >
+                        <Icon name="check" /> Hyväksy lasku
+                    </Button>
+                )}
+                {hasApproved && (
+                    <Button
+                        className="btn-success"
+                        disabled
+                    >
+                        <Icon name="check circle" /> Hyväksytty
+                    </Button>
+                )}
                 <Button
                     as={Link}
                     to={`/manage/${invoice.id}`}
