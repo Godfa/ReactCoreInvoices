@@ -242,7 +242,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                             color='red'
                                             icon='trash'
                                             size='tiny'
-                                            disabled={loading && deletingId !== item.id}
+                                            disabled={loading || isInvoiceLocked}
                                         />
                                     </Table.Cell>
                                 </Table.Row>
