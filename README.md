@@ -23,7 +23,7 @@ A full-stack invoice management application built with React and ASP.NET Core 8.
 - FluentValidation
 - ASP.NET Core Identity + JWT
 - QuestPDF for PDF generation
-- SQL Server
+- PostgreSQL (via Npgsql)
 
 ### Frontend
 - React 18 with TypeScript
@@ -52,7 +52,7 @@ MokkilanInvoices/
 
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [Node.js 18+](https://nodejs.org/)
-- SQL Server LocalDB (included with Visual Studio) or SQL Server
+- [PostgreSQL 12+](https://www.postgresql.org/download/) (or use Docker)
 
 ### Setup
 
@@ -62,13 +62,36 @@ MokkilanInvoices/
    cd MokkilanInvoices
    ```
 
-2. Start the API (from root directory)
+2. Setup PostgreSQL database
+   ```bash
+   # Create database
+   psql -U postgres -c "CREATE DATABASE \"LanInvoices\";"
+
+   # Or use Docker
+   docker run --name postgres-laninvoices -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=LanInvoices -p 5432:5432 -d postgres:16-alpine
+   ```
+
+   See [POSTGRESQL_SETUP.md](POSTGRESQL_SETUP.md) for detailed setup instructions.
+
+3. Configure connection string
+   ```bash
+   # Option 1: User secrets (recommended for development)
+   cd API
+   dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=LanInvoices;Username=postgres;Password=postgres"
+
+   # Option 2: Environment variable
+   export ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=LanInvoices;Username=postgres;Password=postgres"
+
+   # Option 3: Edit appsettings.Development.json (not recommended - don't commit passwords!)
+   ```
+
+4. Start the API (from root directory)
    ```bash
    dotnet watch run --project API
    ```
-   The API runs on `http://localhost:5000`. Database migrations run automatically on startup.
+   The API runs on `http://localhost:5000`. Database migrations and seeding run automatically on startup.
 
-3. Start the frontend (in a new terminal)
+5. Start the frontend (in a new terminal)
    ```bash
    cd client-app
    npm install
@@ -76,7 +99,7 @@ MokkilanInvoices/
    ```
    The frontend runs on `http://localhost:3000` with API proxy configured.
 
-4. Open `http://localhost:3000` in your browser
+6. Open `http://localhost:3000` in your browser
 
 ## Development
 

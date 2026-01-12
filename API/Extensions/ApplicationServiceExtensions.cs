@@ -28,23 +28,15 @@ namespace API.Extensions
             {
                 var connectionString = config.GetConnectionString("DefaultConnection");
 
-                // Use SQL Server in production (if connection string contains "Server=")
-                // Use SQLite in development
-                if (connectionString.Contains("Server=", StringComparison.OrdinalIgnoreCase))
+                // Use PostgreSQL
+                opt.UseNpgsql(connectionString, npgsqlOptions =>
                 {
-                    opt.UseSqlServer(connectionString, sqlOptions =>
-                    {
-                        sqlOptions.EnableRetryOnFailure(
-                            maxRetryCount: 5,
-                            maxRetryDelay: TimeSpan.FromSeconds(30),
-                            errorNumbersToAdd: null);
-                        sqlOptions.CommandTimeout(60);
-                    });
-                }
-                else
-                {
-                    opt.UseSqlite(connectionString);
-                }
+                    npgsqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorCodesToAdd: null);
+                    npgsqlOptions.CommandTimeout(60);
+                });
             });
             services.AddCors(opt =>
             {

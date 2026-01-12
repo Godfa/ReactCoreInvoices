@@ -22,11 +22,14 @@ dotnet test
 # Run specific test project
 dotnet test Tests/Application.UnitTests/Application.UnitTests.csproj
 
-# Add EF Core migration
+# Add EF Core migration (PostgreSQL)
 dotnet ef migrations add <MigrationName> --project Persistence --startup-project API
 
-# Update database
-dotnet ef database update --project API
+# Update database (PostgreSQL)
+dotnet ef database update --project Persistence --startup-project API
+
+# Remove last migration
+dotnet ef migrations remove --project Persistence --startup-project API
 ```
 
 ### Frontend (from client-app directory)
@@ -81,6 +84,10 @@ Database auto-migrates and seeds sample data on startup. In development mode, in
 
 ## Configuration
 
-- **API/appsettings.Development.json** - Local dev settings (LocalDB connection, token key)
+- **API/appsettings.Development.json** - Local dev settings (PostgreSQL connection without password)
+- **API/.env.example** - Template for environment variables (copy to .env or use user-secrets)
 - **client-app/vite.config.ts** - Vite dev server config with API proxy (`/api` -> `http://localhost:5000`)
-- Database: SQL Server LocalDB (dev) / SQL Server (production)
+- **Database**: PostgreSQL (via Npgsql.EntityFrameworkCore.PostgreSQL)
+  - Connection string via user-secrets (recommended): `dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=LanInvoices;Username=postgres;Password=your_password"`
+  - Or environment variable: `ConnectionStrings__DefaultConnection`
+  - See [POSTGRESQL_SETUP.md](POSTGRESQL_SETUP.md) for full setup guide
