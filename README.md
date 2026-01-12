@@ -78,14 +78,6 @@ MokkilanInvoices/
 
 4. Open `http://localhost:3000` in your browser
 
-### Default Users (Seeded)
-
-| Email | Password | Role |
-|-------|----------|------|
-| admin@test.com | Pa$$w0rd | Admin |
-| bob@test.com | Pa$$w0rd | User |
-| jane@test.com | Pa$$w0rd | User |
-
 ## Development
 
 ### Running Tests
