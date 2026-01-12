@@ -102,12 +102,15 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                     <Table.Body>
                         {selectedInvoice.expenseItems && selectedInvoice.expenseItems.map((item) => (
                             <React.Fragment key={item.id}>
-                                <Table.Row>
+                                <Table.Row style={{ cursor: 'pointer' }} onClick={() => toggleExpanded(item.id)}>
                                     <Table.Cell>
                                         <Button
                                             icon
                                             size='tiny'
-                                            onClick={() => toggleExpanded(item.id)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleExpanded(item.id);
+                                            }}
                                         >
                                             <Icon name={expandedItems.has(item.id) ? 'chevron down' : 'chevron right'} />
                                         </Button>
@@ -116,7 +119,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                     <Table.Cell>{getExpenseTypeName(item.expenseType)}</Table.Cell>
                                     <Table.Cell>{item.organizer?.displayName || getUserName(item.organizerId)}</Table.Cell>
                                     <Table.Cell>{(item.lineItems?.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0) ?? 0).toFixed(2)} €</Table.Cell>
-                                    <Table.Cell>
+                                    <Table.Cell onClick={(e) => e.stopPropagation()}>
                                         <div style={{ marginBottom: '5px' }}>
                                             {item.payers && item.payers.length > 0 ? (
                                                 item.payers.map(p => (
@@ -228,7 +231,7 @@ export default observer(function ExpenseItemList({ invoiceId }: Props) {
                                             </div>
                                         )}
                                     </Table.Cell>
-                                    <Table.Cell>
+                                    <Table.Cell onClick={(e) => e.stopPropagation()}>
                                         <Button
                                             onClick={() => handleEdit(item)}
                                             color='blue'

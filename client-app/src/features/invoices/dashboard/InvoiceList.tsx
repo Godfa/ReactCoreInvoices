@@ -2,7 +2,7 @@ import { observer } from "mobx-react-lite";
 import React, { useState } from "react";
 import { Button, Icon, Label, Modal } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { InvoiceStatus } from "../../../app/models/invoice";
 
 
@@ -10,6 +10,7 @@ export default observer(function InvoiceList() {
     const { invoiceStore, userStore } = useStore();
     const { deleteInvoice, Invoices, loading, approveInvoice, unapproveInvoice } = invoiceStore;
     const { user } = userStore;
+    const navigate = useNavigate();
 
     const [target, setTarget] = useState('');
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -91,8 +92,17 @@ export default observer(function InvoiceList() {
                     }
                 };
 
+                const handleCardClick = () => {
+                    navigate(`/invoices/${invoice.id}`);
+                };
+
                 return (
-                    <div key={invoice.id} className="invoice-card">
+                    <div
+                        key={invoice.id}
+                        className="invoice-card"
+                        onClick={handleCardClick}
+                        style={{ cursor: 'pointer' }}
+                    >
                         <div className="invoice-card-header">
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
@@ -124,7 +134,7 @@ export default observer(function InvoiceList() {
                             </div>
                         )}
 
-                        <div className="invoice-card-actions">
+                        <div className="invoice-card-actions" onClick={(e) => e.stopPropagation()}>
                             {canInteractWithApproval && (
                                 <Button
                                     onClick={handleToggleApproval}
