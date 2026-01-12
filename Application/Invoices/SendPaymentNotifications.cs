@@ -69,7 +69,7 @@ namespace Application.Invoices
                 await _context.SaveChangesAsync(cancellationToken);
 
                 // Send email notifications with PDFs to all participants
-                var baseUrl = _config["AppUrl"] ?? "http://localhost:3000";
+                var baseUrl = _config["Email:AppUrl"];
                 var invoiceUrl = $"{baseUrl}/invoices/{invoice.Id}";
 
                 var attachments = new List<EmailAttachment>();

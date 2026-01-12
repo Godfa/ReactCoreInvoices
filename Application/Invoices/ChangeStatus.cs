@@ -54,7 +54,7 @@ namespace Application.Invoices
                 // Send email notifications when status changes to Maksussa (In Payment)
                 if (request.NewStatus == InvoiceStatus.Maksussa && oldStatus != InvoiceStatus.Maksussa)
                 {
-                    var appUrl = _config["Email:AppUrl"] ?? "https://your-app-url.com";
+                    var appUrl = _config["Email:AppUrl"];
                     var invoiceUrl = $"{appUrl}/invoices/{invoice.Id}";
 
                     // Send email to all participants
