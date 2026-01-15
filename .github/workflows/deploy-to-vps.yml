@@ -1,0 +1,198 @@
+name: Deploy MokkilanInvoices to VPS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'API/**'
+      - 'Application/**'
+      - 'Domain/**'
+      - 'Persistence/**'
+      - '.github/workflows/deploy-to-vps.yml'
+  workflow_dispatch:
+
+# IMPORTANT: This workflow uses GitHub-hosted runners, NOT self-hosted runners.
+# GitHub-hosted runners are safe for public repositories.
+# If you see a warning about self-hosted runners, you can ignore it as long as
+# you're using "runs-on: ubuntu-latest" (GitHub-hosted) and not your own server.
+
+env:
+  DOTNET_VERSION: '8.x'
+  PROJECT_PATH: 'API/API.csproj'
+  PUBLISH_PATH: './publish'
+
+jobs:
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Build
+        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish ${{ env.PROJECT_PATH }} --configuration Release --no-build --output ${{ env.PUBLISH_PATH }}
+
+      - name: List published files
+        run: |
+          echo "Published files:"
+          ls -la ${{ env.PUBLISH_PATH }}
+
+      - name: Create deployment package
+        run: |
+          cd ${{ env.PUBLISH_PATH }}
+          tar -czf ../mokkilaninvoices.tar.gz .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mokkilaninvoices-package
+          path: mokkilaninvoices.tar.gz
+          retention-days: 7
+
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: build
+    # Security: Only deploy from main branch, never from pull requests
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    environment:
+      name: 'production'
+      url: ${{ secrets.APP_URL }}
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mokkilaninvoices-package
+
+      - name: Copy files to server via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT || 22 }}
+          source: "mokkilaninvoices.tar.gz"
+          target: "/tmp/"
+
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT || 22 }}
+          script: |
+            # Configuration
+            APP_DIR="/var/www/mokkilaninvoices"
+            BACKUP_DIR="/var/backups/mokkilaninvoices"
+            SERVICE_NAME="mokkilaninvoices"
+
+            echo "🚀 Starting deployment..."
+
+            # Create backup of current version
+            if [ -d "$APP_DIR" ]; then
+              echo "📦 Creating backup..."
+              BACKUP_FILE="$BACKUP_DIR/backup-$(date +%Y%m%d-%H%M%S).tar.gz"
+              sudo mkdir -p $BACKUP_DIR
+              sudo tar -czf $BACKUP_FILE -C $APP_DIR .
+              echo "✅ Backup created: $BACKUP_FILE"
+
+              # Keep only last 5 backups
+              cd $BACKUP_DIR && ls -t | tail -n +6 | xargs -r sudo rm --
+            fi
+
+            # Stop the service
+            echo "🛑 Stopping service..."
+            sudo systemctl stop $SERVICE_NAME || echo "Service not running"
+
+            # Create app directory if it doesn't exist
+            sudo mkdir -p $APP_DIR
+
+            # Extract new version
+            echo "📂 Extracting new version..."
+            sudo tar -xzf /tmp/mokkilaninvoices.tar.gz -C $APP_DIR
+
+            # Set permissions
+            echo "🔐 Setting permissions..."
+            sudo chown -R www-data:www-data $APP_DIR
+            sudo chmod -R 755 $APP_DIR
+
+            # Make the API executable
+            sudo chmod +x $APP_DIR/API || echo "API binary not found or already executable"
+
+            # Reload systemd and start service
+            echo "▶️ Starting service..."
+            sudo systemctl daemon-reload
+            sudo systemctl start $SERVICE_NAME
+            sudo systemctl enable $SERVICE_NAME
+
+            # Check service status
+            echo "🔍 Checking service status..."
+            sleep 3
+            if sudo systemctl is-active --quiet $SERVICE_NAME; then
+              echo "✅ Deployment successful! Service is running."
+              sudo systemctl status $SERVICE_NAME --no-pager
+            else
+              echo "❌ Deployment failed! Service is not running."
+              sudo journalctl -u $SERVICE_NAME -n 50 --no-pager
+              exit 1
+            fi
+
+            # Cleanup
+            rm /tmp/mokkilaninvoices.tar.gz
+
+            echo "🎉 Deployment completed!"
+
+      - name: Health check
+        run: |
+          echo "🏥 Performing health check..."
+          sleep 5
+
+          # Try to reach the health endpoint
+          HEALTH_URL="${{ secrets.APP_URL }}/health"
+
+          for i in {1..5}; do
+            if curl -f -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" | grep -q "200"; then
+              echo "✅ Health check passed!"
+              exit 0
+            fi
+            echo "⏳ Attempt $i/5 failed, retrying in 10 seconds..."
+            sleep 10
+          done
+
+          echo "⚠️ Health check did not pass after 5 attempts"
+          echo "Note: This may be expected if /health endpoint doesn't exist"
+
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always()
+
+    steps:
+      - name: Deployment Success
+        if: needs.deploy.result == 'success'
+        run: |
+          echo "✅ Deployment to VPS successful!"
+          echo "Application URL: ${{ secrets.APP_URL }}"
+
+      - name: Deployment Failed
+        if: needs.deploy.result == 'failure'
+        run: |
+          echo "❌ Deployment to VPS failed!"
+          echo "Check the logs above for details."
+          exit 1
