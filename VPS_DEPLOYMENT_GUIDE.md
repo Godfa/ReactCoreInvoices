@@ -61,16 +61,16 @@ For other Linux distributions, see: https://learn.microsoft.com/en-us/dotnet/cor
 
 ```bash
 # Create directory for the application
-sudo mkdir -p /var/www/mokkilaninvoices
+sudo mkdir -p /your/app/path
 
 # Create backup directory
-sudo mkdir -p /var/backups/mokkilaninvoices
+sudo mkdir -p /your/backup/path
 
 # Create www-data user if it doesn't exist
 sudo useradd -r -s /bin/false www-data || echo "www-data user already exists"
 
 # Set ownership
-sudo chown -R www-data:www-data /var/www/mokkilaninvoices
+sudo chown -R www-data:www-data /your/app/path
 ```
 
 ### 4. Install Nginx (Reverse Proxy)
@@ -157,8 +157,11 @@ Add these secrets:
 |-------------|-------------|---------|
 | `VPS_HOST` | Your VPS IP address or domain | `123.456.789.0` or `api.yourdomain.com` |
 | `VPS_USERNAME` | SSH username | `ubuntu` or `your-username` |
-| `VPS_SSH_KEY` | Private SSH key content | Copy entire content of `~/.ssh/mokkilaninvoices-deploy` |
+| `VPS_SSH_KEY` | Private SSH key content | Copy entire content of `~/.ssh/your-deploy-key` |
 | `VPS_SSH_PORT` | SSH port (optional, defaults to 22) | `22` |
+| `APP_DIR` | Application directory path on server | `/opt/mlan-invoicer` or `/your/app/path` |
+| `BACKUP_DIR` | Backup directory path on server | `/var/backups/mlan-invoicer` or `/your/backup/path` |
+| `SERVICE_NAME` | Systemd service name | `mlan-invoicer` or `your-app-name` |
 | `APP_URL` | Your application URL | `https://api.yourdomain.com` |
 
 **To copy private key:**
@@ -190,7 +193,7 @@ Add these if your application needs database connection:
 SSH to your VPS and create the service file:
 
 ```bash
-sudo nano /etc/systemd/system/mokkilaninvoices.service
+sudo nano /etc/systemd/system/your-app-name.service
 ```
 
 Paste this configuration:
@@ -207,8 +210,8 @@ User=www-data
 Group=www-data
 
 # Working directory and executable
-WorkingDirectory=/var/www/mokkilaninvoices
-ExecStart=/usr/bin/dotnet /var/www/mokkilaninvoices/API.dll
+WorkingDirectory=/your/app/path
+ExecStart=/usr/bin/dotnet /your/app/path/API.dll
 
 # Restart policy
 Restart=always
@@ -224,7 +227,7 @@ Environment=ASPNETCORE_URLS=http://localhost:5000
 # Environment=ConnectionStrings__DefaultConnection=Host=localhost;Database=mokkilaninvoices;Username=mokkilanadmin;Password=your-password
 
 # Logging
-SyslogIdentifier=mokkilaninvoices
+SyslogIdentifier=your-app-name
 StandardOutput=journal
 StandardError=journal
 
@@ -233,7 +236,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/www/mokkilaninvoices
+ReadWritePaths=/your/app/path
 ReadWritePaths=/var/log
 
 [Install]
@@ -247,13 +250,13 @@ WantedBy=multi-user.target
 sudo systemctl daemon-reload
 
 # Enable service to start on boot
-sudo systemctl enable mokkilaninvoices
+sudo systemctl enable your-app-name
 
 # Start the service
-sudo systemctl start mokkilaninvoices
+sudo systemctl start your-app-name
 
 # Check status
-sudo systemctl status mokkilaninvoices
+sudo systemctl status your-app-name
 
 # View logs
 sudo journalctl -u mokkilaninvoices -f
@@ -263,16 +266,16 @@ sudo journalctl -u mokkilaninvoices -f
 
 ```bash
 # Start
-sudo systemctl start mokkilaninvoices
+sudo systemctl start your-app-name
 
 # Stop
-sudo systemctl stop mokkilaninvoices
+sudo systemctl stop your-app-name
 
 # Restart
-sudo systemctl restart mokkilaninvoices
+sudo systemctl restart your-app-name
 
 # View status
-sudo systemctl status mokkilaninvoices
+sudo systemctl status your-app-name
 
 # View logs (last 100 lines)
 sudo journalctl -u mokkilaninvoices -n 100
@@ -447,7 +450,7 @@ curl https://api.yourdomain.com/health
 
 # Check service status on VPS
 ssh your-username@your-server-ip
-sudo systemctl status mokkilaninvoices
+sudo systemctl status your-app-name
 sudo journalctl -u mokkilaninvoices -n 50
 ```
 
@@ -459,7 +462,7 @@ sudo journalctl -u mokkilaninvoices -n 50
 
 ```bash
 # Check service status
-sudo systemctl status mokkilaninvoices
+sudo systemctl status your-app-name
 
 # View detailed logs
 sudo journalctl -u mokkilaninvoices -n 100 --no-pager
@@ -468,7 +471,7 @@ sudo journalctl -u mokkilaninvoices -n 100 --no-pager
 sudo netstat -tlnp | grep :5000
 
 # Check permissions
-ls -la /var/www/mokkilaninvoices
+ls -la /your/app/path
 ```
 
 ### GitHub Actions Deployment Fails
@@ -486,17 +489,17 @@ head -n 1 ~/.ssh/mokkilaninvoices-deploy
 **Permission Issues:**
 ```bash
 # Fix ownership
-sudo chown -R www-data:www-data /var/www/mokkilaninvoices
+sudo chown -R www-data:www-data /your/app/path
 
 # Fix executable permissions
-sudo chmod +x /var/www/mokkilaninvoices/API
+sudo chmod +x /your/app/path/API
 ```
 
 ### Application Not Accessible
 
 **Check if service is running:**
 ```bash
-sudo systemctl status mokkilaninvoices
+sudo systemctl status your-app-name
 ```
 
 **Check if nginx is running:**
@@ -528,7 +531,7 @@ sudo systemctl status postgresql
 psql -h localhost -U mokkilanadmin -d mokkilaninvoices
 
 # Check connection string in appsettings
-cat /var/www/mokkilaninvoices/appsettings.Production.json
+cat /your/app/path/appsettings.Production.json
 ```
 
 ### High Memory Usage
@@ -541,7 +544,7 @@ free -h
 top -p $(pgrep -f "dotnet.*API.dll")
 
 # Restart service if needed
-sudo systemctl restart mokkilaninvoices
+sudo systemctl restart your-app-name
 ```
 
 ---
@@ -565,10 +568,10 @@ scp mokkilaninvoices.tar.gz your-username@your-server-ip:/tmp/
 
 # On server
 ssh your-username@your-server-ip
-sudo systemctl stop mokkilaninvoices
-sudo tar -xzf /tmp/mokkilaninvoices.tar.gz -C /var/www/mokkilaninvoices
-sudo chown -R www-data:www-data /var/www/mokkilaninvoices
-sudo systemctl start mokkilaninvoices
+sudo systemctl stop your-app-name
+sudo tar -xzf /tmp/mokkilaninvoices.tar.gz -C /your/app/path
+sudo chown -R www-data:www-data /your/app/path
+sudo systemctl start your-app-name
 ```
 
 ---
