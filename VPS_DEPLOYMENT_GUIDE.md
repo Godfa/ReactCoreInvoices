@@ -34,7 +34,7 @@ Complete guide for deploying MokkilanInvoices Backend API to your own Linux VPS 
 ### 1. Connect to Your VPS
 
 ```bash
-ssh your-username@your-server-ip
+ssh <your-username>@<your-server-ip>
 ```
 
 ### 2. Install .NET 8 Runtime
@@ -61,16 +61,16 @@ For other Linux distributions, see: https://learn.microsoft.com/en-us/dotnet/cor
 
 ```bash
 # Create directory for the application
-sudo mkdir -p /your/app/path
+sudo mkdir -p </your/app/path>
 
 # Create backup directory
-sudo mkdir -p /your/backup/path
+sudo mkdir -p </your/backup/path>
 
 # Create www-data user if it doesn't exist
 sudo useradd -r -s /bin/false www-data || echo "www-data user already exists"
 
 # Set ownership
-sudo chown -R www-data:www-data /your/app/path
+sudo chown -R www-data:www-data </your/app/path>
 ```
 
 ### 4. Install Nginx (Reverse Proxy)
@@ -112,7 +112,7 @@ sudo systemctl start postgresql
 # Create database and user
 sudo -u postgres psql <<EOF
 CREATE DATABASE mokkilaninvoices;
-CREATE USER mokkilanadmin WITH PASSWORD 'your-secure-password';
+CREATE USER mokkilanadmin WITH PASSWORD '<your-secure-password>';
 GRANT ALL PRIVILEGES ON DATABASE mokkilaninvoices TO mokkilanadmin;
 \q
 EOF
@@ -139,7 +139,7 @@ ssh-keygen -t ed25519 -C "github-actions" -f ~/.ssh/mokkilaninvoices-deploy
 
 ```bash
 # Copy the public key to your VPS
-ssh-copy-id -i ~/.ssh/mokkilaninvoices-deploy.pub your-username@your-server-ip
+ssh-copy-id -i ~/.ssh/mokkilaninvoices-deploy.pub <your-username>@<your-server-ip>
 
 # Or manually:
 # 1. Copy content of ~/.ssh/mokkilaninvoices-deploy.pub
@@ -156,12 +156,12 @@ Add these secrets:
 | Secret Name | Description | Example |
 |-------------|-------------|---------|
 | `VPS_HOST` | Your VPS IP address or domain | `123.456.789.0` or `api.yourdomain.com` |
-| `VPS_USERNAME` | SSH username | `ubuntu` or `your-username` |
-| `VPS_SSH_KEY` | Private SSH key content | Copy entire content of `~/.ssh/your-deploy-key` |
+| `VPS_USERNAME` | SSH username | `ubuntu` or `<your-username>` |
+| `VPS_SSH_KEY` | Private SSH key content | Copy entire content of `~/.ssh/<your-deploy-key>` |
 | `VPS_SSH_PORT` | SSH port (optional, defaults to 22) | `22` |
-| `APP_DIR` | Application directory path on server | `/opt/mlan-invoicer` or `/your/app/path` |
-| `BACKUP_DIR` | Backup directory path on server | `/var/backups/mlan-invoicer` or `/your/backup/path` |
-| `SERVICE_NAME` | Systemd service name | `mlan-invoicer` or `your-app-name` |
+| `APP_DIR` | Application directory path on server | `/opt/mlan-invoicer` or `</your/app/path>` |
+| `BACKUP_DIR` | Backup directory path on server | `/var/backups/mlan-invoicer` or `</your/backup/path>` |
+| `SERVICE_NAME` | Systemd service name | `mlan-invoicer` or `<your-app-name>` |
 | `APP_URL` | Your application URL | `https://api.yourdomain.com` |
 
 **To copy private key:**
@@ -193,7 +193,7 @@ Add these if your application needs database connection:
 SSH to your VPS and create the service file:
 
 ```bash
-sudo nano /etc/systemd/system/your-app-name.service
+sudo nano /etc/systemd/system/<your-app-name>.service
 ```
 
 Paste this configuration:
@@ -210,8 +210,8 @@ User=www-data
 Group=www-data
 
 # Working directory and executable
-WorkingDirectory=/your/app/path
-ExecStart=/usr/bin/dotnet /your/app/path/API.dll
+WorkingDirectory=</your/app/path>
+ExecStart=/usr/bin/dotnet </your/app/path>/API.dll
 
 # Restart policy
 Restart=always
@@ -224,10 +224,10 @@ Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
 Environment=ASPNETCORE_URLS=http://localhost:5000
 
 # Optional: Set connection strings
-# Environment=ConnectionStrings__DefaultConnection=Host=localhost;Database=mokkilaninvoices;Username=mokkilanadmin;Password=your-password
+# Environment=ConnectionStrings__DefaultConnection=Host=localhost;Database=mokkilaninvoices;Username=mokkilanadmin;Password=<your-password>
 
 # Logging
-SyslogIdentifier=your-app-name
+SyslogIdentifier=<your-app-name>
 StandardOutput=journal
 StandardError=journal
 
@@ -236,7 +236,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/your/app/path
+ReadWritePaths=</your/app/path>
 ReadWritePaths=/var/log
 
 [Install]
@@ -250,13 +250,13 @@ WantedBy=multi-user.target
 sudo systemctl daemon-reload
 
 # Enable service to start on boot
-sudo systemctl enable your-app-name
+sudo systemctl enable <your-app-name>
 
 # Start the service
-sudo systemctl start your-app-name
+sudo systemctl start <your-app-name>
 
 # Check status
-sudo systemctl status your-app-name
+sudo systemctl status <your-app-name>
 
 # View logs
 sudo journalctl -u mokkilaninvoices -f
@@ -266,16 +266,16 @@ sudo journalctl -u mokkilaninvoices -f
 
 ```bash
 # Start
-sudo systemctl start your-app-name
+sudo systemctl start <your-app-name>
 
 # Stop
-sudo systemctl stop your-app-name
+sudo systemctl stop <your-app-name>
 
 # Restart
-sudo systemctl restart your-app-name
+sudo systemctl restart <your-app-name>
 
 # View status
-sudo systemctl status your-app-name
+sudo systemctl status <your-app-name>
 
 # View logs (last 100 lines)
 sudo journalctl -u mokkilaninvoices -n 100
@@ -443,14 +443,14 @@ git push origin main
 
 ```bash
 # Check if service is running
-curl http://your-server-ip:5000/health
+curl http://<your-server-ip>:5000/health
 
 # Or with domain
 curl https://api.yourdomain.com/health
 
 # Check service status on VPS
-ssh your-username@your-server-ip
-sudo systemctl status your-app-name
+ssh <your-username>@<your-server-ip>
+sudo systemctl status <your-app-name>
 sudo journalctl -u mokkilaninvoices -n 50
 ```
 
@@ -462,7 +462,7 @@ sudo journalctl -u mokkilaninvoices -n 50
 
 ```bash
 # Check service status
-sudo systemctl status your-app-name
+sudo systemctl status <your-app-name>
 
 # View detailed logs
 sudo journalctl -u mokkilaninvoices -n 100 --no-pager
@@ -471,7 +471,7 @@ sudo journalctl -u mokkilaninvoices -n 100 --no-pager
 sudo netstat -tlnp | grep :5000
 
 # Check permissions
-ls -la /your/app/path
+ls -la </your/app/path>
 ```
 
 ### GitHub Actions Deployment Fails
@@ -479,7 +479,7 @@ ls -la /your/app/path
 **SSH Connection Issues:**
 ```bash
 # Test SSH connection manually
-ssh -i ~/.ssh/mokkilaninvoices-deploy your-username@your-server-ip
+ssh -i ~/.ssh/mokkilaninvoices-deploy <your-username>@<your-server-ip>
 
 # Check SSH key format (should be OpenSSH format)
 head -n 1 ~/.ssh/mokkilaninvoices-deploy
@@ -489,17 +489,17 @@ head -n 1 ~/.ssh/mokkilaninvoices-deploy
 **Permission Issues:**
 ```bash
 # Fix ownership
-sudo chown -R www-data:www-data /your/app/path
+sudo chown -R www-data:www-data </your/app/path>
 
 # Fix executable permissions
-sudo chmod +x /your/app/path/API
+sudo chmod +x </your/app/path>/API
 ```
 
 ### Application Not Accessible
 
 **Check if service is running:**
 ```bash
-sudo systemctl status your-app-name
+sudo systemctl status <your-app-name>
 ```
 
 **Check if nginx is running:**
@@ -518,7 +518,7 @@ sudo tail -f /var/log/nginx/mokkilaninvoices-error.log
 curl http://localhost:5000/health
 
 # From outside
-curl http://your-server-ip:5000/health
+curl http://<your-server-ip>:5000/health
 ```
 
 ### Database Connection Issues
@@ -531,7 +531,7 @@ sudo systemctl status postgresql
 psql -h localhost -U mokkilanadmin -d mokkilaninvoices
 
 # Check connection string in appsettings
-cat /your/app/path/appsettings.Production.json
+cat </your/app/path>/appsettings.Production.json
 ```
 
 ### High Memory Usage
@@ -544,7 +544,7 @@ free -h
 top -p $(pgrep -f "dotnet.*API.dll")
 
 # Restart service if needed
-sudo systemctl restart your-app-name
+sudo systemctl restart <your-app-name>
 ```
 
 ---
@@ -564,14 +564,14 @@ tar -czf ../mokkilaninvoices.tar.gz .
 cd ..
 
 # Copy to server
-scp mokkilaninvoices.tar.gz your-username@your-server-ip:/tmp/
+scp mokkilaninvoices.tar.gz <your-username>@<your-server-ip>:/tmp/
 
 # On server
-ssh your-username@your-server-ip
-sudo systemctl stop your-app-name
-sudo tar -xzf /tmp/mokkilaninvoices.tar.gz -C /your/app/path
-sudo chown -R www-data:www-data /your/app/path
-sudo systemctl start your-app-name
+ssh <your-username>@<your-server-ip>
+sudo systemctl stop <your-app-name>
+sudo tar -xzf /tmp/mokkilaninvoices.tar.gz -C </your/app/path>
+sudo chown -R www-data:www-data </your/app/path>
+sudo systemctl start <your-app-name>
 ```
 
 ---
