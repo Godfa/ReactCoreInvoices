@@ -159,9 +159,9 @@ Add these secrets:
 | `VPS_USERNAME` | SSH username | `ubuntu` or `<your-username>` |
 | `VPS_SSH_KEY` | Private SSH key content | Copy entire content of `~/.ssh/<your-deploy-key>` |
 | `VPS_SSH_PORT` | SSH port (optional, defaults to 22) | `22` |
-| `APP_DIR` | Application directory path on server | `/opt/mlan-invoicer` or `</your/app/path>` |
-| `BACKUP_DIR` | Backup directory path on server | `/var/backups/mlan-invoicer` or `</your/backup/path>` |
-| `SERVICE_NAME` | Systemd service name | `mlan-invoicer` or `<your-app-name>` |
+| `APP_DIR` | Application directory path on server | `</your/app/path>` |
+| `BACKUP_DIR` | Backup directory path on server | `</your/backup/path>` |
+| `SERVICE_NAME` | Systemd service name | `<your-app-name>` |
 | `APP_URL` | Your application URL | `https://api.yourdomain.com` |
 
 **To copy private key:**
