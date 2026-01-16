@@ -69,9 +69,9 @@ jobs:
     # Security: Only deploy from main branch, never from pull requests
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     environment:
-      name: 'production'
-      url: ${{ secrets.APP_URL }}
-
+      name: production
+      url: ${{ vars.APP_URL }}
+      
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -112,7 +112,7 @@ jobs:
               echo "✅ Backup created: $BACKUP_FILE"
 
               # Keep only last 5 backups
-              cd $BACKUP_DIR && ls -t | tail -n +6 | xargs -r sudo rm --
+              cd $BACKUP_DIR && ls -t | tail -n +6 | xargs -r sudo rm
             fi
 
             # Stop the service
@@ -163,7 +163,7 @@ jobs:
           sleep 5
 
           # Try to reach the health endpoint
-          HEALTH_URL="${{ secrets.APP_URL }}/health"
+          HEALTH_URL="${{ vars.APP_URL }}/health"
 
           for i in {1..5}; do
             if curl -f -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" | grep -q "200"; then
@@ -188,7 +188,7 @@ jobs:
         if: needs.deploy.result == 'success'
         run: |
           echo "✅ Deployment to VPS successful!"
-          echo "Application URL: ${{ secrets.APP_URL }}"
+          echo "Application URL: ${{ vars.APP_URL }}"
 
       - name: Deployment Failed
         if: needs.deploy.result == 'failure'
