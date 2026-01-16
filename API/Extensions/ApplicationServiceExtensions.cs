@@ -65,6 +65,7 @@ namespace API.Extensions
             services.AddValidatorsFromAssemblyContaining<ExpenseItemValidator>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IPdfService, PdfService>();
+            services.AddHttpClient<IReceiptScannerService, ReceiptScannerService>();
 
             return services;
         }

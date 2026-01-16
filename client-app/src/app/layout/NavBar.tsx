@@ -18,6 +18,7 @@ export default observer(function NavBar() {
                 {userStore.isLoggedIn && (
                     <>
                         <Menu.Item as={NavLink} to='/invoices' name='Invoices' />
+                        <Menu.Item as={NavLink} to='/scan-receipt' name='Scan Receipt' />
                         <Menu.Item>
                             <Button as={NavLink} to='/createInvoice' positive content="Create Invoice" />
                         </Menu.Item>

@@ -12,6 +12,7 @@ import ProfilePage from "../../features/profile/ProfilePage";
 
 import InvoicePrintView from "../../features/invoices/details/InvoicePrintView";
 import ParticipantInvoicePrintView from "../../features/invoices/details/ParticipantInvoicePrintView";
+import ReceiptScanner from "../../features/receipts/ReceiptScanner";
 
 export const routes: RouteObject[] = [
     {
@@ -31,6 +32,7 @@ export const routes: RouteObject[] = [
             { path: 'forgot-password', element: <ForgotPasswordForm /> },
             { path: 'reset-password', element: <ResetPasswordForm /> },
             { path: 'admin', element: <AdminPage /> },
+            { path: 'scan-receipt', element: <ReceiptScanner /> },
             { path: '*', element: <Navigate replace to='/invoices' /> },
         ]
     }

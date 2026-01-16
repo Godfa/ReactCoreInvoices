@@ -194,6 +194,42 @@ const Users = {
     list: () => requests.get<UserManagement[]>('/users')
 }
 
+export interface ScannedReceiptLine {
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    lineTotal: number;
+    confidence?: number;
+}
+
+export interface ScannedReceiptResult {
+    provider: string;
+    lines: ScannedReceiptLine[];
+    total?: number;
+    merchantName?: string;
+    receiptDate?: string;
+    warnings: string[];
+    processingTimeMs: number;
+}
+
+const Receipts = {
+    scan: (file: File, language: string = 'fi', provider: string = 'auto', ollamaModel?: string) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        let url = `/receipts/scan?language=${language}&provider=${provider}`;
+        if (ollamaModel && provider === 'ollama') {
+            url += `&ollamaModel=${ollamaModel}`;
+        }
+
+        return axios.post<ScannedReceiptResult>(url, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        }).then(responseBody);
+    }
+}
+
 const agent = {
     Invoices,
     ExpenseItems,
@@ -201,7 +237,8 @@ const agent = {
     ExpenseTypes,
     Account,
     Admin,
-    Users
+    Users,
+    Receipts
 }
 
 export default agent;
