@@ -15,12 +15,57 @@ export default observer(function ProfilePage() {
         displayName: '',
         email: '',
         phoneNumber: '',
-        bankAccount: ''
+        bankAccount: '',
+        preferredPaymentMethod: ''
     });
+
+    // Validate IBAN format (basic validation)
+    const isValidIBAN = (iban: string): boolean => {
+        if (!iban) return false;
+        const cleanIban = iban.replace(/\s/g, '');
+        return /^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(cleanIban) && cleanIban.length >= 15;
+    };
+
+    // Check if phone number exists
+    const hasPhoneNumber = (): boolean => {
+        return formData.phoneNumber !== undefined && formData.phoneNumber.trim() !== '';
+    };
+
+    // Check if bank account is valid
+    const hasBankAccount = (): boolean => {
+        return formData.bankAccount !== undefined && isValidIBAN(formData.bankAccount);
+    };
+
+    // Get available payment method options
+    const getPaymentMethodOptions = () => {
+        const options = [
+            { key: '', text: 'Ei valittu', value: '' }
+        ];
+
+        if (hasBankAccount()) {
+            options.push({ key: 'Pankki', text: 'Pankki', value: 'Pankki' });
+        }
+
+        if (hasPhoneNumber()) {
+            options.push({ key: 'MobilePay', text: 'MobilePay', value: 'MobilePay' });
+        }
+
+        return options;
+    };
 
     useEffect(() => {
         loadProfile();
     }, []);
+
+    // Clear preferred payment method if it becomes invalid
+    useEffect(() => {
+        if (formData.preferredPaymentMethod === 'Pankki' && !hasBankAccount()) {
+            setFormData({ ...formData, preferredPaymentMethod: '' });
+        }
+        if (formData.preferredPaymentMethod === 'MobilePay' && !hasPhoneNumber()) {
+            setFormData({ ...formData, preferredPaymentMethod: '' });
+        }
+    }, [formData.bankAccount, formData.phoneNumber]);
 
     const loadProfile = async () => {
         setLoadingInitial(true);
@@ -31,7 +76,8 @@ export default observer(function ProfilePage() {
                 displayName: data.displayName,
                 email: data.email,
                 phoneNumber: data.phoneNumber || '',
-                bankAccount: data.bankAccount || ''
+                bankAccount: data.bankAccount || '',
+                preferredPaymentMethod: data.preferredPaymentMethod || ''
             });
         } catch (error) {
             console.error(error);
@@ -61,7 +107,8 @@ export default observer(function ProfilePage() {
                 displayName: profile.displayName,
                 email: profile.email,
                 phoneNumber: profile.phoneNumber || '',
-                bankAccount: profile.bankAccount || ''
+                bankAccount: profile.bankAccount || '',
+                preferredPaymentMethod: profile.preferredPaymentMethod || ''
             });
         }
         setEditMode(false);
@@ -99,6 +146,10 @@ export default observer(function ProfilePage() {
                                 <strong>Pankkitili:</strong>
                                 <div>{profile.bankAccount || '-'}</div>
                             </div>
+                            <div style={{ marginBottom: 'var(--spacing-md)' }}>
+                                <strong>Ensisijainen maksutapa:</strong>
+                                <div>{profile.preferredPaymentMethod || '-'}</div>
+                            </div>
                         </div>
                         <Button className="btn-primary" onClick={() => setEditMode(true)}>
                             <Icon name="edit" /> Muokkaa profiilia
@@ -130,6 +181,13 @@ export default observer(function ProfilePage() {
                             value={formData.bankAccount}
                             onChange={(e) => setFormData({ ...formData, bankAccount: e.target.value })}
                             placeholder='Esim. FI12 3456 7890 1234 56'
+                        />
+                        <Form.Select
+                            label='Ensisijainen maksutapa'
+                            value={formData.preferredPaymentMethod}
+                            options={getPaymentMethodOptions()}
+                            onChange={(e, { value }) => setFormData({ ...formData, preferredPaymentMethod: value as string })}
+                            placeholder='Valitse maksutapa'
                         />
                         <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-lg)' }}>
                             <Button type='submit' className="btn-primary" loading={loading} disabled={loading}>

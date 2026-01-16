@@ -275,14 +275,72 @@ namespace API.Services
                                     row.ConstantItem(120).AlignRight().Text($"{totalShare:F2} €").FontSize(16).Bold().FontColor(Colors.Blue.Darken2);
                                 });
 
-                                // Payment info
-                                if (!string.IsNullOrEmpty(participant.AppUser?.BankAccount))
+                                // Calculate optimized payments for this invoice
+                                var balances = CalculateParticipantBalances(invoice);
+                                var allTransactions = OptimizePaymentTransactions(balances, invoice);
+
+                                // Filter to show only transactions where this participant is the payer
+                                var participantTransactions = allTransactions
+                                    .Where(t => t.FromUserId == participantId)
+                                    .ToList();
+
+                                if (participantTransactions.Any())
                                 {
-                                    column.Item().PaddingTop(20).Column(infoColumn =>
+                                    foreach (var transaction in participantTransactions)
                                     {
-                                        infoColumn.Item().Text("Maksutiedot").FontSize(12).Bold();
-                                        infoColumn.Item().PaddingTop(5).Text($"Tilinumero: {participant.AppUser.BankAccount}");
-                                    });
+                                        column.Item().PaddingTop(10).Column(infoColumn =>
+                                        {
+                                            infoColumn.Item().Text($"Maksa {transaction.ToUserName}:lle {transaction.Amount:F2} €").FontSize(12).Bold();
+
+                                            if (transaction.ToUser != null)
+                                            {
+                                                var hasBankAccount = !string.IsNullOrEmpty(transaction.ToUser.BankAccount);
+                                                var hasPhoneNumber = !string.IsNullOrEmpty(transaction.ToUser.PhoneNumber);
+
+                                                // Show preferred payment method first, then others
+                                                if (transaction.ToUser.PreferredPaymentMethod == "Pankki" && hasBankAccount)
+                                                {
+                                                    infoColumn.Item().PaddingTop(3).Text($"Pankki: {transaction.ToUser.BankAccount} (Ensisijainen)").FontSize(10);
+                                                    if (hasPhoneNumber)
+                                                    {
+                                                        infoColumn.Item().PaddingTop(2).Text($"MobilePay: {transaction.ToUser.PhoneNumber}").FontSize(10);
+                                                    }
+                                                }
+                                                else if (transaction.ToUser.PreferredPaymentMethod == "MobilePay" && hasPhoneNumber)
+                                                {
+                                                    infoColumn.Item().PaddingTop(3).Text($"MobilePay: {transaction.ToUser.PhoneNumber} (Ensisijainen)").FontSize(10);
+                                                    if (hasBankAccount)
+                                                    {
+                                                        infoColumn.Item().PaddingTop(2).Text($"Pankki: {transaction.ToUser.BankAccount}").FontSize(10);
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    // No preferred method set, show both if available
+                                                    if (hasBankAccount)
+                                                    {
+                                                        infoColumn.Item().PaddingTop(3).Text($"Pankki: {transaction.ToUser.BankAccount}").FontSize(10);
+                                                    }
+                                                    if (hasPhoneNumber)
+                                                    {
+                                                        infoColumn.Item().PaddingTop(2).Text($"MobilePay: {transaction.ToUser.PhoneNumber}").FontSize(10);
+                                                    }
+                                                    if (!hasBankAccount && !hasPhoneNumber)
+                                                    {
+                                                        infoColumn.Item().PaddingTop(3).Text("Ei maksutietoja saatavilla").FontSize(10).Italic();
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                infoColumn.Item().PaddingTop(3).Text("Ei maksutietoja saatavilla").FontSize(10).Italic();
+                                            }
+                                        });
+                                    }
+                                }
+                                else
+                                {
+                                    column.Item().PaddingTop(10).Text("Sinulla ei ole maksettavia maksuja.").FontSize(10).Italic();
                                 }
                             });
 
@@ -310,6 +368,146 @@ namespace API.Services
                 _logger.LogError(ex, "Error generating participant invoice PDF for invoice {InvoiceId}, participant {ParticipantId}", invoiceId, participantId);
                 throw;
             }
+        }
+
+        // Helper classes and methods for payment optimization
+        private class ParticipantBalance
+        {
+            public string UserId { get; set; }
+            public string DisplayName { get; set; }
+            public decimal TotalPaid { get; set; }
+            public decimal TotalOwed { get; set; }
+            public decimal NetBalance { get; set; }
+        }
+
+        private class PaymentTransaction
+        {
+            public string FromUserId { get; set; }
+            public string FromUserName { get; set; }
+            public string ToUserId { get; set; }
+            public string ToUserName { get; set; }
+            public decimal Amount { get; set; }
+            public User ToUser { get; set; }
+        }
+
+        private System.Collections.Generic.List<ParticipantBalance> CalculateParticipantBalances(Invoice invoice)
+        {
+            var balances = new System.Collections.Generic.Dictionary<string, ParticipantBalance>();
+
+            if (invoice.Participants == null || invoice.ExpenseItems == null)
+            {
+                return new System.Collections.Generic.List<ParticipantBalance>();
+            }
+
+            // Initialize all participants
+            foreach (var participant in invoice.Participants)
+            {
+                balances[participant.AppUserId] = new ParticipantBalance
+                {
+                    UserId = participant.AppUserId,
+                    DisplayName = participant.AppUser?.DisplayName ?? "Unknown",
+                    TotalPaid = 0,
+                    TotalOwed = 0,
+                    NetBalance = 0
+                };
+            }
+
+            // Calculate paid and owed amounts
+            foreach (var expenseItem in invoice.ExpenseItems)
+            {
+                var totalAmount = expenseItem.Amount;
+                var payerCount = expenseItem.Payers?.Count ?? 0;
+
+                if (payerCount == 0) continue;
+
+                var sharePerPerson = totalAmount / payerCount;
+
+                // Add paid amount to organizer
+                if (balances.ContainsKey(expenseItem.OrganizerId))
+                {
+                    balances[expenseItem.OrganizerId].TotalPaid += totalAmount;
+                }
+
+                // Add owed amount to each payer
+                foreach (var payer in expenseItem.Payers ?? new System.Collections.Generic.List<ExpenseItemPayer>())
+                {
+                    if (balances.ContainsKey(payer.AppUserId))
+                    {
+                        balances[payer.AppUserId].TotalOwed += sharePerPerson;
+                    }
+                }
+            }
+
+            // Calculate net balances
+            foreach (var balance in balances.Values)
+            {
+                // Negative = paid more than owed = others owe this person
+                // Positive = owes more than paid = owes to others
+                balance.NetBalance = balance.TotalOwed - balance.TotalPaid;
+            }
+
+            return balances.Values.OrderBy(b => b.NetBalance).ToList();
+        }
+
+        private System.Collections.Generic.List<PaymentTransaction> OptimizePaymentTransactions(
+            System.Collections.Generic.List<ParticipantBalance> balances,
+            Invoice invoice)
+        {
+            var transactions = new System.Collections.Generic.List<PaymentTransaction>();
+            const decimal epsilon = 0.01m;
+
+            // Separate debtors and creditors
+            var debtors = balances
+                .Where(b => b.NetBalance > epsilon)
+                .Select(b => new { b.UserId, b.DisplayName, Amount = b.NetBalance })
+                .ToList();
+
+            var creditors = balances
+                .Where(b => b.NetBalance < -epsilon)
+                .Select(b => new { b.UserId, b.DisplayName, Amount = -b.NetBalance })
+                .OrderByDescending(c => c.Amount)
+                .ToList();
+
+            if (creditors.Count == 0 || debtors.Count == 0)
+            {
+                return transactions;
+            }
+
+            // Main creditor is the "intermediary"
+            var mainCreditor = creditors[0];
+            var mainCreditorUser = invoice.Participants?.FirstOrDefault(p => p.AppUserId == mainCreditor.UserId)?.AppUser;
+            var otherCreditors = creditors.Skip(1).ToList();
+
+            // 1. All debtors pay to the main creditor
+            foreach (var debtor in debtors)
+            {
+                transactions.Add(new PaymentTransaction
+                {
+                    FromUserId = debtor.UserId,
+                    FromUserName = debtor.DisplayName,
+                    ToUserId = mainCreditor.UserId,
+                    ToUserName = mainCreditor.DisplayName,
+                    Amount = debtor.Amount,
+                    ToUser = mainCreditorUser
+                });
+            }
+
+            // 2. Main creditor pays to other creditors
+            foreach (var creditor in otherCreditors)
+            {
+                var creditorUser = invoice.Participants?.FirstOrDefault(p => p.AppUserId == creditor.UserId)?.AppUser;
+                transactions.Add(new PaymentTransaction
+                {
+                    FromUserId = mainCreditor.UserId,
+                    FromUserName = mainCreditor.DisplayName,
+                    ToUserId = creditor.UserId,
+                    ToUserName = creditor.DisplayName,
+                    Amount = creditor.Amount,
+                    ToUser = creditorUser
+                });
+            }
+
+            return transactions;
         }
     }
 }

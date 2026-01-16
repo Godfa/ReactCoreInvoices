@@ -136,6 +136,7 @@ export interface UserManagement {
     email: string;
     phoneNumber?: string;
     bankAccount?: string;
+    preferredPaymentMethod?: string;
     mustChangePassword: boolean;
     isAdmin: boolean;
 }
@@ -151,6 +152,7 @@ export interface UpdateUser {
     email: string;
     phoneNumber?: string;
     bankAccount?: string;
+    preferredPaymentMethod?: string;
 }
 
 export interface UserProfile {
@@ -160,6 +162,7 @@ export interface UserProfile {
     email: string;
     phoneNumber?: string;
     bankAccount?: string;
+    preferredPaymentMethod?: string;
 }
 
 export interface UpdateProfile {
@@ -167,6 +170,7 @@ export interface UpdateProfile {
     email: string;
     phoneNumber?: string;
     bankAccount?: string;
+    preferredPaymentMethod?: string;
 }
 
 const Account = {

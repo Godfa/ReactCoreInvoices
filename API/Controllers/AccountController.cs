@@ -194,7 +194,8 @@ namespace API.Controllers
                 DisplayName = user.DisplayName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                BankAccount = user.BankAccount
+                BankAccount = user.BankAccount,
+                PreferredPaymentMethod = user.PreferredPaymentMethod
             };
         }
 
@@ -223,6 +224,7 @@ namespace API.Controllers
             user.DisplayName = updateProfileDto.DisplayName ?? user.DisplayName;
             user.PhoneNumber = updateProfileDto.PhoneNumber;
             user.BankAccount = updateProfileDto.BankAccount;
+            user.PreferredPaymentMethod = updateProfileDto.PreferredPaymentMethod;
 
             var result = await _userManager.UpdateAsync(user);
 

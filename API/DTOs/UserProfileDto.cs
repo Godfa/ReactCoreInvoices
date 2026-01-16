@@ -8,6 +8,7 @@ namespace API.DTOs
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public string BankAccount { get; set; }
+        public string PreferredPaymentMethod { get; set; }
     }
 
     public class UpdateProfileDto
@@ -16,5 +17,6 @@ namespace API.DTOs
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public string BankAccount { get; set; }
+        public string PreferredPaymentMethod { get; set; }
     }
 }

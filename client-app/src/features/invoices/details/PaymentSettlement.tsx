@@ -49,7 +49,7 @@ export default function PaymentSettlement({ invoice, compact = false }: Props) {
             <Segment className="glass-card">
                 <Header as="h3">
                     <Icon name="exchange" />
-                    Maksuehdotukset
+                    Maksutapahtumat
                 </Header>
                 <p style={{ marginBottom: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
                     Optimoitu minimoiden maksutapahtumien määrä

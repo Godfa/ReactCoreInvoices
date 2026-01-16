@@ -52,6 +52,7 @@ namespace API.Controllers
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
                     BankAccount = user.BankAccount,
+                    PreferredPaymentMethod = user.PreferredPaymentMethod,
                     MustChangePassword = user.MustChangePassword,
                     IsAdmin = isAdmin
                 });
@@ -126,6 +127,7 @@ namespace API.Controllers
             user.Email = updateUserDto.Email;
             user.PhoneNumber = updateUserDto.PhoneNumber;
             user.BankAccount = updateUserDto.BankAccount;
+            user.PreferredPaymentMethod = updateUserDto.PreferredPaymentMethod;
 
             var result = await _userManager.UpdateAsync(user);
 

@@ -23,12 +23,57 @@ export default observer(function AdminPage() {
         displayName: '',
         email: '',
         phoneNumber: '',
-        bankAccount: ''
+        bankAccount: '',
+        preferredPaymentMethod: ''
     });
+
+    // Validate IBAN format (basic validation)
+    const isValidIBAN = (iban: string): boolean => {
+        if (!iban) return false;
+        const cleanIban = iban.replace(/\s/g, '');
+        return /^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(cleanIban) && cleanIban.length >= 15;
+    };
+
+    // Check if phone number exists
+    const hasPhoneNumber = (): boolean => {
+        return editForm.phoneNumber !== undefined && editForm.phoneNumber.trim() !== '';
+    };
+
+    // Check if bank account is valid
+    const hasBankAccount = (): boolean => {
+        return editForm.bankAccount !== undefined && isValidIBAN(editForm.bankAccount);
+    };
+
+    // Get available payment method options
+    const getPaymentMethodOptions = () => {
+        const options = [
+            { key: '', text: 'Ei valittu', value: '' }
+        ];
+
+        if (hasBankAccount()) {
+            options.push({ key: 'Pankki', text: 'Pankki', value: 'Pankki' });
+        }
+
+        if (hasPhoneNumber()) {
+            options.push({ key: 'MobilePay', text: 'MobilePay', value: 'MobilePay' });
+        }
+
+        return options;
+    };
 
     useEffect(() => {
         loadUsers();
     }, []);
+
+    // Clear preferred payment method if it becomes invalid
+    useEffect(() => {
+        if (editForm.preferredPaymentMethod === 'Pankki' && !hasBankAccount()) {
+            setEditForm({ ...editForm, preferredPaymentMethod: '' });
+        }
+        if (editForm.preferredPaymentMethod === 'MobilePay' && !hasPhoneNumber()) {
+            setEditForm({ ...editForm, preferredPaymentMethod: '' });
+        }
+    }, [editForm.bankAccount, editForm.phoneNumber]);
 
     const loadUsers = async () => {
         setLoading(true);
@@ -84,7 +129,8 @@ export default observer(function AdminPage() {
             displayName: user.displayName,
             email: user.email,
             phoneNumber: user.phoneNumber || '',
-            bankAccount: user.bankAccount || ''
+            bankAccount: user.bankAccount || '',
+            preferredPaymentMethod: user.preferredPaymentMethod || ''
         });
         setEditModalOpen(true);
     };
@@ -253,6 +299,13 @@ export default observer(function AdminPage() {
                             value={editForm.bankAccount}
                             onChange={(e) => setEditForm({ ...editForm, bankAccount: e.target.value })}
                             placeholder='Esim. FI12 3456 7890 1234 56'
+                        />
+                        <Form.Select
+                            label='Ensisijainen maksutapa'
+                            value={editForm.preferredPaymentMethod}
+                            options={getPaymentMethodOptions()}
+                            onChange={(e, { value }) => setEditForm({ ...editForm, preferredPaymentMethod: value as string })}
+                            placeholder='Valitse maksutapa'
                         />
                     </Form>
                 </Modal.Content>
