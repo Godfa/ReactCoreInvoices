@@ -16,7 +16,7 @@ Complete guide for deploying MokkilanInvoices Backend API to your own Linux VPS 
 ## Prerequisites
 
 ### Your VPS should have:
-- Ubuntu 20.04+ or Debian 11+ (or similar Linux distribution)
+- Ubuntu 24.04 LTS (recommended) or Ubuntu 22.04+ or Debian 11+ (or similar Linux distribution)
 - Root or sudo access
 - Public IP address or domain name
 - SSH access enabled
@@ -40,8 +40,8 @@ ssh <your-username>@<your-server-ip>
 ### 2. Install .NET 8 Runtime
 
 ```bash
-# Add Microsoft package repository
-wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+# Add Microsoft package repository (Ubuntu 24.04 LTS)
+wget https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
 sudo dpkg -i packages-microsoft-prod.deb
 rm packages-microsoft-prod.deb
 
@@ -54,6 +54,8 @@ sudo apt install -y aspnetcore-runtime-8.0
 # Verify installation
 dotnet --version
 ```
+
+**Note:** Ubuntu 24.04 LTS is recommended as it has extended support until 2029 (compared to Ubuntu 22.04 LTS which ends support in 2027).
 
 For other Linux distributions, see: https://learn.microsoft.com/en-us/dotnet/core/install/linux
 
