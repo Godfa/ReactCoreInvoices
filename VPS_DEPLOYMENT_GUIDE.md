@@ -112,12 +112,13 @@ sudo systemctl enable postgresql
 sudo systemctl start postgresql
 
 # Create database and user
-sudo -u postgres psql <<EOF
+PW=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c20); \
+sudo -u postgres psql -v pw="'$PW'" <<'EOF'
 CREATE DATABASE mokkilaninvoices;
-CREATE USER mokkilanadmin WITH PASSWORD '<your-secure-password>';
+CREATE USER mokkilanadmin WITH PASSWORD :'pw';
 GRANT ALL PRIVILEGES ON DATABASE mokkilaninvoices TO mokkilanadmin;
-\q
 EOF
+echo "Created user mokkiladmin with password: $PW"
 ```
 
 ---
