@@ -34,7 +34,9 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
     const [addLineItem, setAddLineItem] = useState(false);
     const [scanningReceipt, setScanningReceipt] = useState(false);
     const [scannedLineItems, setScannedLineItems] = useState<ExpenseLineItem[]>([]);
+    const [selectedLineItems, setSelectedLineItems] = useState<Set<string>>(new Set());
     const [receiptFile, setReceiptFile] = useState<File | null>(null);
+    const [receiptTotal, setReceiptTotal] = useState<number>(0);
 
     useEffect(() => {
         loadExpenseTypes();
@@ -85,6 +87,10 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
             }));
 
             setScannedLineItems(lineItems);
+            // Select all lines by default
+            setSelectedLineItems(new Set(lineItems.map(item => item.id)));
+            // Set receipt total
+            setReceiptTotal(scanResult.total || lineItems.reduce((sum, item) => sum + item.total, 0));
             toast.success(`Kuitti skannattu! Löydettiin ${lineItems.length} riviä.`);
         } catch (err: any) {
             const message = err.response?.data?.error || err.response?.data?.message || err.message || 'Skannaus epäonnistui';
@@ -173,9 +179,10 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                             await createLineItem(invoiceId, expenseItemId, lineItem);
                         }
 
-                        // If we have scanned line items, create them all
+                        // If we have scanned line items, create only the selected ones
                         if (scannedLineItems.length > 0) {
-                            for (const lineItem of scannedLineItems) {
+                            const itemsToCreate = scannedLineItems.filter(item => selectedLineItems.has(item.id));
+                            for (const lineItem of itemsToCreate) {
                                 await createLineItem(invoiceId, expenseItemId, {
                                     ...lineItem,
                                     expenseItemId: expenseItemId
@@ -249,10 +256,28 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
 
                                     {scannedLineItems.length > 0 && (
                                         <Segment color='green' style={{ marginTop: '1em' }}>
-                                            <Header size='tiny' content={`✅ Skannattu ${scannedLineItems.length} riviä`} />
+                                            <Header size='tiny'>
+                                                ✅ Skannattu {scannedLineItems.length} riviä
+                                                <span style={{ float: 'right', color: '#2185d0' }}>
+                                                    Kokonaissumma: {receiptTotal.toFixed(2)} €
+                                                </span>
+                                            </Header>
                                             <Table compact size='small'>
                                                 <Table.Header>
                                                     <Table.Row>
+                                                        <Table.HeaderCell width={1}>
+                                                            <Checkbox
+                                                                checked={selectedLineItems.size === scannedLineItems.length}
+                                                                indeterminate={selectedLineItems.size > 0 && selectedLineItems.size < scannedLineItems.length}
+                                                                onChange={(e, { checked }) => {
+                                                                    if (checked) {
+                                                                        setSelectedLineItems(new Set(scannedLineItems.map(item => item.id)));
+                                                                    } else {
+                                                                        setSelectedLineItems(new Set());
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </Table.HeaderCell>
                                                         <Table.HeaderCell>Tuote</Table.HeaderCell>
                                                         <Table.HeaderCell>Määrä</Table.HeaderCell>
                                                         <Table.HeaderCell>Hinta</Table.HeaderCell>
@@ -261,7 +286,21 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                                                 </Table.Header>
                                                 <Table.Body>
                                                     {scannedLineItems.map((item, idx) => (
-                                                        <Table.Row key={idx}>
+                                                        <Table.Row key={idx} active={selectedLineItems.has(item.id)}>
+                                                            <Table.Cell>
+                                                                <Checkbox
+                                                                    checked={selectedLineItems.has(item.id)}
+                                                                    onChange={(e, { checked }) => {
+                                                                        const newSelected = new Set(selectedLineItems);
+                                                                        if (checked) {
+                                                                            newSelected.add(item.id);
+                                                                        } else {
+                                                                            newSelected.delete(item.id);
+                                                                        }
+                                                                        setSelectedLineItems(newSelected);
+                                                                    }}
+                                                                />
+                                                            </Table.Cell>
                                                             <Table.Cell>{item.name}</Table.Cell>
                                                             <Table.Cell>{item.quantity}</Table.Cell>
                                                             <Table.Cell>{item.unitPrice.toFixed(2)} €</Table.Cell>
@@ -271,7 +310,8 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                                                 </Table.Body>
                                             </Table>
                                             <Message info size='small'>
-                                                Nämä rivit lisätään automaattisesti kun tallennat kuluerän.
+                                                {selectedLineItems.size} / {scannedLineItems.length} riviä valittu.
+                                                Valitut rivit ({scannedLineItems.filter(item => selectedLineItems.has(item.id)).reduce((sum, item) => sum + item.total, 0).toFixed(2)} €) lisätään automaattisesti kun tallennat kuluerän.
                                             </Message>
                                         </Segment>
                                     )}
