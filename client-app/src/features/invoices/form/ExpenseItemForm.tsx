@@ -1,11 +1,13 @@
 import { observer } from "mobx-react-lite";
 import React, { useEffect, useState } from "react";
-import { Button, Form, Header, Segment, Icon, Checkbox } from "semantic-ui-react";
+import { Button, Form, Header, Segment, Icon, Checkbox, Table, Message } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import { Formik, Form as FormikForm, Field, ErrorMessage } from "formik";
 import * as Yup from 'yup';
 import { v4 as uuid } from 'uuid';
 import { ExpenseItem, ExpenseLineItem } from "../../../app/models/invoice";
+import agent, { ScannedReceiptResult } from "../../../app/api/agent";
+import { toast } from "react-toastify";
 
 interface Props {
     invoiceId: string;
@@ -30,11 +32,68 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
     const { invoiceStore } = useStore();
     const { createExpenseItem, updateExpenseItem, createLineItem, loading, loadExpenseTypes, loadUsers, ExpenseTypes, PotentialParticipants } = invoiceStore;
     const [addLineItem, setAddLineItem] = useState(false);
+    const [scanningReceipt, setScanningReceipt] = useState(false);
+    const [scannedLineItems, setScannedLineItems] = useState<ExpenseLineItem[]>([]);
+    const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
     useEffect(() => {
         loadExpenseTypes();
         loadUsers();
     }, [loadExpenseTypes, loadUsers]);
+
+    const handleReceiptFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const selectedFile = e.target.files[0];
+
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(selectedFile.type)) {
+                toast.error('Virheellinen tiedostotyyppi. Vain JPEG, PNG ja WEBP kuvat ovat tuettuja.');
+                return;
+            }
+
+            // Validate file size (10MB max)
+            if (selectedFile.size > 10_000_000) {
+                toast.error('Tiedosto on liian suuri. Maksimikoko on 10MB.');
+                return;
+            }
+
+            setReceiptFile(selectedFile);
+        }
+    };
+
+    const scanReceipt = async () => {
+        if (!receiptFile) return;
+
+        setScanningReceipt(true);
+
+        try {
+            const scanResult = await agent.Receipts.scan(
+                receiptFile,
+                'fi',
+                'auto'
+            );
+
+            // Convert scanned lines to ExpenseLineItems
+            const lineItems: ExpenseLineItem[] = scanResult.lines.map(line => ({
+                id: uuid(),
+                expenseItemId: '', // Will be set when expense item is created
+                name: line.description,
+                quantity: line.quantity,
+                unitPrice: line.unitPrice,
+                total: line.lineTotal
+            }));
+
+            setScannedLineItems(lineItems);
+            toast.success(`Kuitti skannattu! Löydettiin ${lineItems.length} riviä.`);
+        } catch (err: any) {
+            const message = err.response?.data?.error || err.response?.data?.message || err.message || 'Skannaus epäonnistui';
+            toast.error(`Virhe: ${message}`);
+            console.error('Receipt scan error:', err);
+        } finally {
+            setScanningReceipt(false);
+        }
+    };
 
     const validationSchema = Yup.object({
         name: Yup.string().required('The event name is required'),
@@ -101,7 +160,7 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                     } else {
                         await createExpenseItem(invoiceId, itemData);
 
-                        // If adding a line item, create it after expense item is created
+                        // If adding a line item manually, create it after expense item is created
                         if (addLineItem && values.lineItemName && values.lineItemQuantity && values.lineItemUnitPrice !== undefined) {
                             const lineItem: ExpenseLineItem = {
                                 id: uuid(),
@@ -112,6 +171,16 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                                 total: values.lineItemQuantity * values.lineItemUnitPrice
                             };
                             await createLineItem(invoiceId, expenseItemId, lineItem);
+                        }
+
+                        // If we have scanned line items, create them all
+                        if (scannedLineItems.length > 0) {
+                            for (const lineItem of scannedLineItems) {
+                                await createLineItem(invoiceId, expenseItemId, {
+                                    ...lineItem,
+                                    expenseItemId: expenseItemId
+                                });
+                            }
                         }
                     }
 
@@ -156,9 +225,61 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                         )}
                         {!expenseItem && (
                             <>
+                                <Segment>
+                                    <Header size='small' content='📄 Skannaa kuitti automaattiseen rivien lisäykseen' />
+                                    <Form.Field>
+                                        <label>Valitse kuittikuva</label>
+                                        <input
+                                            type="file"
+                                            accept="image/jpeg,image/jpg,image/png,image/webp"
+                                            onChange={handleReceiptFileChange}
+                                            disabled={scanningReceipt}
+                                        />
+                                    </Form.Field>
+                                    <Button
+                                        type="button"
+                                        color="blue"
+                                        onClick={scanReceipt}
+                                        disabled={!receiptFile || scanningReceipt}
+                                        loading={scanningReceipt}
+                                    >
+                                        <Icon name='file image' />
+                                        {scanningReceipt ? 'Skannataan...' : 'Skannaa kuitti'}
+                                    </Button>
+
+                                    {scannedLineItems.length > 0 && (
+                                        <Segment color='green' style={{ marginTop: '1em' }}>
+                                            <Header size='tiny' content={`✅ Skannattu ${scannedLineItems.length} riviä`} />
+                                            <Table compact size='small'>
+                                                <Table.Header>
+                                                    <Table.Row>
+                                                        <Table.HeaderCell>Tuote</Table.HeaderCell>
+                                                        <Table.HeaderCell>Määrä</Table.HeaderCell>
+                                                        <Table.HeaderCell>Hinta</Table.HeaderCell>
+                                                        <Table.HeaderCell>Yhteensä</Table.HeaderCell>
+                                                    </Table.Row>
+                                                </Table.Header>
+                                                <Table.Body>
+                                                    {scannedLineItems.map((item, idx) => (
+                                                        <Table.Row key={idx}>
+                                                            <Table.Cell>{item.name}</Table.Cell>
+                                                            <Table.Cell>{item.quantity}</Table.Cell>
+                                                            <Table.Cell>{item.unitPrice.toFixed(2)} €</Table.Cell>
+                                                            <Table.Cell><strong>{item.total.toFixed(2)} €</strong></Table.Cell>
+                                                        </Table.Row>
+                                                    ))}
+                                                </Table.Body>
+                                            </Table>
+                                            <Message info size='small'>
+                                                Nämä rivit lisätään automaattisesti kun tallennat kuluerän.
+                                            </Message>
+                                        </Segment>
+                                    )}
+                                </Segment>
+
                                 <Form.Field>
                                     <Checkbox
-                                        label='Lisää rivi suoraan'
+                                        label='Tai lisää rivi manuaalisesti'
                                         checked={addLineItem}
                                         onChange={(e, { checked }) => setAddLineItem(!!checked)}
                                     />
@@ -185,7 +306,7 @@ export default observer(function ExpenseItemForm({ invoiceId, closeForm, expense
                                         </Form.Group>
                                     </Segment>
                                 )}
-                                {!addLineItem && (
+                                {!addLineItem && scannedLineItems.length === 0 && (
                                     <p style={{ color: '#666', fontSize: '0.9em', fontStyle: 'italic' }}>
                                         Voit lisätä rivejä myös jälkeenpäin laajentamalla kuluerän.
                                     </p>
