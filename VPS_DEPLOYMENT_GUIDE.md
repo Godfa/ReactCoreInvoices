@@ -59,7 +59,58 @@ dotnet --version
 
 For other Linux distributions, see: https://learn.microsoft.com/en-us/dotnet/core/install/linux
 
-### 3. Create Application Directory
+### 3. Create Application and Deployment Users
+
+Create dedicated users for running the application and for deployments:
+
+```bash
+# Create application user (runs the service)
+sudo useradd -r -s /bin/false invoicer-deploy
+
+# Create deployment user (used by GitHub Actions)
+sudo useradd -m -s /bin/bash deploy
+
+# Add deploy user to invoicer-deploy group (for file access)
+sudo usermod -a -G invoicer-deploy deploy
+
+# Create .ssh directory for deploy user
+sudo -u deploy mkdir -p /home/deploy/.ssh
+sudo -u deploy chmod 700 /home/deploy/.ssh
+sudo -u deploy touch /home/deploy/.ssh/authorized_keys
+sudo -u deploy chmod 600 /home/deploy/.ssh/authorized_keys
+```
+
+### 4. Configure Sudo Access for Deployment User
+
+The deployment user needs limited sudo access to restart the service:
+
+```bash
+# Create sudoers file for deploy user
+sudo nano /etc/sudoers.d/deploy
+```
+
+Add this content (replace `<your-app-name>` with your service name):
+
+```
+# Allow deploy user to manage the application service without password
+deploy ALL=(ALL) NOPASSWD: /bin/systemctl start <your-app-name>
+deploy ALL=(ALL) NOPASSWD: /bin/systemctl stop <your-app-name>
+deploy ALL=(ALL) NOPASSWD: /bin/systemctl restart <your-app-name>
+deploy ALL=(ALL) NOPASSWD: /bin/systemctl status <your-app-name>
+deploy ALL=(ALL) NOPASSWD: /bin/systemctl daemon-reload
+deploy ALL=(ALL) NOPASSWD: /bin/chown -R invoicer-deploy\:invoicer-deploy *
+```
+
+Set correct permissions:
+
+```bash
+sudo chmod 440 /etc/sudoers.d/deploy
+
+# Verify syntax
+sudo visudo -c
+```
+
+### 5. Create Application Directory
 
 ```bash
 # Create directory for the application
@@ -68,14 +119,16 @@ sudo mkdir -p </your/app/path>
 # Create backup directory
 sudo mkdir -p </your/backup/path>
 
-# Create www-data user if it doesn't exist
-sudo useradd -r -s /bin/false www-data || echo "www-data user already exists"
+# Set ownership to invoicer-deploy (app runs as invoicer-deploy)
+sudo chown -R invoicer-deploy:invoicer-deploy </your/app/path>
+sudo chown -R invoicer-deploy:invoicer-deploy </your/backup/path>
 
-# Set ownership
-sudo chown -R www-data:www-data </your/app/path>
+# Give deploy user write access to app directory (deploy is in invoicer-deploy group)
+sudo chmod -R 775 </your/app/path>
+sudo chmod -R 775 </your/backup/path>
 ```
 
-### 4. Install Nginx (Reverse Proxy)
+### 6. Install Nginx (Reverse Proxy)
 
 ```bash
 sudo apt install -y nginx
@@ -85,7 +138,7 @@ sudo systemctl enable nginx
 sudo systemctl start nginx
 ```
 
-### 5. Setup Firewall (UFW)
+### 7. Setup Firewall (UFW)
 
 ```bash
 # Allow SSH (IMPORTANT: Do this first!)
@@ -102,7 +155,7 @@ sudo ufw enable
 sudo ufw status
 ```
 
-### 6. Install PostgreSQL (if needed)
+### 8. Install PostgreSQL (if needed)
 
 ```bash
 sudo apt install -y postgresql postgresql-contrib
@@ -140,14 +193,31 @@ ssh-keygen -t ed25519 -C "github-actions" -f ~/.ssh/mokkilaninvoices-deploy
 
 ### 2. Add Public Key to VPS
 
-```bash
-# Copy the public key to your VPS
-ssh-copy-id -i ~/.ssh/mokkilaninvoices-deploy.pub <your-username>@<your-server-ip>
+Add the public key to the **deploy** user (not your personal user):
 
-# Or manually:
-# 1. Copy content of ~/.ssh/mokkilaninvoices-deploy.pub
-# 2. SSH to your VPS
-# 3. Add to ~/.ssh/authorized_keys
+```bash
+# Display your public key
+cat ~/.ssh/mokkilaninvoices-deploy.pub
+
+# Copy the output, then SSH to your VPS as your admin user
+ssh <your-admin-username>@<your-server-ip>
+
+# Add the public key to deploy user's authorized_keys
+# Paste the public key when prompted
+sudo bash -c 'cat >> /home/deploy/.ssh/authorized_keys'
+# Press Ctrl+D after pasting
+
+# Verify the key was added
+sudo cat /home/deploy/.ssh/authorized_keys
+
+# Test SSH connection as deploy user (from your local machine)
+ssh -i ~/.ssh/mokkilaninvoices-deploy deploy@<your-server-ip>
+```
+
+**Alternative method using ssh-copy-id:**
+```bash
+# From your local machine
+ssh-copy-id -i ~/.ssh/mokkilaninvoices-deploy.pub deploy@<your-server-ip>
 ```
 
 ### 3. Configure GitHub Secrets
@@ -159,13 +229,15 @@ Add these secrets:
 | Secret Name | Description | Example |
 |-------------|-------------|---------|
 | `VPS_HOST` | Your VPS IP address or domain | `123.456.789.0` or `api.yourdomain.com` |
-| `VPS_USERNAME` | SSH username | `ubuntu` or `<your-username>` |
-| `VPS_SSH_KEY` | Private SSH key content | Copy entire content of `~/.ssh/<your-deploy-key>` |
+| `VPS_USERNAME` | SSH username (use `deploy` user) | `deploy` |
+| `VPS_SSH_KEY` | Private SSH key content | Copy entire content of `~/.ssh/mokkilaninvoices-deploy` |
 | `VPS_SSH_PORT` | SSH port (optional, defaults to 22) | `22` |
 | `APP_DIR` | Application directory path on server | `</your/app/path>` |
 | `BACKUP_DIR` | Backup directory path on server | `</your/backup/path>` |
 | `SERVICE_NAME` | Systemd service name | `<your-app-name>` |
 | `APP_URL` | Your application URL | `https://api.yourdomain.com` |
+
+**Important:** Use the `deploy` user for `VPS_USERNAME`, not your personal admin user.
 
 **To copy private key:**
 ```bash
@@ -209,8 +281,8 @@ After=network.target
 [Service]
 Type=notify
 # User and Group
-User=www-data
-Group=www-data
+User=invoicer-deploy
+Group=invoicer-deploy
 
 # Working directory and executable
 WorkingDirectory=</your/app/path>
@@ -481,18 +553,27 @@ ls -la </your/app/path>
 
 **SSH Connection Issues:**
 ```bash
-# Test SSH connection manually
-ssh -i ~/.ssh/mokkilaninvoices-deploy <your-username>@<your-server-ip>
+# Test SSH connection manually as deploy user
+ssh -i ~/.ssh/mokkilaninvoices-deploy deploy@<your-server-ip>
 
 # Check SSH key format (should be OpenSSH format)
 head -n 1 ~/.ssh/mokkilaninvoices-deploy
 # Should show: -----BEGIN OPENSSH PRIVATE KEY-----
+
+# Check if public key is in deploy user's authorized_keys
+ssh <your-admin-user>@<your-server-ip>
+sudo cat /home/deploy/.ssh/authorized_keys
+
+# Check deploy user's sudo permissions
+ssh -i ~/.ssh/mokkilaninvoices-deploy deploy@<your-server-ip>
+sudo -l
+# Should show the allowed systemctl commands
 ```
 
 **Permission Issues:**
 ```bash
 # Fix ownership
-sudo chown -R www-data:www-data </your/app/path>
+sudo chown -R invoicer-deploy:invoicer-deploy </your/app/path>
 
 # Fix executable permissions
 sudo chmod +x </your/app/path>/API
@@ -573,7 +654,7 @@ scp mokkilaninvoices.tar.gz <your-username>@<your-server-ip>:/tmp/
 ssh <your-username>@<your-server-ip>
 sudo systemctl stop <your-app-name>
 sudo tar -xzf /tmp/mokkilaninvoices.tar.gz -C </your/app/path>
-sudo chown -R www-data:www-data </your/app/path>
+sudo chown -R invoicer-deploy:invoicer-deploy </your/app/path>
 sudo systemctl start <your-app-name>
 ```
 
@@ -595,7 +676,7 @@ sudo nano /etc/logrotate.d/mokkilaninvoices
     compress
     delaycompress
     notifempty
-    create 0640 www-data adm
+    create 0640 invoicer-deploy adm
     sharedscripts
     postrotate
         systemctl reload nginx > /dev/null 2>&1
@@ -640,6 +721,12 @@ Consider installing monitoring tools:
 5. **Use environment-specific appsettings:**
    - Create `appsettings.Production.json` with production settings
    - Never commit secrets to git
+
+6. **Deployment user security:**
+   - The `deploy` user has limited sudo access only for service management
+   - Never allow the `deploy` user to run arbitrary commands with sudo
+   - Regularly audit `/etc/sudoers.d/deploy` for unauthorized changes
+   - Consider using SSH key rotation for additional security
 
 ---
 
