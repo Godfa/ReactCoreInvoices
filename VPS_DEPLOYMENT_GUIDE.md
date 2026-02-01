@@ -164,14 +164,39 @@ sudo apt install -y postgresql postgresql-contrib
 sudo systemctl enable postgresql
 sudo systemctl start postgresql
 
-# Create database and user
+# Create database and user with proper permissions
 PW=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c20); \
 sudo -u postgres psql -v pw="'$PW'" <<'EOF'
 CREATE DATABASE <your-db-name>;
 CREATE USER <your-db-user> WITH PASSWORD :'pw';
+
+-- Grant database privileges
 GRANT ALL PRIVILEGES ON DATABASE <your-db-name> TO <your-db-user>;
+
+-- Connect to the database to grant schema permissions
+\c <your-db-name>
+
+-- Grant schema permissions (required for Entity Framework migrations)
+GRANT ALL ON SCHEMA public TO <your-db-user>;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO <your-db-user>;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO <your-db-user>;
+
+-- Set default privileges for future objects
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO <your-db-user>;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO <your-db-user>;
 EOF
 echo "Created user <your-db-user> with password: $PW"
+echo "IMPORTANT: Save this password securely - you'll need it for the connection string"
+```
+
+**Note:** The schema permissions (`GRANT ALL ON SCHEMA public`) are essential for Entity Framework Core migrations to work properly. Without these, your application won't be able to create or modify database tables.
+
+**Testing the connection:**
+```bash
+# Test the database connection with the new user
+psql -U <your-db-user> -d <your-db-name> -h localhost
+# Enter the password when prompted
+# If successful, you'll see the PostgreSQL prompt
 ```
 
 ---
@@ -298,8 +323,10 @@ Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
 Environment=ASPNETCORE_URLS=http://localhost:5000
 
-# Optional: Set connection strings
-# Environment=ConnectionStrings__DefaultConnection=Host=localhost;Database=<your-app-name>;Username=<your-db-user>;Password=<your-password>
+# Database connection string (REQUIRED if using PostgreSQL)
+# IMPORTANT: Never commit this file with real passwords to git
+# The double underscore (__) is required for ASP.NET Core to read nested config values
+Environment=ConnectionStrings__DefaultConnection=Host=localhost;Port=5432;Database=<your-db-name>;Username=<your-db-user>;Password=<your-password>
 
 # Logging
 SyslogIdentifier=<your-app-name>
@@ -607,15 +634,51 @@ curl http://<your-server-ip>:5000/health
 
 ### Database Connection Issues
 
+**Check PostgreSQL is running:**
 ```bash
-# Check PostgreSQL is running
 sudo systemctl status postgresql
+```
 
-# Test database connection
-psql -h localhost -U <your-db-user> -d <your-app-name>
+**Test database connection:**
+```bash
+# Test connection (use -h localhost to force TCP connection)
+psql -U <your-db-user> -d <your-db-name> -h localhost
 
-# Check connection string in appsettings
-cat </your/app/path>/appsettings.Production.json
+# Check connection string in systemd service
+sudo systemctl cat <your-app-name> | grep ConnectionStrings
+```
+
+**Common Error: "permission denied for schema public"**
+
+If you see this error in logs (`sudo journalctl -u <your-app-name> -n 100`), the database user lacks schema permissions:
+
+```bash
+# Fix permissions as postgres user
+sudo -u postgres psql -d <your-db-name> <<'EOF'
+-- Grant schema permissions
+GRANT ALL ON SCHEMA public TO <your-db-user>;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO <your-db-user>;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO <your-db-user>;
+
+-- Set default privileges for future objects
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO <your-db-user>;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO <your-db-user>;
+EOF
+
+# Restart the application
+sudo systemctl restart <your-app-name>
+```
+
+**Common Error: "Peer authentication failed"**
+
+If you see this error when testing connection, you're using Unix socket instead of TCP:
+
+```bash
+# Wrong (uses Unix socket)
+psql -U <your-db-user> -d <your-db-name>
+
+# Correct (uses TCP with password)
+psql -U <your-db-user> -d <your-db-name> -h localhost
 ```
 
 ### High Memory Usage
@@ -718,9 +781,12 @@ Consider installing monitoring tools:
    - Application backups (already handled by deployment script)
    - Server snapshots
 
-5. **Use environment-specific appsettings:**
-   - Create `appsettings.Production.json` with production settings
-   - Never commit secrets to git
+5. **Protect database credentials and secrets:**
+   - **Never** commit database passwords or connection strings to git
+   - Store connection strings in systemd service environment variables (not in appsettings files)
+   - Create `appsettings.Production.json` with production settings (without secrets)
+   - Use `.gitignore` to exclude files containing secrets
+   - Rotate database passwords periodically
 
 6. **Deployment user security:**
    - The `deploy` user has limited sudo access only for service management
