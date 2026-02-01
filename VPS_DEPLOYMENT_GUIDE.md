@@ -167,11 +167,11 @@ sudo systemctl start postgresql
 # Create database and user
 PW=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c20); \
 sudo -u postgres psql -v pw="'$PW'" <<'EOF'
-CREATE DATABASE mokkilaninvoices;
-CREATE USER mokkilanadmin WITH PASSWORD :'pw';
-GRANT ALL PRIVILEGES ON DATABASE mokkilaninvoices TO mokkilanadmin;
+CREATE DATABASE <your-db-name>;
+CREATE USER <your-db-user> WITH PASSWORD :'pw';
+GRANT ALL PRIVILEGES ON DATABASE <your-db-name> TO <your-db-user>;
 EOF
-echo "Created user mokkiladmin with password: $PW"
+echo "Created user <your-db-user> with password: $PW"
 ```
 
 ---
@@ -184,11 +184,11 @@ On your local machine:
 
 ```bash
 # Generate SSH key (do NOT set a passphrase for automation)
-ssh-keygen -t ed25519 -C "github-actions" -f ~/.ssh/mokkilaninvoices-deploy
+ssh-keygen -t ed25519 -C "github-actions" -f ~/.ssh/<your-app-name>-deploy
 
 # This creates two files:
-# ~/.ssh/mokkilaninvoices-deploy (private key)
-# ~/.ssh/mokkilaninvoices-deploy.pub (public key)
+# ~/.ssh/<your-app-name>-deploy (private key)
+# ~/.ssh/<your-app-name>-deploy.pub (public key)
 ```
 
 ### 2. Add Public Key to VPS
@@ -197,7 +197,7 @@ Add the public key to the **deploy** user (not your personal user):
 
 ```bash
 # Display your public key
-cat ~/.ssh/mokkilaninvoices-deploy.pub
+cat ~/.ssh/<your-app-name>-deploy.pub
 
 # Copy the output, then SSH to your VPS as your admin user
 ssh <your-admin-username>@<your-server-ip>
@@ -211,13 +211,13 @@ sudo bash -c 'cat >> /home/deploy/.ssh/authorized_keys'
 sudo cat /home/deploy/.ssh/authorized_keys
 
 # Test SSH connection as deploy user (from your local machine)
-ssh -i ~/.ssh/mokkilaninvoices-deploy deploy@<your-server-ip>
+ssh -i ~/.ssh/<your-app-name>-deploy deploy@<your-server-ip>
 ```
 
 **Alternative method using ssh-copy-id:**
 ```bash
 # From your local machine
-ssh-copy-id -i ~/.ssh/mokkilaninvoices-deploy.pub deploy@<your-server-ip>
+ssh-copy-id -i ~/.ssh/<your-app-name>-deploy.pub deploy@<your-server-ip>
 ```
 
 ### 3. Configure GitHub Secrets
@@ -230,7 +230,7 @@ Add these secrets:
 |-------------|-------------|---------|
 | `VPS_HOST` | Your VPS IP address or domain | `123.456.789.0` or `api.yourdomain.com` |
 | `VPS_USERNAME` | SSH username (use `deploy` user) | `deploy` |
-| `VPS_SSH_KEY` | Private SSH key content | Copy entire content of `~/.ssh/mokkilaninvoices-deploy` |
+| `VPS_SSH_KEY` | Private SSH key content | Copy entire content of `~/.ssh/<your-app-name>-deploy` |
 | `VPS_SSH_PORT` | SSH port (optional, defaults to 22) | `22` |
 | `APP_DIR` | Application directory path on server | `</your/app/path>` |
 | `BACKUP_DIR` | Backup directory path on server | `</your/backup/path>` |
@@ -242,10 +242,10 @@ Add these secrets:
 **To copy private key:**
 ```bash
 # macOS/Linux
-cat ~/.ssh/mokkilaninvoices-deploy | pbcopy
+cat ~/.ssh/<your-app-name>-deploy | pbcopy
 
 # Or just display it
-cat ~/.ssh/mokkilaninvoices-deploy
+cat ~/.ssh/<your-app-name>-deploy
 ```
 
 Copy the entire output including `-----BEGIN OPENSSH PRIVATE KEY-----` and `-----END OPENSSH PRIVATE KEY-----`
@@ -299,7 +299,7 @@ Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
 Environment=ASPNETCORE_URLS=http://localhost:5000
 
 # Optional: Set connection strings
-# Environment=ConnectionStrings__DefaultConnection=Host=localhost;Database=mokkilaninvoices;Username=mokkilanadmin;Password=<your-password>
+# Environment=ConnectionStrings__DefaultConnection=Host=localhost;Database=<your-app-name>;Username=<your-db-user>;Password=<your-password>
 
 # Logging
 SyslogIdentifier=<your-app-name>
@@ -334,7 +334,7 @@ sudo systemctl start <your-app-name>
 sudo systemctl status <your-app-name>
 
 # View logs
-sudo journalctl -u mokkilaninvoices -f
+sudo journalctl -u <your-app-name> -f
 ```
 
 ### Common Service Commands
@@ -353,13 +353,13 @@ sudo systemctl restart <your-app-name>
 sudo systemctl status <your-app-name>
 
 # View logs (last 100 lines)
-sudo journalctl -u mokkilaninvoices -n 100
+sudo journalctl -u <your-app-name> -n 100
 
 # Follow logs (real-time)
-sudo journalctl -u mokkilaninvoices -f
+sudo journalctl -u <your-app-name> -f
 
 # View logs with timestamps
-sudo journalctl -u mokkilaninvoices --since "1 hour ago"
+sudo journalctl -u <your-app-name> --since "1 hour ago"
 ```
 
 ---
@@ -369,14 +369,14 @@ sudo journalctl -u mokkilaninvoices --since "1 hour ago"
 ### 1. Create Nginx Configuration
 
 ```bash
-sudo nano /etc/nginx/sites-available/mokkilaninvoices
+sudo nano /etc/nginx/sites-available/<your-app-name>
 ```
 
 Paste this configuration:
 
 ```nginx
 # Upstream definition
-upstream mokkilaninvoices_backend {
+upstream <your-app-name>_backend {
     server localhost:5000;
     keepalive 32;
 }
@@ -407,15 +407,15 @@ server {
     add_header X-XSS-Protection "1; mode=block" always;
 
     # Logging
-    access_log /var/log/nginx/mokkilaninvoices-access.log;
-    error_log /var/log/nginx/mokkilaninvoices-error.log;
+    access_log /var/log/nginx/<your-app-name>-access.log;
+    error_log /var/log/nginx/<your-app-name>-error.log;
 
     # Client body size limit (for file uploads)
     client_max_body_size 10M;
 
     # Proxy settings
     location / {
-        proxy_pass http://mokkilaninvoices_backend;
+        proxy_pass http://<your-app-name>_backend;
         proxy_http_version 1.1;
 
         # Headers
@@ -439,7 +439,7 @@ server {
 
     # Health check endpoint
     location /health {
-        proxy_pass http://mokkilaninvoices_backend/health;
+        proxy_pass http://<your-app-name>_backend/health;
         access_log off;
     }
 }
@@ -449,7 +449,7 @@ server {
 
 ```bash
 # Create symbolic link to enable site
-sudo ln -s /etc/nginx/sites-available/mokkilaninvoices /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/<your-app-name> /etc/nginx/sites-enabled/
 
 # Test nginx configuration
 sudo nginx -t
@@ -486,12 +486,12 @@ sudo certbot renew --dry-run
 ```bash
 # Generate self-signed certificate
 sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout /etc/ssl/private/mokkilaninvoices-selfsigned.key \
-  -out /etc/ssl/certs/mokkilaninvoices-selfsigned.crt
+  -keyout /etc/ssl/private/<your-app-name>-selfsigned.key \
+  -out /etc/ssl/certs/<your-app-name>-selfsigned.crt
 
 # Update nginx config to use the certificate
-# ssl_certificate /etc/ssl/certs/mokkilaninvoices-selfsigned.crt;
-# ssl_certificate_key /etc/ssl/private/mokkilaninvoices-selfsigned.key;
+# ssl_certificate /etc/ssl/certs/<your-app-name>-selfsigned.crt;
+# ssl_certificate_key /etc/ssl/private/<your-app-name>-selfsigned.key;
 ```
 
 ---
@@ -526,7 +526,7 @@ curl https://api.yourdomain.com/health
 # Check service status on VPS
 ssh <your-username>@<your-server-ip>
 sudo systemctl status <your-app-name>
-sudo journalctl -u mokkilaninvoices -n 50
+sudo journalctl -u <your-app-name> -n 50
 ```
 
 ---
@@ -540,7 +540,7 @@ sudo journalctl -u mokkilaninvoices -n 50
 sudo systemctl status <your-app-name>
 
 # View detailed logs
-sudo journalctl -u mokkilaninvoices -n 100 --no-pager
+sudo journalctl -u <your-app-name> -n 100 --no-pager
 
 # Check if port is already in use
 sudo netstat -tlnp | grep :5000
@@ -554,10 +554,10 @@ ls -la </your/app/path>
 **SSH Connection Issues:**
 ```bash
 # Test SSH connection manually as deploy user
-ssh -i ~/.ssh/mokkilaninvoices-deploy deploy@<your-server-ip>
+ssh -i ~/.ssh/<your-app-name>-deploy deploy@<your-server-ip>
 
 # Check SSH key format (should be OpenSSH format)
-head -n 1 ~/.ssh/mokkilaninvoices-deploy
+head -n 1 ~/.ssh/<your-app-name>-deploy
 # Should show: -----BEGIN OPENSSH PRIVATE KEY-----
 
 # Check if public key is in deploy user's authorized_keys
@@ -565,7 +565,7 @@ ssh <your-admin-user>@<your-server-ip>
 sudo cat /home/deploy/.ssh/authorized_keys
 
 # Check deploy user's sudo permissions
-ssh -i ~/.ssh/mokkilaninvoices-deploy deploy@<your-server-ip>
+ssh -i ~/.ssh/<your-app-name>-deploy deploy@<your-server-ip>
 sudo -l
 # Should show the allowed systemctl commands
 ```
@@ -593,7 +593,7 @@ sudo systemctl status nginx
 
 **Check nginx logs:**
 ```bash
-sudo tail -f /var/log/nginx/mokkilaninvoices-error.log
+sudo tail -f /var/log/nginx/<your-app-name>-error.log
 ```
 
 **Test direct connection:**
@@ -612,7 +612,7 @@ curl http://<your-server-ip>:5000/health
 sudo systemctl status postgresql
 
 # Test database connection
-psql -h localhost -U mokkilanadmin -d mokkilaninvoices
+psql -h localhost -U <your-db-user> -d <your-app-name>
 
 # Check connection string in appsettings
 cat </your/app/path>/appsettings.Production.json
@@ -644,16 +644,16 @@ dotnet publish API/API.csproj -c Release -o ./publish
 
 # Create tarball
 cd publish
-tar -czf ../mokkilaninvoices.tar.gz .
+tar -czf ../<your-app-name>.tar.gz .
 cd ..
 
 # Copy to server
-scp mokkilaninvoices.tar.gz <your-username>@<your-server-ip>:/tmp/
+scp <your-app-name>.tar.gz <your-username>@<your-server-ip>:/tmp/
 
 # On server
 ssh <your-username>@<your-server-ip>
 sudo systemctl stop <your-app-name>
-sudo tar -xzf /tmp/mokkilaninvoices.tar.gz -C </your/app/path>
+sudo tar -xzf /tmp/<your-app-name>.tar.gz -C </your/app/path>
 sudo chown -R invoicer-deploy:invoicer-deploy </your/app/path>
 sudo systemctl start <your-app-name>
 ```
@@ -665,11 +665,11 @@ sudo systemctl start <your-app-name>
 ### Setup Log Rotation
 
 ```bash
-sudo nano /etc/logrotate.d/mokkilaninvoices
+sudo nano /etc/logrotate.d/<your-app-name>
 ```
 
 ```
-/var/log/nginx/mokkilaninvoices-*.log {
+/var/log/nginx/<your-app-name>-*.log {
     daily
     missingok
     rotate 14
@@ -745,8 +745,8 @@ Consider installing monitoring tools:
 ## Support
 
 For issues or questions:
-- Check application logs: `sudo journalctl -u mokkilaninvoices -f`
-- Check nginx logs: `sudo tail -f /var/log/nginx/mokkilaninvoices-error.log`
+- Check application logs: `sudo journalctl -u <your-app-name> -f`
+- Check nginx logs: `sudo tail -f /var/log/nginx/<your-app-name>-error.log`
 - Review GitHub Actions logs in repository
 
 Good luck with your deployment! 🚀
