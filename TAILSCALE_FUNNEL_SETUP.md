@@ -1,6 +1,6 @@
 # Tailscale Funnel Setup Guide
 
-Complete guide for exposing MokkilanInvoices backend to Azure Static Web App using Tailscale Funnel.
+Complete guide for exposing your backend API to Azure Static Web App using Tailscale Funnel.
 
 ## Architecture Overview
 
@@ -9,7 +9,7 @@ Azure Static Web App (Frontend)
            ↓ HTTPS (public internet)
 Tailscale Funnel (public HTTPS endpoint)
            ↓ Tailscale VPN (encrypted)
-Ubuntu Server (MokkilanInvoices Backend)
+Ubuntu Server (Backend API)
     localhost:5000
 ```
 
@@ -37,7 +37,7 @@ Ubuntu Server (MokkilanInvoices Backend)
 
 ### Ubuntu Server Requirements:
 - Ubuntu 20.04+ (or other Linux distribution)
-- MokkilanInvoices Backend API running on port 5000
+- Backend API running on port 5000 (or your configured port)
 - Internet connection
 - Sudo access
 
@@ -66,7 +66,7 @@ sudo tailscale up
 **Save the machine name** displayed after authentication:
 ```
 Success. You are now logged in as user@example.com.
-Machine name: ubuntu-server
+Machine name: <server-name>
 ```
 
 ---
@@ -78,8 +78,8 @@ Machine name: ubuntu-server
 curl http://localhost:5000/health
 
 # If not running, start it:
-sudo systemctl start mokkilaninvoices
-sudo systemctl status mokkilaninvoices
+sudo systemctl start <your-service-name>
+sudo systemctl status <your-service-name>
 
 # Verify it's listening on port 5000
 sudo netstat -tlnp | grep :5000
@@ -109,7 +109,7 @@ sudo tailscale funnel 5000
 ```
 Available on the internet:
 
-https://ubuntu-server.tailnet-abcd.ts.net/
+https://<server-name>.tailnet-abcd.ts.net/
 |-- proxy http://127.0.0.1:5000
 
 Funnel started and running in the background.
@@ -123,10 +123,10 @@ Funnel started and running in the background.
 
 ```bash
 # Test from the internet (run from another computer or phone)
-curl https://ubuntu-server.tailnet-abcd.ts.net/health
+curl https://<server-name>.tailnet-abcd.ts.net/health
 
 # Or open in browser:
-# https://ubuntu-server.tailnet-abcd.ts.net/health
+# https://<server-name>.tailnet-abcd.ts.net/health
 ```
 
 Should return your backend's health check response.
@@ -149,7 +149,7 @@ sudo nano /etc/systemd/system/tailscale-funnel.service
 
 ```ini
 [Unit]
-Description=Tailscale Funnel for MokkilanInvoices API
+Description=Tailscale Funnel for Backend API
 After=network.target tailscaled.service
 Requires=tailscaled.service
 
@@ -186,7 +186,7 @@ Should show: `active (running)`
 
 ## Step 6: Configure CORS in Backend
 
-Update your MokkilanInvoices backend to allow requests from Azure Static Web App:
+Update your backend to allow requests from Azure Static Web App:
 
 ```csharp
 // Program.cs
@@ -210,7 +210,7 @@ app.UseCors("AllowStaticWebApp");
 
 **Restart backend:**
 ```bash
-sudo systemctl restart mokkilaninvoices
+sudo systemctl restart <your-service-name>
 ```
 
 ---
@@ -262,7 +262,7 @@ const response = await api.get('/api/receipts');
 3. **Monitor logs:**
    ```bash
    # Backend logs
-   sudo journalctl -u mokkilaninvoices -f
+   sudo journalctl -u <your-service-name> -f
 
    # Funnel logs
    sudo journalctl -u tailscale-funnel -f
@@ -427,13 +427,13 @@ sudo systemctl enable tailscale-funnel
 
 ```bash
 # Check backend status
-sudo systemctl status mokkilaninvoices
+sudo systemctl status <your-service-name>
 
 # Restart backend
-sudo systemctl restart mokkilaninvoices
+sudo systemctl restart <your-service-name>
 
 # View backend logs
-sudo journalctl -u mokkilaninvoices -f
+sudo journalctl -u <your-service-name> -f
 ```
 
 ---
@@ -452,7 +452,7 @@ sudo journalctl -u mokkilaninvoices -f
 ```bash
 # Check backend is running
 curl http://localhost:5000/health
-sudo systemctl status mokkilaninvoices
+sudo systemctl status <your-service-name>
 
 # Check port is listening
 sudo netstat -tlnp | grep :5000
@@ -461,7 +461,7 @@ sudo netstat -tlnp | grep :5000
 sudo tailscale funnel status
 
 # Restart services
-sudo systemctl restart mokkilaninvoices
+sudo systemctl restart <your-service-name>
 sudo systemctl restart tailscale-funnel
 ```
 
@@ -474,7 +474,7 @@ sudo systemctl restart tailscale-funnel
 curl -I -X OPTIONS \
   -H "Origin: https://your-static-web-app.azurestaticapps.net" \
   -H "Access-Control-Request-Method: GET" \
-  https://ubuntu-server.tailnet-abcd.ts.net/api/receipts
+  https://<server-name>.tailnet-abcd.ts.net/api/receipts
 ```
 
 Should return `Access-Control-Allow-Origin` header.
@@ -588,7 +588,7 @@ Your Azure Static Web App can now securely communicate with the backend running 
 
 For issues or questions:
 - Check Funnel logs: `sudo journalctl -u tailscale-funnel -f`
-- Check backend logs: `sudo journalctl -u mokkilaninvoices -f`
+- Check backend logs: `sudo journalctl -u <your-service-name> -f`
 - Tailscale community: https://tailscale.com/contact/support
 
 Good luck with your deployment! 🚀
