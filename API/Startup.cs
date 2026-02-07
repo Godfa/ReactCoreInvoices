@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using API.Extensions;
+using API.Middleware;
 using Application.Core;
 using Application.Invoices;
 using MediatR;
@@ -59,6 +60,9 @@ namespace API
             }
 
             // app.UseHttpsRedirection();
+
+            // API Key authentication middleware (before routing)
+            app.UseMiddleware<ApiKeyMiddleware>();
 
             app.UseRouting();
 
