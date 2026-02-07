@@ -800,134 +800,177 @@ Consider installing monitoring tools:
 
 When exposing your backend API to external clients (e.g., Azure Static Web App), use API key authentication to secure access.
 
-### 1. Backend Configuration
+### Step 1: Generate API Key
 
-Add API key middleware to your ASP.NET Core application:
+On your VPS or local machine, generate a secure API key:
 
-```csharp
-// Program.cs
-
-// Read API key from configuration
-var apiKey = builder.Configuration["ApiKey"]
-    ?? throw new InvalidOperationException("ApiKey not configured");
-
-// Build the app
-var app = builder.Build();
-
-// API Key authentication middleware (add before other middleware)
-app.Use(async (context, next) =>
-{
-    // Skip authentication for health checks
-    if (context.Request.Path.StartsWithSegments("/health"))
-    {
-        await next();
-        return;
-    }
-
-    var providedKey = context.Request.Headers["X-API-Key"].FirstOrDefault();
-
-    if (string.IsNullOrEmpty(providedKey) || providedKey != apiKey)
-    {
-        context.Response.StatusCode = 401;
-        await context.Response.WriteAsJsonAsync(new { error = "Invalid or missing API key" });
-        return;
-    }
-
-    await next();
-});
-
-// Continue with other middleware...
-app.UseHttpsRedirection();
-// etc.
-```
-
-### 2. Store API Key Securely
-
-**Option A: Systemd Environment Variable (Recommended)**
-
-Add to your systemd service file (`/etc/systemd/system/<your-app-name>.service`):
-
-```ini
-[Service]
-# ... other settings ...
-Environment=ApiKey=your-secure-api-key-here
-```
-
-Generate a secure API key:
 ```bash
 # Generate a random 32-character API key
 openssl rand -base64 32
+
+# Example output: K7xP2mN9qR4wL8vT3yU6zA1bC5dE0fG=
+# SAVE THIS KEY! You'll need it for both backend and frontend
 ```
 
-Reload and restart:
+**Important:** Use the SAME key for both backend and frontend!
+
+---
+
+### Step 2: Configure Backend (VPS)
+
+SSH to your VPS and add the API key to your systemd service:
+
 ```bash
+# Edit the systemd service file
+sudo nano /etc/systemd/system/<your-app-name>.service
+```
+
+Add the `ApiKey` environment variable in the `[Service]` section:
+
+```ini
+[Service]
+# ... existing settings ...
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://localhost:5000
+Environment=ConnectionStrings__DefaultConnection=Host=localhost;...
+
+# ADD THIS LINE with your generated API key:
+Environment=ApiKey=K7xP2mN9qR4wL8vT3yU6zA1bC5dE0fG=
+```
+
+Save and reload:
+
+```bash
+# Save: Ctrl+O, Enter, Ctrl+X
+
+# Reload systemd configuration
 sudo systemctl daemon-reload
+
+# Restart the application
 sudo systemctl restart <your-app-name>
+
+# Verify it's running
+sudo systemctl status <your-app-name>
 ```
 
-**Option B: appsettings.Production.json (Less Secure)**
+---
 
-```json
-{
-  "ApiKey": "your-secure-api-key-here"
-}
-```
+### Step 3: Configure Frontend (Azure Static Web App)
 
-**Important:** Never commit API keys to git!
+#### Option A: Azure Portal (Recommended for Production)
 
-### 3. Frontend Configuration
+1. Go to [Azure Portal](https://portal.azure.com)
+2. Navigate to your **Static Web App**
+3. Go to **Settings** → **Configuration**
+4. Click **+ Add**
+5. Add the following application settings:
 
-Configure your frontend to send the API key with every request:
+| Name | Value |
+|------|-------|
+| `VITE_API_URL` | `https://api.yourdomain.com/api` |
+| `VITE_API_KEY` | `K7xP2mN9qR4wL8vT3yU6zA1bC5dE0fG=` |
 
-**Azure Static Web App - Application Settings:**
-1. Go to Azure Portal → Static Web App → Configuration
-2. Add application setting: `API_KEY` = `your-secure-api-key-here`
+6. Click **Save**
+7. Your app will automatically redeploy with the new settings
 
-**Frontend Code (TypeScript/JavaScript):**
+#### Option B: Local Development (.env file)
 
-```typescript
-// src/api/client.ts
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // or process.env.REACT_APP_API_URL
-  timeout: 30000,
-  headers: {
-    'X-API-Key': import.meta.env.VITE_API_KEY // or process.env.REACT_APP_API_KEY
-  }
-});
-
-export default api;
-```
-
-**Environment Variables (.env.production):**
-```bash
-VITE_API_URL=https://api.yourdomain.com
-VITE_API_KEY=your-secure-api-key-here
-```
-
-### 4. Testing API Key Authentication
+For local development, create or update `.env.development`:
 
 ```bash
-# Without API key (should return 401)
+# client-app/.env.development
+VITE_API_URL=http://localhost:5000/api
+# No API key needed for local development (middleware skips if not configured)
+```
+
+For production builds, create `.env.production`:
+
+```bash
+# client-app/.env.production
+VITE_API_URL=https://api.yourdomain.com/api
+VITE_API_KEY=K7xP2mN9qR4wL8vT3yU6zA1bC5dE0fG=
+```
+
+**Important:** Never commit `.env.production` to git! Add it to `.gitignore`.
+
+---
+
+### Step 4: Verify API Key Authentication
+
+Test from your local machine or any computer:
+
+```bash
+# Test WITHOUT API key (should return 401 Unauthorized)
 curl -I https://api.yourdomain.com/api/invoices
 
-# With API key (should return 200)
-curl -H "X-API-Key: your-secure-api-key-here" https://api.yourdomain.com/api/invoices
+# Expected response:
+# HTTP/2 401
+# {"error":"API key is required"}
 
-# Health check (should work without API key)
+# Test WITH API key (should return 200 OK or redirect to login)
+curl -H "X-API-Key: K7xP2mN9qR4wL8vT3yU6zA1bC5dE0fG=" \
+     https://api.yourdomain.com/api/invoices
+
+# Test health endpoint (should work WITHOUT API key)
 curl https://api.yourdomain.com/health
+
+# Expected response:
+# {"status":"healthy","timestamp":"2024-01-15T12:00:00Z"}
 ```
 
-### 5. CORS Configuration
+---
+
+### Step 5: Test Full Flow
+
+1. **Open your Static Web App** in a browser
+2. **Open Developer Tools** (F12) → Network tab
+3. **Try to login or access any feature**
+4. **Check the request headers** - you should see:
+   - `X-API-Key: K7xP2mN9qR4wL8vT3yU6zA1bC5dE0fG=`
+   - `Authorization: Bearer <jwt-token>` (after login)
+
+---
+
+### Troubleshooting
+
+#### "API key is required" error
+- Check that `VITE_API_KEY` is set in Azure Static Web App Configuration
+- Redeploy the frontend after adding environment variables
+- Clear browser cache and try again
+
+#### "Invalid API key" error
+- Verify the API key matches EXACTLY (copy-paste, no extra spaces)
+- Check backend logs: `sudo journalctl -u <your-app-name> -f`
+
+#### API key not being sent
+- Check browser DevTools → Network → Request Headers
+- Verify `agent.ts` includes the API key interceptor
+- Rebuild and redeploy frontend
+
+#### Local development issues
+- API key is optional in development (middleware skips if not configured)
+- Don't set `VITE_API_KEY` in `.env.development` for easier local testing
+
+---
+
+### Security Notes
+
+1. **HTTPS Required**: API key is only secure over HTTPS (encrypted in transit)
+2. **Frontend Visibility**: API key is visible in browser DevTools - this is expected
+3. **Defense in Depth**: API key + JWT + CORS together provide security
+4. **Key Rotation**: Change API key periodically by updating both backend and frontend
+
+---
+
+### CORS Configuration
 
 Ensure CORS is configured to allow your frontend and the `X-API-Key` header:
 
 ```csharp
-// Program.cs
+// Program.cs or ApplicationServiceExtensions.cs
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("CorsPolicy", policy =>
     {
         policy.WithOrigins(
             "https://your-static-web-app.azurestaticapps.net",
@@ -939,12 +982,11 @@ builder.Services.AddCors(options =>
         .AllowCredentials();
     });
 });
-
-// Use the policy
-app.UseCors("AllowFrontend");
 ```
 
-### 6. Rate Limiting (Optional but Recommended)
+---
+
+### Rate Limiting (Optional but Recommended)
 
 Add rate limiting to prevent abuse:
 
