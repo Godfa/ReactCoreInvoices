@@ -796,6 +796,182 @@ Consider installing monitoring tools:
 
 ---
 
+## API Key Authentication
+
+When exposing your backend API to external clients (e.g., Azure Static Web App), use API key authentication to secure access.
+
+### 1. Backend Configuration
+
+Add API key middleware to your ASP.NET Core application:
+
+```csharp
+// Program.cs
+
+// Read API key from configuration
+var apiKey = builder.Configuration["ApiKey"]
+    ?? throw new InvalidOperationException("ApiKey not configured");
+
+// Build the app
+var app = builder.Build();
+
+// API Key authentication middleware (add before other middleware)
+app.Use(async (context, next) =>
+{
+    // Skip authentication for health checks
+    if (context.Request.Path.StartsWithSegments("/health"))
+    {
+        await next();
+        return;
+    }
+
+    var providedKey = context.Request.Headers["X-API-Key"].FirstOrDefault();
+
+    if (string.IsNullOrEmpty(providedKey) || providedKey != apiKey)
+    {
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsJsonAsync(new { error = "Invalid or missing API key" });
+        return;
+    }
+
+    await next();
+});
+
+// Continue with other middleware...
+app.UseHttpsRedirection();
+// etc.
+```
+
+### 2. Store API Key Securely
+
+**Option A: Systemd Environment Variable (Recommended)**
+
+Add to your systemd service file (`/etc/systemd/system/<your-app-name>.service`):
+
+```ini
+[Service]
+# ... other settings ...
+Environment=ApiKey=your-secure-api-key-here
+```
+
+Generate a secure API key:
+```bash
+# Generate a random 32-character API key
+openssl rand -base64 32
+```
+
+Reload and restart:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart <your-app-name>
+```
+
+**Option B: appsettings.Production.json (Less Secure)**
+
+```json
+{
+  "ApiKey": "your-secure-api-key-here"
+}
+```
+
+**Important:** Never commit API keys to git!
+
+### 3. Frontend Configuration
+
+Configure your frontend to send the API key with every request:
+
+**Azure Static Web App - Application Settings:**
+1. Go to Azure Portal → Static Web App → Configuration
+2. Add application setting: `API_KEY` = `your-secure-api-key-here`
+
+**Frontend Code (TypeScript/JavaScript):**
+
+```typescript
+// src/api/client.ts
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL, // or process.env.REACT_APP_API_URL
+  timeout: 30000,
+  headers: {
+    'X-API-Key': import.meta.env.VITE_API_KEY // or process.env.REACT_APP_API_KEY
+  }
+});
+
+export default api;
+```
+
+**Environment Variables (.env.production):**
+```bash
+VITE_API_URL=https://api.yourdomain.com
+VITE_API_KEY=your-secure-api-key-here
+```
+
+### 4. Testing API Key Authentication
+
+```bash
+# Without API key (should return 401)
+curl -I https://api.yourdomain.com/api/invoices
+
+# With API key (should return 200)
+curl -H "X-API-Key: your-secure-api-key-here" https://api.yourdomain.com/api/invoices
+
+# Health check (should work without API key)
+curl https://api.yourdomain.com/health
+```
+
+### 5. CORS Configuration
+
+Ensure CORS is configured to allow your frontend and the `X-API-Key` header:
+
+```csharp
+// Program.cs
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(
+            "https://your-static-web-app.azurestaticapps.net",
+            "http://localhost:3000",  // Local development
+            "http://localhost:5173"   // Vite dev server
+        )
+        .AllowAnyMethod()
+        .AllowAnyHeader()  // This allows X-API-Key header
+        .AllowCredentials();
+    });
+});
+
+// Use the policy
+app.UseCors("AllowFrontend");
+```
+
+### 6. Rate Limiting (Optional but Recommended)
+
+Add rate limiting to prevent abuse:
+
+```csharp
+// Program.cs (.NET 7+)
+using System.Threading.RateLimiting;
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
+        context => RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Request.Headers["X-API-Key"].FirstOrDefault() ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    options.RejectionStatusCode = 429;
+});
+
+// Add after app.UseCors()
+app.UseRateLimiter();
+```
+
+---
+
 ## Next Steps
 
 - [ ] Setup monitoring and alerting
