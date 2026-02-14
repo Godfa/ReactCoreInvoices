@@ -19,6 +19,13 @@ namespace API.Middleware
 
         public async Task InvokeAsync(HttpContext context, IConfiguration configuration)
         {
+            // Skip API key check for CORS preflight requests
+            if (HttpMethods.IsOptions(context.Request.Method))
+            {
+                await _next(context);
+                return;
+            }
+
             // Skip API key check for health endpoint
             if (context.Request.Path.StartsWithSegments("/health"))
             {
