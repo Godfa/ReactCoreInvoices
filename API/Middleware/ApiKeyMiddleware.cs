@@ -27,7 +27,8 @@ namespace API.Middleware
             }
 
             // Skip API key check for account endpoints (login, register, etc.)
-            if (context.Request.Path.StartsWithSegments("/api/account"))
+            if (context.Request.Path.StartsWithSegments("/api/account") ||
+                context.Request.Path.StartsWithSegments("/account"))
             {
                 await _next(context);
                 return;
