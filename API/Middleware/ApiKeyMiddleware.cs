@@ -26,6 +26,13 @@ namespace API.Middleware
                 return;
             }
 
+            // Skip API key check for account endpoints (login, register, etc.)
+            if (context.Request.Path.StartsWithSegments("/api/account"))
+            {
+                await _next(context);
+                return;
+            }
+
             // Skip API key check for health endpoint
             if (context.Request.Path.StartsWithSegments("/health"))
             {
