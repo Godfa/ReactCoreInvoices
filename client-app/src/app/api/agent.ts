@@ -35,10 +35,18 @@ axios.interceptors.response.use(async (response: AxiosResponse) => {
 
     switch (status) {
         case 400:
-            toast.error('Bad request');
+            if (typeof data === 'string') {
+                toast.error(data);
+            } else {
+                toast.error('Bad request');
+            }
             break;
         case 401:
-            toast.error('Unauthorized');
+            if (typeof data === 'string') {
+                toast.error(data);
+            } else {
+                toast.error('Unauthorized');
+            }
             break;
         case 404:
             toast.error('Not found');
