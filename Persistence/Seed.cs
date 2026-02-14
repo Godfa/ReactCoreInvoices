@@ -20,31 +20,34 @@ namespace Persistence
                 await roleManager.CreateAsync(new IdentityRole("Admin"));
             }
 
-            // Define expected users
-            var expectedUsers = new List<(string DisplayName, string UserName, string Email)>
+            // Define expected users with stable GUIDs as the canonical identity key.
+            // The GUID never changes regardless of email, displayname, or username updates.
+            var expectedUsers = new List<(string Id, string DisplayName, string UserName, string Email)>
             {
-                ("Epi", "epi", "epituo@gmail.com"),
-                ("Leivo", "leivo", "leivo@example.com"),
-                ("Jaapu", "jaapu", "jaapu@example.com"),
-                ("Timo", "timo", "timo@example.com"),
-                ("JHattu", "jhattu", "jhattu@example.com"),
-                ("Urpi", "urpi", "urpi@example.com"),
-                ("Zeip", "zeip", "zeip@example.com"),
-                ("Antti", "antti", "antti@example.com"),
-                ("Sakke", "sakke", "sakke@example.com"),
-                ("Lasse", "lasse", "lasse@example.com")
+                ("354c7990-0574-4da4-8659-58b28113eb79", "Epi",    "epi",    "epituo@gmail.com"),
+                ("c5a33cd2-85bc-4687-9cdb-9b9f38512e0f", "Leivo",  "leivo",  "leivo@example.com"),
+                ("bfef42ed-04b5-4639-aa2a-788784ccad02", "Jaapu",  "jaapu",  "jaapu@example.com"),
+                ("9f8e7d6c-5b4a-3f2e-1d0c-9b8a7f6e5d4c", "Timo",   "timo",   "timo@example.com"),
+                ("4b5c6d7e-8f9a-0b1c-2d3e-4f5a6b7c8d9e", "JHattu", "jhattu", "jhattu@example.com"),
+                ("1c2d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f", "Urpi",   "urpi",   "urpi@example.com"),
+                ("7d8e9f0a-1b2c-3d4e-5f6a-7b8c9d0e1f2a", "Zeip",   "zeip",   "zeip@example.com"),
+                ("5e6f7a8b-9c0d-1e2f-3a4b-5c6d7e8f9a0b", "Antti",  "antti",  "antti@example.com"),
+                ("6f7a8b9c-0d1e-2f3a-4b5c-6d7e8f9a0b1c", "Sakke",  "sakke",  "sakke@example.com"),
+                ("0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d", "Lasse",  "lasse",  "lasse@example.com")
             };
 
-            // Create users if they don't exist (never overwrite existing user data)
-            foreach (var (displayName, userName, email) in expectedUsers)
+            // Create users if they don't exist (never overwrite existing user data).
+            // Lookup by stable GUID — the canonical identity for each user.
+            foreach (var (id, displayName, userName, email) in expectedUsers)
             {
-                var existingUser = await userManager.FindByEmailAsync(email);
+                var existingUser = await userManager.FindByIdAsync(id);
                 if (existingUser == null)
                 {
-                    // Create new user with minimal data
-                    // Note: Sensitive fields (PhoneNumber, BankAccount) are intentionally not set here
+                    // Create new user with the stable seed GUID as the primary key.
+                    // Note: Sensitive fields (PhoneNumber, BankAccount) are intentionally not set here.
                     var newUser = new User
                     {
+                        Id = id,
                         DisplayName = displayName,
                         UserName = userName,
                         Email = email,
@@ -54,24 +57,20 @@ namespace Persistence
                     };
 
                     // Generate random password (length 20) with mix of chars to satisfy default Identity requirements
-                    var randomPassword = Guid.NewGuid().ToString("N").Substring(0, 10) + Guid.NewGuid().ToString("N").Substring(0, 5).ToUpper() + "!1a";
+                    var randomPassword = string.Concat(Guid.NewGuid().ToString("N").AsSpan(0, 10), Guid.NewGuid().ToString("N")[..5].ToUpper(), "!1a");
                     var result = await userManager.CreateAsync(newUser, randomPassword);
                     if (!result.Succeeded)
                     {
-                        logger.LogError($"Failed to create user {email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                        logger.LogError("Failed to create user {UserName}: {Errors}", userName, string.Join(", ", result.Errors.Select(e => e.Description)));
                     }
                 }
-                else
-                {
-                    // User already exists - preserve all their data including profile information
-                    // Never overwrite DisplayName, Email, PhoneNumber, BankAccount, or any other user data
-                }
+                // User already exists - preserve all their data including profile information.
+                // Never overwrite DisplayName, Email, PhoneNumber, BankAccount, or any other user data.
             }
 
 
             // Add Epi to Admin role
-            var epiUser = await userManager.FindByEmailAsync("epituo@gmail.com");
-            User leivoUser, jaapuUser, timoUser, jhattuUser, urpiUser, zeipUser, sakkeUser;
+            var epiUser = await userManager.FindByIdAsync("354c7990-0574-4da4-8659-58b28113eb79");
             if (epiUser != null)
             {
                 var isInRole = await userManager.IsInRoleAsync(epiUser, "Admin");
@@ -100,23 +99,18 @@ namespace Persistence
             // Only seed invoices if none exist
             if (context.Invoices.Any()) return;
 
-            // Re-fetch users after potential tracker clearing and ensure they are all tracked in the current state
-            epiUser = await userManager.FindByNameAsync("epi");
-            leivoUser = await userManager.FindByNameAsync("leivo");
-            jaapuUser = await userManager.FindByNameAsync("jaapu");
-            timoUser = await userManager.FindByNameAsync("timo");
-            jhattuUser = await userManager.FindByNameAsync("jhattu");
-            urpiUser = await userManager.FindByNameAsync("urpi");
-            zeipUser = await userManager.FindByNameAsync("zeip");
-            sakkeUser = await userManager.FindByNameAsync("sakke");
-
-            if (epiUser == null) return;
-
-            // Mökkilan 80 osallistujat (8 henkilöä)
-            var mokkila80Participants = new List<User> { jaapuUser, leivoUser, timoUser, jhattuUser, urpiUser, epiUser, sakkeUser, zeipUser }
-                .Where(u => u != null)
-                .GroupBy(u => u.Id).Select(g => g.First())
-                .ToList();
+            // Mökkilan 80 osallistujat (8 henkilöä) — GUIDit suoraan, ei tarvetta hakea User-objekteja
+            var mokkila80ParticipantIds = new List<string>
+            {
+                "bfef42ed-04b5-4639-aa2a-788784ccad02", // Jaapu
+                "c5a33cd2-85bc-4687-9cdb-9b9f38512e0f", // Leivo
+                "9f8e7d6c-5b4a-3f2e-1d0c-9b8a7f6e5d4c", // Timo
+                "4b5c6d7e-8f9a-0b1c-2d3e-4f5a6b7c8d9e", // JHattu
+                "1c2d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f", // Urpi
+                "354c7990-0574-4da4-8659-58b28113eb79",  // Epi
+                "6f7a8b9c-0d1e-2f3a-4b5c-6d7e8f9a0b1c", // Sakke
+                "7d8e9f0a-1b2c-3d4e-5f6a-7b8c9d0e1f2a", // Zeip
+            };
 
             var invoices = new List<Invoice>
             {
@@ -134,130 +128,127 @@ namespace Persistence
                         {
                             ExpenseType = ExpenseType.Personal,
                             Name = "Mökin ennakkomaksu",
-                            OrganizerId = jhattuUser?.Id ?? epiUser.Id,
+                            OrganizerId = "4b5c6d7e-8f9a-0b1c-2d3e-4f5a6b7c8d9e", // JHattu
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Mökin ennakkomaksu", Quantity = 1, UnitPrice = 325.00m }
                             },
-                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id }).ToList()
+                            Payers = [.. mokkila80ParticipantIds.Select(id => new ExpenseItemPayer { AppUserId = id })]
                         },
                         // Mökin loppulasku - 760,00 € - Maksaja: Jani (JHattu) - Jaetaan kaikille 8:lle
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.Personal,
                             Name = "Mökin loppulasku",
-                            OrganizerId = jhattuUser?.Id ?? epiUser.Id,
+                            OrganizerId = "4b5c6d7e-8f9a-0b1c-2d3e-4f5a6b7c8d9e", // JHattu
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Mökin loppulasku", Quantity = 1, UnitPrice = 760.00m }
                             },
-                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id }).ToList()
+                            Payers = [.. mokkila80ParticipantIds.Select(id => new ExpenseItemPayer { AppUserId = id })]
                         },
                         // Alko - 117,69 € - Maksaja: Zeip - Jaetaan kaikille 8:lle
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.ShoppingList,
                             Name = "Alko",
-                            OrganizerId = zeipUser?.Id ?? epiUser.Id,
+                            OrganizerId = "7d8e9f0a-1b2c-3d4e-5f6a-7b8c9d0e1f2a", // Zeip
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Alkoholijuomat", Quantity = 1, UnitPrice = 117.69m }
                             },
-                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id }).ToList()
+                            Payers = [.. mokkila80ParticipantIds.Select(id => new ExpenseItemPayer { AppUserId = id })]
                         },
                         // Ruoat pl. burgerit - 190,79 € - Maksaja: Zeip - Jaetaan kaikille 8:lle
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.ShoppingList,
                             Name = "Ruoat pl. burgerit",
-                            OrganizerId = zeipUser?.Id ?? epiUser.Id,
+                            OrganizerId = "7d8e9f0a-1b2c-3d4e-5f6a-7b8c9d0e1f2a", // Zeip
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Ruokaostokset", Quantity = 1, UnitPrice = 190.79m }
                             },
-                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id }).ToList()
+                            Payers = [.. mokkila80ParticipantIds.Select(id => new ExpenseItemPayer { AppUserId = id })]
                         },
                         // Lucifer sytytyspalat - 5,90 € - Maksaja: Epi - Jaetaan kaikille 8:lle
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.Personal,
                             Name = "Lucifer sytytyspalat",
-                            OrganizerId = epiUser.Id,
+                            OrganizerId = "354c7990-0574-4da4-8659-58b28113eb79", // Epi
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Sytytyspalat", Quantity = 1, UnitPrice = 5.90m }
                             },
-                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id }).ToList()
+                            Payers = [.. mokkila80ParticipantIds.Select(id => new ExpenseItemPayer { AppUserId = id })]
                         },
                         // Taksi ravintolasta - 64,50 € - Maksaja: Leivo - Jaetaan kaikille 8:lle
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.Personal,
                             Name = "Taksi ravintolasta",
-                            OrganizerId = leivoUser?.Id ?? epiUser.Id,
+                            OrganizerId = "c5a33cd2-85bc-4687-9cdb-9b9f38512e0f", // Leivo
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Taksimatka", Quantity = 1, UnitPrice = 64.50m }
                             },
-                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id }).ToList()
+                            Payers = [.. mokkila80ParticipantIds.Select(id => new ExpenseItemPayer { AppUserId = id })]
                         },
                         // Jumperin bensat - 106,95 € - Maksaja: Leivo - Jaetaan vain Jarnolle (Jaapu) ja Leivolle
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.Gasoline,
                             Name = "Jumperin bensat (610 km)",
-                            OrganizerId = leivoUser?.Id ?? epiUser.Id,
+                            OrganizerId = "c5a33cd2-85bc-4687-9cdb-9b9f38512e0f", // Leivo
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Bensiini 610 km, 10.6 l/100km, 1.654€/l", Quantity = 1, UnitPrice = 106.95m }
                             },
-                            Payers = new List<ExpenseItemPayer>
-                            {
-                                new ExpenseItemPayer { AppUserId = jaapuUser?.Id ?? epiUser.Id },
-                                new ExpenseItemPayer { AppUserId = leivoUser?.Id ?? epiUser.Id }
-                            }
+                            Payers =
+                            [
+                                new ExpenseItemPayer { AppUserId = "bfef42ed-04b5-4639-aa2a-788784ccad02" }, // Jaapu
+                                new ExpenseItemPayer { AppUserId = "c5a33cd2-85bc-4687-9cdb-9b9f38512e0f" }  // Leivo
+                            ]
                         },
                         // Taksi ravintolaan - 60,40 € - Maksaja: Urpi - Jaetaan kaikille 8:lle
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.Personal,
                             Name = "Taksi ravintolaan",
-                            OrganizerId = urpiUser?.Id ?? epiUser.Id,
+                            OrganizerId = "1c2d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f", // Urpi
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Taksimatka", Quantity = 1, UnitPrice = 60.40m }
                             },
-                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id }).ToList()
+                            Payers = [.. mokkila80ParticipantIds.Select(id => new ExpenseItemPayer { AppUserId = id })]
                         },
                         // Burgeri / ruoka 1 - 59,46 € - Maksaja: Urpi - Jaetaan kaikille 8:lle
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.ShoppingList,
                             Name = "Burgeri / ruoka 1",
-                            OrganizerId = urpiUser?.Id ?? epiUser.Id,
+                            OrganizerId = "1c2d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f", // Urpi
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Burgerit", Quantity = 1, UnitPrice = 59.46m }
                             },
-                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id }).ToList()
+                            Payers = [.. mokkila80ParticipantIds.Select(id => new ExpenseItemPayer { AppUserId = id })]
                         },
                         // Pyyhkeet, hiilet, jäät - 16,96 € - Maksaja: Urpi - Jaetaan kaikille 8:lle
                         new ExpenseItem
                         {
                             ExpenseType = ExpenseType.Personal,
                             Name = "Pyyhkeet, hiilet, jäät",
-                            OrganizerId = urpiUser?.Id ?? epiUser.Id,
+                            OrganizerId = "1c2d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f", // Urpi
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Sekalaiset", Quantity = 1, UnitPrice = 16.96m }
                             },
-                            Payers = mokkila80Participants.Select(u => new ExpenseItemPayer { AppUserId = u.Id }).ToList()
+                            Payers = [.. mokkila80ParticipantIds.Select(id => new ExpenseItemPayer { AppUserId = id })]
                         }
                     },
-                    Participants = mokkila80Participants.Select(u => new InvoiceParticipant
-                    {
-                        AppUserId = u.Id
-                    }).ToList()
+                    Participants = [.. mokkila80ParticipantIds.Select(id => new InvoiceParticipant { AppUserId = id })]
                 }
             };
             // Fix: Explicitly set the IDs for the join entities to avoid identity tracking conflicts during AddRangeAsync
