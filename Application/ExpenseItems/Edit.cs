@@ -42,12 +42,9 @@ namespace Application.ExpenseItems
 
                 if (expenseItem == null) return Unit.Value; // Or throw NotFound
 
-                // Get the InvoiceId from the shadow property
-                var invoiceId = _context.Entry(expenseItem).Property<Guid?>("InvoiceId").CurrentValue;
-
-                if (invoiceId.HasValue)
+                if (expenseItem.InvoiceId != Guid.Empty)
                 {
-                    var invoice = await _context.Invoices.FindAsync(invoiceId.Value);
+                    var invoice = await _context.Invoices.FindAsync(expenseItem.InvoiceId);
 
                     if (invoice != null && (invoice.Status == InvoiceStatus.Maksussa || invoice.Status == InvoiceStatus.Arkistoitu))
                     {

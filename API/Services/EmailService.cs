@@ -154,12 +154,17 @@ Mökkilan Invoices Team
 
         public async Task<bool> SendInvoiceReviewNotificationAsync(string email, string displayName, string invoiceTitle, string invoiceUrl)
         {
-            var subject = "Tarkista lasku - Mökkilan Invoices";
+            var subject = $"Uusi lasku luotu: {invoiceTitle} - Mökkilan Invoices";
             var htmlContent = $@"
-                <h2>Lasku odottaa katselmoitavana</h2>
+                <h2>Uusi lasku on luotu</h2>
                 <p>Hei {displayName},</p>
-                <p>Lasku <strong>{invoiceTitle}</strong> on siirretty katselmoitavaksi.</p>
-                <p>Ole hyvä ja tarkista lasku sekä lisää omat mahdolliset kulusi:</p>
+                <p>Lasku <strong>{invoiceTitle}</strong> on luotu ja odottaa tarkistusta.</p>
+                <p>Ole hyvä ja:</p>
+                <ul>
+                    <li>Lisää omat kulusi laskulle</li>
+                    <li>Tarkista, että kaikki kulut ovat oikein</li>
+                    <li>Hyväksy lasku kun olet tyytyväinen</li>
+                </ul>
                 <p><a href=""{invoiceUrl}"" style=""display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;"">Avaa lasku</a></p>
                 <p>Tai kopioi linkki selaimeesi:</p>
                 <p>{invoiceUrl}</p>
@@ -168,13 +173,17 @@ Mökkilan Invoices Team
             ";
 
             var plainTextContent = $@"
-Lasku odottaa katselmoitavana
+Uusi lasku on luotu
 
 Hei {displayName},
 
-Lasku {invoiceTitle} on siirretty katselmoitavaksi.
+Lasku {invoiceTitle} on luotu ja odottaa tarkistusta.
 
-Ole hyvä ja tarkista lasku sekä lisää omat mahdolliset kulusi:
+Ole hyvä ja:
+- Lisää omat kulusi laskulle
+- Tarkista, että kaikki kulut ovat oikein
+- Hyväksy lasku kun olet tyytyväinen
+
 
 {invoiceUrl}
 

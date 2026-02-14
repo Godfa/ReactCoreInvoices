@@ -559,8 +559,7 @@ export default class InvoiceStore {
     createShoppingExpense = async (invoiceId: string, price: number) => {
         await this.loadUsers();
 
-        const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
-        const defaultUser = this.PotentialParticipants.find(c => usualSuspects.some(suspect => c.value.includes(suspect)));
+        const defaultUser = this.PotentialParticipants.find(c => c.value.includes('Urpi'));
 
         if (!defaultUser) {
             throw new Error('No user found to assign shopping expense');

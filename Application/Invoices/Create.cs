@@ -1,10 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Application.Interfaces;
 using Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Persistence;
 
 namespace Application.Invoices
@@ -18,18 +19,22 @@ namespace Application.Invoices
 
         public class Handler : IRequestHandler<Command, Invoice>
         {
-        private readonly DataContext _context;
-            public Handler(DataContext context)
+            private readonly DataContext _context;
+            private readonly IEmailService _emailService;
+            private readonly IConfiguration _config;
+
+            public Handler(DataContext context, IEmailService emailService, IConfiguration config)
             {
                 _context = context;
+                _emailService = emailService;
+                _config = config;
             }
 
             public async Task<Invoice> Handle(Command request, CancellationToken cancellationToken)
             {
                 // Validate that no active invoice exists
                 var hasActive = await _context.Invoices
-                    .AnyAsync(i => i.Status == InvoiceStatus.Aktiivinen,
-                        cancellationToken);
+                    .AnyAsync(i => i.Status == InvoiceStatus.Aktiivinen, cancellationToken);
 
                 if (hasActive)
                 {
@@ -60,12 +65,36 @@ namespace Application.Invoices
                 request.Invoice.ExpenseItems = null;
 
                 _context.Invoices.Add(request.Invoice);
-
                 await _context.SaveChangesAsync();
+
+                // Send creation notification to all usual suspects
+                var appUrl = _config["Email:AppUrl"];
+                var invoiceUrl = $"{appUrl}/invoices/{request.Invoice.Id}";
+                var usualSuspects = new[] { "Epi", "JHattu", "Leivo", "Timo", "Jaapu", "Urpi", "Zeip" };
+
+                var recipients = await _context.Users
+                    .Where(u => usualSuspects.Contains(u.DisplayName) && u.Email != null && u.Email != "")
+                    .ToListAsync(cancellationToken);
+
+                foreach (var user in recipients)
+                {
+                    try
+                    {
+                        await _emailService.SendInvoiceReviewNotificationAsync(
+                            user.Email,
+                            user.DisplayName,
+                            request.Invoice.Title,
+                            invoiceUrl
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed to send creation notification to {user.Email}: {ex.Message}");
+                    }
+                }
 
                 return request.Invoice;
             }
         }
-
     }
 }

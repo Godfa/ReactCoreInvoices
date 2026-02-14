@@ -1,10 +1,13 @@
 using Xunit;
 using Application.Invoices;
+using Application.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
 using Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Domain;
+using Moq;
 using System;
 using System.Linq;
 
@@ -23,7 +26,9 @@ namespace Application.UnitTests.Invoices
             using (var context = new DataContext(options))
             {
                 context.Database.EnsureCreated();
-                var handler = new Create.Handler(context);
+                var emailService = new Mock<IEmailService>();
+                var config = new Mock<IConfiguration>();
+                var handler = new Create.Handler(context, emailService.Object, config.Object);
                 var invoice = new Invoice
                 {
                     Id = Guid.NewGuid(),
@@ -56,7 +61,9 @@ namespace Application.UnitTests.Invoices
             using (var context = new DataContext(options))
             {
                 context.Database.EnsureCreated();
-                var handler = new Create.Handler(context);
+                var emailService = new Mock<IEmailService>();
+                var config = new Mock<IConfiguration>();
+                var handler = new Create.Handler(context, emailService.Object, config.Object);
                 var invoice = new Invoice
                 {
                     Id = Guid.NewGuid(),
@@ -99,7 +106,9 @@ namespace Application.UnitTests.Invoices
             // Act
             using (var context = new DataContext(options))
             {
-                var handler = new Create.Handler(context);
+                var emailService = new Mock<IEmailService>();
+                var config = new Mock<IConfiguration>();
+                var handler = new Create.Handler(context, emailService.Object, config.Object);
                 var invoice = new Invoice
                 {
                     Id = Guid.NewGuid(),
@@ -143,7 +152,9 @@ namespace Application.UnitTests.Invoices
             // Act
             using (var context = new DataContext(options))
             {
-                var handler = new Create.Handler(context);
+                var emailService = new Mock<IEmailService>();
+                var config = new Mock<IConfiguration>();
+                var handler = new Create.Handler(context, emailService.Object, config.Object);
                 var invoice = new Invoice
                 {
                     Id = Guid.NewGuid(),
