@@ -16,16 +16,16 @@ export default observer(function LoginForm() {
                 <Formik
                     initialValues={{ email: '', password: '', error: null }}
                     onSubmit={(values, { setErrors }) => userStore.login(values).catch(error =>
-                        setErrors({ error: 'Virheellinen sähköposti tai salasana' }))}
+                        setErrors({ error: 'Virheellinen sähköposti, käyttäjätunnus tai salasana' }))}
                 >
                     {({ handleSubmit, isSubmitting, errors, handleChange, values }) => (
                         <FormikForm className='ui form login-form' onSubmit={handleSubmit} autoComplete='off'>
                             <Form.Input
                                 name='email'
-                                placeholder='Sähköposti'
+                                placeholder='Sähköposti tai käyttäjätunnus'
                                 value={values.email}
                                 onChange={handleChange}
-                                icon='mail'
+                                icon='user'
                                 iconPosition='left'
                                 fluid
                             />

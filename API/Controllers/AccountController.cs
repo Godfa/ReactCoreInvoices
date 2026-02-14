@@ -13,7 +13,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
-{   [AllowAnonymous]
+{
+    [AllowAnonymous]
     [ApiController]
     [Route("api/[controller]")]
     public class AccountController : ControllerBase
@@ -42,6 +43,11 @@ namespace API.Controllers
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
+            if (user == null)
+            {
+                user = await _userManager.FindByNameAsync(loginDto.Email);
+            }
+
             if (user == null) return Unauthorized();
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
@@ -67,8 +73,8 @@ namespace API.Controllers
 
             var user = new User
             {
-                DisplayName = registerDto.DisplayName, 
-                Email = registerDto.Email, 
+                DisplayName = registerDto.DisplayName,
+                Email = registerDto.Email,
                 UserName = registerDto.UserName
             };
 
@@ -239,15 +245,15 @@ namespace API.Controllers
         private async Task<UserDto> CreateUserObject(User user)
         {
             return new UserDto
-                {
-                    Id = user.Id,
-                    DisplayName = user.DisplayName,
-                    Image = null,
-                    Token = await _tokenService.CreateToken(user),
-                    UserName = user.UserName,
-                    MustChangePassword = user.MustChangePassword,
-                    Roles = await _userManager.GetRolesAsync(user)
-                };
+            {
+                Id = user.Id,
+                DisplayName = user.DisplayName,
+                Image = null,
+                Token = await _tokenService.CreateToken(user),
+                UserName = user.UserName,
+                MustChangePassword = user.MustChangePassword,
+                Roles = await _userManager.GetRolesAsync(user)
+            };
         }
 
 
