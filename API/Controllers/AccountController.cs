@@ -50,12 +50,18 @@ namespace API.Controllers
 
             if (user == null) return Unauthorized();
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, true);
 
             if (result.Succeeded)
             {
                 return await CreateUserObject(user);
             }
+
+            if (result.IsLockedOut)
+            {
+                return BadRequest("Käyttäjätunnus on lukittu liian monen epäonnistuneen yrityksen vuoksi. Yritä uudelleen 15 minuutin kuluttua.");
+            }
+
             return Unauthorized();
         }
 
