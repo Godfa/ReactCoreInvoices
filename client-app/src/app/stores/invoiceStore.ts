@@ -529,7 +529,7 @@ export default class InvoiceStore {
         }
 
         try {
-            const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip', 'Sakke'];
+            const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
             const invoice = this.invoiceRegistry.get(invoiceId);
             const participantIds = invoice?.participants?.map(p => p.appUserId) || [];
 
@@ -559,7 +559,7 @@ export default class InvoiceStore {
     createShoppingExpense = async (invoiceId: string, price: number) => {
         await this.loadUsers();
 
-        const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip', 'Sakke'];
+        const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
         const defaultUser = this.PotentialParticipants.find(c => usualSuspects.some(suspect => c.value.includes(suspect)));
 
         if (!defaultUser) {

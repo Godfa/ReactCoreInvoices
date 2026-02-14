@@ -101,14 +101,14 @@ namespace Persistence
             if (context.Invoices.Any()) return;
 
             // Re-fetch users after potential tracker clearing and ensure they are all tracked in the current state
-            epiUser = await userManager.FindByEmailAsync("epituo@gmail.com");
-            leivoUser = await userManager.FindByEmailAsync("leivo@example.com");
-            jaapuUser = await userManager.FindByEmailAsync("jaapu@example.com");
-            timoUser = await userManager.FindByEmailAsync("timo@example.com");
-            jhattuUser = await userManager.FindByEmailAsync("jhattu@example.com");
-            urpiUser = await userManager.FindByEmailAsync("urpi@example.com");
-            zeipUser = await userManager.FindByEmailAsync("zeip@example.com");
-            sakkeUser = await userManager.FindByEmailAsync("sakke@example.com");
+            epiUser = await userManager.FindByNameAsync("epi");
+            leivoUser = await userManager.FindByNameAsync("leivo");
+            jaapuUser = await userManager.FindByNameAsync("jaapu");
+            timoUser = await userManager.FindByNameAsync("timo");
+            jhattuUser = await userManager.FindByNameAsync("jhattu");
+            urpiUser = await userManager.FindByNameAsync("urpi");
+            zeipUser = await userManager.FindByNameAsync("zeip");
+            sakkeUser = await userManager.FindByNameAsync("sakke");
 
             if (epiUser == null) return;
 
