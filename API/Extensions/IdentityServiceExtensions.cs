@@ -20,6 +20,11 @@ namespace API.Extensions
              services.AddIdentityCore<User>(opt=>
              {
                  opt.Password.RequireNonAlphanumeric = false;
+                 
+                 // Lockout settings
+                 opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                 opt.Lockout.MaxFailedAccessAttempts = 5;
+                 opt.Lockout.AllowedForNewUsers = true;
              })
              .AddRoles<IdentityRole>()
              .AddEntityFrameworkStores<DataContext>()

@@ -184,7 +184,7 @@ namespace API.Controllers
             const string all = uppercase + lowercase + digits + special;
 
             var random = new Random();
-            var password = new char[12];
+            var password = new char[6];
 
             // Ensure at least one of each required type
             password[0] = uppercase[random.Next(uppercase.Length)];
@@ -193,7 +193,7 @@ namespace API.Controllers
             password[3] = special[random.Next(special.Length)];
 
             // Fill the rest randomly
-            for (int i = 4; i < 12; i++)
+            for (int i = 4; i < 6; i++)
             {
                 password[i] = all[random.Next(all.Length)];
             }

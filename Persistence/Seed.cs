@@ -50,7 +50,10 @@ namespace Persistence
                         MustChangePassword = true
                         // PhoneNumber and BankAccount are null by default - users set these in their profile
                     };
-                    await userManager.CreateAsync(newUser, "Pa$$w0rd");
+
+                    // Generate random password (length 20) - no need to log as it will be reset via admin
+                    var randomPassword = Guid.NewGuid().ToString("N").Substring(0, 20);
+                    await userManager.CreateAsync(newUser, randomPassword);
                 }
                 else
                 {
@@ -58,6 +61,7 @@ namespace Persistence
                     // Never overwrite DisplayName, Email, PhoneNumber, BankAccount, or any other user data
                 }
             }
+        }
 
             // Add Epi to Admin role
             var epiUser = await userManager.FindByEmailAsync("epituo@gmail.com");
