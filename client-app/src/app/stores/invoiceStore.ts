@@ -46,7 +46,7 @@ export default class InvoiceStore {
     }
 
     get canCreateInvoice(): boolean {
-        return this.Invoices.every(i => i.status === InvoiceStatus.Arkistoitu);
+        return !this.Invoices.some(i => i.status === InvoiceStatus.Aktiivinen);
     }
 
     loadInvoices = async () => {

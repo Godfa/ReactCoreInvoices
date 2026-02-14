@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import React, { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Form, Icon, Message } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
@@ -20,7 +20,8 @@ export default observer(function InvoiceForm() {
         status: InvoiceStatus.Aktiivinen,
         amount: 0,
         expenseItems: [],
-        participants: []
+        participants: [],
+        approvals: []
     }
 
     const [invoice, setInvoice] = useState(initialState);
@@ -39,7 +40,8 @@ export default observer(function InvoiceForm() {
             status: InvoiceStatus.Aktiivinen,
             amount: 0,
             expenseItems: [],
-            participants: []
+            participants: [],
+            approvals: []
         };
         setInvoice(newState);
         setCreateShoppingExpense(false);
@@ -95,7 +97,7 @@ export default observer(function InvoiceForm() {
             {!isEditing && !canCreateInvoice && (
                 <Message warning>
                     <Message.Header>Uutta laskua ei voi luoda</Message.Header>
-                    <p>Olemassa oleva lasku on aktiivinen. Arkistoi ensin nykyinen lasku ennen uuden luomista.</p>
+                    <p>Järjestelmässä voi olla vain yksi aktiivinen lasku kerrallaan. Siirrä nykyinen lasku maksuun tai arkistoi se ennen uuden luomista.</p>
                 </Message>
             )}
 
@@ -136,7 +138,7 @@ export default observer(function InvoiceForm() {
                                 <Form.Checkbox
                                     label='Lisää "Ostokset" kuluerä'
                                     checked={createShoppingExpense}
-                                    onChange={(e, { checked }) => {
+                                    onChange={(_e, { checked }) => {
                                         setCreateShoppingExpense(checked || false);
                                         if (!checked) setShoppingPrice('');
                                     }}

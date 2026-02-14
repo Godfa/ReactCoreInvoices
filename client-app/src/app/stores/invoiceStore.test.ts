@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import InvoiceStore from './invoiceStore'
 import agent from '../api/agent'
-import { Invoice } from 'Invoices'
+import { Invoice, InvoiceStatus } from '../models/invoice'
 
 // Mock the agent
 vi.mock('../api/agent', () => ({
@@ -9,6 +9,7 @@ vi.mock('../api/agent', () => ({
     Invoices: {
       create: vi.fn(),
       addParticipant: vi.fn(),
+      details: vi.fn(),
     },
     Users: {
       list: vi.fn(),
@@ -52,9 +53,11 @@ describe('InvoiceStore - addUsualSuspects', () => {
       lanNumber: 1,
       title: 'Test Invoice',
       description: 'Test',
-      image: null,
+      image: '',
+      status: InvoiceStatus.Aktiivinen,
       expenseItems: [],
       participants: [],
+      approvals: [],
       amount: 0,
     }
 
@@ -83,13 +86,15 @@ describe('InvoiceStore - addUsualSuspects', () => {
       lanNumber: 1,
       title: 'Test Invoice',
       description: 'Test',
-      image: null,
+      image: '',
+      status: InvoiceStatus.Aktiivinen,
       expenseItems: [],
       participants: [
         { invoiceId, appUserId: '1', appUser: { id: '1', displayName: 'Epi', userName: 'epi', email: '' } }, // Epi already participant
         { invoiceId, appUserId: '3', appUser: { id: '3', displayName: 'Leivo', userName: 'leivo', email: '' } }, // Leivo already participant
       ],
       amount: 0,
+      approvals: []
     }
 
     store.invoiceRegistry.set(invoiceId, invoice)
@@ -113,9 +118,11 @@ describe('InvoiceStore - addUsualSuspects', () => {
       lanNumber: 1,
       title: 'Test Invoice',
       description: 'Test',
-      image: null,
+      image: '',
+      status: InvoiceStatus.Aktiivinen,
       expenseItems: [],
       participants: [],
+      approvals: [],
       amount: 0,
     }
 
@@ -138,10 +145,12 @@ describe('InvoiceStore - addUsualSuspects', () => {
       lanNumber: 1,
       title: 'Test Invoice',
       description: 'Test',
-      image: null,
+      image: '',
+      status: InvoiceStatus.Aktiivinen,
       expenseItems: [],
       participants: undefined as any, // No participants array
       amount: 0,
+      approvals: []
     }
 
     store.invoiceRegistry.set(invoiceId, invoice)
@@ -180,9 +189,11 @@ describe('InvoiceStore - createInvoice with auto-add usual suspects', () => {
       lanNumber: 0,
       title: 'New Invoice',
       description: 'Test',
-      image: null,
+      image: '',
+      status: InvoiceStatus.Aktiivinen,
       expenseItems: [],
       participants: [],
+      approvals: [],
       amount: 0,
     }
 
@@ -194,6 +205,7 @@ describe('InvoiceStore - createInvoice with auto-add usual suspects', () => {
 
     vi.mocked(agent.Invoices.create).mockResolvedValue(createdInvoice)
     vi.mocked(agent.Invoices.addParticipant).mockResolvedValue(undefined)
+    vi.mocked(agent.Invoices.details).mockResolvedValue(createdInvoice)
 
     await store.createInvoice(newInvoice)
 
@@ -202,5 +214,40 @@ describe('InvoiceStore - createInvoice with auto-add usual suspects', () => {
 
     // Should automatically add usual suspects
     expect(agent.Invoices.addParticipant).toHaveBeenCalledTimes(7)
+  })
+})
+
+describe('InvoiceStore - canCreateInvoice', () => {
+  let store: InvoiceStore
+
+  beforeEach(() => {
+    store = new InvoiceStore()
+  })
+
+  it('should return true when there are no invoices', () => {
+    expect(store.canCreateInvoice).toBe(true)
+  })
+
+  it('should return true when all invoices are archived', () => {
+    store.invoiceRegistry.set('1', { id: '1', status: InvoiceStatus.Arkistoitu } as any)
+    store.invoiceRegistry.set('2', { id: '2', status: InvoiceStatus.Arkistoitu } as any)
+    expect(store.canCreateInvoice).toBe(true)
+  })
+
+  it('should return true when an invoice is in payment', () => {
+    store.invoiceRegistry.set('1', { id: '1', status: InvoiceStatus.Maksussa } as any)
+    expect(store.canCreateInvoice).toBe(true)
+  })
+
+  it('should return false when an invoice is active', () => {
+    store.invoiceRegistry.set('1', { id: '1', status: InvoiceStatus.Aktiivinen } as any)
+    expect(store.canCreateInvoice).toBe(false)
+  })
+
+  it('should return false if any invoice is active, even if others are archived or in payment', () => {
+    store.invoiceRegistry.set('1', { id: '1', status: InvoiceStatus.Arkistoitu } as any)
+    store.invoiceRegistry.set('2', { id: '2', status: InvoiceStatus.Maksussa } as any)
+    store.invoiceRegistry.set('3', { id: '3', status: InvoiceStatus.Aktiivinen } as any)
+    expect(store.canCreateInvoice).toBe(false)
   })
 })
