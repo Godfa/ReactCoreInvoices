@@ -271,7 +271,7 @@ namespace API.Services
                                 // Total
                                 column.Item().PaddingTop(20).Background(Colors.Blue.Lighten4).Padding(10).Row(row =>
                                 {
-                                    row.RelativeItem().Text("MAKSETTAVA YHTEENSÄ:").FontSize(16).Bold();
+                                    row.RelativeItem().Text("KULUOSUUTESI YHTEENSÄ:").FontSize(16).Bold();
                                     row.ConstantItem(120).AlignRight().Text($"{totalShare:F2} €").FontSize(16).Bold().FontColor(Colors.Blue.Darken2);
                                 });
 
@@ -290,7 +290,8 @@ namespace API.Services
                                     {
                                         column.Item().PaddingTop(10).Column(infoColumn =>
                                         {
-                                            infoColumn.Item().Text($"Maksa {transaction.ToUserName}:lle {transaction.Amount:F2} €").FontSize(12).Bold();
+                                            infoColumn.Item().Text($"Maksettava (osuutesi - jo maksamasi): {transaction.Amount:F2} €").FontSize(12).Bold();
+                                            infoColumn.Item().PaddingTop(2).Text($"Maksa {transaction.ToUserName}:lle").FontSize(12).Bold();
 
                                             if (transaction.ToUser != null)
                                             {
