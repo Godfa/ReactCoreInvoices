@@ -161,6 +161,11 @@ namespace API.Controllers
 
             // Set MustChangePassword flag
             user.MustChangePassword = true;
+
+            // Unlock the user when resetting password
+            await _userManager.SetLockoutEndDateAsync(user, null);
+            await _userManager.ResetAccessFailedCountAsync(user);
+
             await _userManager.UpdateAsync(user);
 
             // Send password reset email with new temporary password
@@ -176,6 +181,19 @@ namespace API.Controllers
                 : $"Password reset but email could not be sent to {user.Email}. New temporary password: {newPassword}";
 
             return Ok(new { message });
+        }
+
+        [HttpPost("users/{id}/unlock")]
+        public async Task<ActionResult> UnlockUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            await _userManager.SetLockoutEndDateAsync(user, null);
+            await _userManager.ResetAccessFailedCountAsync(user);
+            await _userManager.UpdateAsync(user);
+
+            return Ok();
         }
 
         private string GenerateRandomPassword()

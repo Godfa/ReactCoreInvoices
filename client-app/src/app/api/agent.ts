@@ -199,7 +199,8 @@ const Admin = {
     deleteUser: (id: string) => requests.del<void>(`/admin/users/${id}`),
     grantAdminRole: (id: string) => requests.post<void>(`/admin/users/${id}/grant-admin`, {}),
     revokeAdminRole: (id: string) => requests.del<void>(`/admin/users/${id}/revoke-admin`),
-    sendPasswordResetLink: (id: string) => requests.post<{ message: string }>(`/admin/users/${id}/reset-password`, {})
+    sendPasswordResetLink: (id: string) => requests.post<{ message: string }>(`/admin/users/${id}/reset-password`, {}),
+    unlockUser: (id: string) => requests.post<void>(`/admin/users/${id}/unlock`, {})
 }
 
 const Users = {

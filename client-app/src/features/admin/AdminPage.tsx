@@ -168,6 +168,16 @@ export default observer(function AdminPage() {
         }
     };
 
+    const handleUnlockUser = async (userId: string) => {
+        try {
+            await agent.Admin.unlockUser(userId);
+            toast.success('Käyttäjätunnus avattu');
+            await loadUsers();
+        } catch (error: any) {
+            toast.error(error.response?.data || 'Lukituksen avaaminen epäonnistui');
+        }
+    };
+
     return (
         <div className="animate-fade-in">
             <h1 style={{ marginBottom: 'var(--spacing-xl)' }}>
@@ -223,6 +233,15 @@ export default observer(function AdminPage() {
                                                 onClick={() => handleSendPasswordReset(user.id, user.email)}
                                             >
                                                 <Icon name='key' /> Nollaa salasana
+                                            </Button>
+                                            <Button
+                                                size='small'
+                                                className="btn-success"
+                                                onClick={() => handleUnlockUser(user.id)}
+                                                icon
+                                                labelPosition='left'
+                                            >
+                                                <Icon name='unlock' /> Avaa lukitus
                                             </Button>
                                             <Button
                                                 size='small'
