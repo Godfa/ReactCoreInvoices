@@ -6,9 +6,15 @@ using System.Threading.Tasks;
 
 namespace Domain
 {
-     public class ExpenseItem
+    public class ExpenseItem
     {
+        public ExpenseItem()
+        {
+            Id = Guid.NewGuid();
+        }
+
         public Guid Id { get; set; }
+        public Guid InvoiceId { get; set; }
         public string OrganizerId { get; set; }
         public User Organizer { get; set; }
         public ExpenseType ExpenseType { get; set; }

@@ -8,6 +8,11 @@ namespace Domain
 {
     public class Invoice
     {
+        public Invoice()
+        {
+            Id = Guid.NewGuid();
+        }
+
         public Guid Id { get; set; }
         public int LanNumber { get; set; }
 

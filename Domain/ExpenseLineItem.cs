@@ -6,6 +6,11 @@ namespace Domain
 {
     public class ExpenseLineItem
     {
+        public ExpenseLineItem()
+        {
+            Id = Guid.NewGuid();
+        }
+
         public Guid Id { get; set; }
         public Guid ExpenseItemId { get; set; }
 

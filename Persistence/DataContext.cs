@@ -62,7 +62,14 @@ namespace Persistence
             modelBuilder.Entity<ExpenseItem>()
                 .HasOne<Invoice>()
                 .WithMany(i => i.ExpenseItems)
-                .HasForeignKey("InvoiceId")
+                .HasForeignKey(ei => ei.InvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure ExpenseItem -> Organizer relationship with cascade delete
+            modelBuilder.Entity<ExpenseItem>()
+                .HasOne(ei => ei.Organizer)
+                .WithMany()
+                .HasForeignKey(ei => ei.OrganizerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Configure ExpenseItem -> ExpenseLineItem relationship with cascade delete
