@@ -78,10 +78,10 @@
     "@types/trusted-types": "^2.0.7",
     "@types/uuid": "^8.3.4",
     "@vitejs/plugin-react": "^4.7.0",
-    "@vitest/ui": "^2.1.9",
+    "@vitest/ui": "^1.6.1",
     "jsdom": "^25.0.1",
     "typescript": "^4.9.5",
     "vite": "^5.4.21",
-    "vitest": "^2.1.9"
+    "vitest": "^1.6.1"
   }
 }
