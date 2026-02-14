@@ -48,7 +48,8 @@ namespace Persistence
                         DisplayName = displayName,
                         UserName = userName,
                         Email = email,
-                        MustChangePassword = true
+                        MustChangePassword = true,
+                        LockoutEnabled = true
                         // PhoneNumber and BankAccount are null by default - users set these in their profile
                     };
 

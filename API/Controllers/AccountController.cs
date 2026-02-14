@@ -50,6 +50,13 @@ namespace API.Controllers
 
             if (user == null) return Unauthorized();
 
+            // Ensure lockout is enabled for this user if it's currently false
+            if (!user.LockoutEnabled)
+            {
+                user.LockoutEnabled = true;
+                await _userManager.UpdateAsync(user);
+            }
+
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, true);
 
             if (result.Succeeded)
@@ -59,7 +66,7 @@ namespace API.Controllers
 
             if (result.IsLockedOut)
             {
-                return BadRequest("Käyttäjätunnus on lukittu liian monen epäonnistuneen yrityksen vuoksi. Yritä uudelleen 15 minuutin kuluttua.");
+                return BadRequest("Käyttäjätunnus on lukittu liian monen epäonnistuneen yrityksen vuoksi. Ota yhteyttä ylläpitoon.");
             }
 
             return Unauthorized();
@@ -81,7 +88,8 @@ namespace API.Controllers
             {
                 DisplayName = registerDto.DisplayName,
                 Email = registerDto.Email,
-                UserName = registerDto.UserName
+                UserName = registerDto.UserName,
+                LockoutEnabled = true
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);

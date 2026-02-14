@@ -16,39 +16,39 @@ namespace API.Extensions
     {
         public static IServiceCollection AddIdentityServices(this IServiceCollection services,
          IConfiguration config)
-         {
-             services.AddIdentityCore<User>(opt=>
-             {
-                 opt.Password.RequireNonAlphanumeric = false;
-                 
-                 // Lockout settings
-                 opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-                 opt.Lockout.MaxFailedAccessAttempts = 5;
-                 opt.Lockout.AllowedForNewUsers = true;
-             })
-             .AddRoles<IdentityRole>()
-             .AddEntityFrameworkStores<DataContext>()
-             .AddSignInManager<SignInManager<User>>()
-             .AddRoleManager<RoleManager<IdentityRole>>()
-             .AddDefaultTokenProviders();
+        {
+            services.AddIdentityCore<User>(opt =>
+            {
+                opt.Password.RequireNonAlphanumeric = false;
 
-             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"] ?? "Super secret key"));
+                // Lockout settings
+                opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromDays(365 * 100);
+                opt.Lockout.MaxFailedAccessAttempts = 5;
+                opt.Lockout.AllowedForNewUsers = true;
+            })
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<DataContext>()
+            .AddSignInManager<SignInManager<User>>()
+            .AddRoleManager<RoleManager<IdentityRole>>()
+            .AddDefaultTokenProviders();
 
-             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-             .AddJwtBearer(opt =>
-             {
-                 opt.TokenValidationParameters = new TokenValidationParameters
-                 {
-                     ValidateIssuerSigningKey = true,
-                     IssuerSigningKey = key,
-                     ValidateIssuer = false,
-                     ValidateAudience = false,
-                     NameClaimType = "unique_name"
-                 };
-             });
-             services.AddScoped<TokenService>();
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"] ?? "Super secret key"));
 
-             return services;
-         } 
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(opt =>
+            {
+                opt.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = key,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    NameClaimType = "unique_name"
+                };
+            });
+            services.AddScoped<TokenService>();
+
+            return services;
+        }
     }
 }
