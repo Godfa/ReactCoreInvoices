@@ -307,6 +307,11 @@ export default observer(function AdminPage() {
                             onChange={(e, { value }) => setEditForm({ ...editForm, preferredPaymentMethod: value as string })}
                             placeholder='Valitse maksutapa'
                         />
+                        {!hasBankAccount() && !hasPhoneNumber() && (
+                            <p style={{ fontSize: '0.85em', color: 'var(--text-muted, #888)', marginTop: '-0.5rem' }}>
+                                Lisää tilinumero tai puhelinnumero, niin voit valita maksutavan.
+                            </p>
+                        )}
                     </Form>
                 </Modal.Content>
                 <Modal.Actions>
