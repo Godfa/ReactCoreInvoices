@@ -100,7 +100,7 @@ export default observer(function ParticipantList({ invoiceId }: Props) {
     };
 
     const nonParticipantCount = PotentialParticipants.filter(c => !participantIds.includes(c.key)).length;
-    const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip'];
+    const usualSuspects = ['Epi', 'JHattu', 'Leivo', 'Timo', 'Jaapu', 'Urpi', 'Zeip', 'Sakke'];
     const usualSuspectsToAdd = PotentialParticipants.filter(c =>
         usualSuspects.some(suspect => c.value.includes(suspect)) && !participantIds.includes(c.key)
     ).length;
