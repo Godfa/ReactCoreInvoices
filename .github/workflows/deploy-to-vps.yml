@@ -160,13 +160,17 @@ jobs:
       - name: Health check
         run: |
           echo "🏥 Performing health check..."
+          echo "Target URL: ${{ vars.APP_URL }}/health"
           sleep 5
 
           # Try to reach the health endpoint
           HEALTH_URL="${{ vars.APP_URL }}/health"
 
           for i in {1..5}; do
-            if curl -f -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" | grep -q "200"; then
+            HTTP_CODE=$(curl -s -o /tmp/health_response.txt -w "%{http_code}" "$HEALTH_URL" 2>&1 || echo "CURL_ERROR")
+            echo "Attempt $i: HTTP $HTTP_CODE"
+            cat /tmp/health_response.txt 2>/dev/null || true
+            if echo "$HTTP_CODE" | grep -q "200"; then
               echo "✅ Health check passed!"
               exit 0
             fi
@@ -175,7 +179,6 @@ jobs:
           done
 
           echo "⚠️ Health check did not pass after 5 attempts"
-          echo "Note: This may be expected if /health endpoint doesn't exist"
 
   notify:
     name: Notify Deployment Status
