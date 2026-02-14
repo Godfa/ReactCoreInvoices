@@ -61,7 +61,7 @@ namespace Persistence
                     // Never overwrite DisplayName, Email, PhoneNumber, BankAccount, or any other user data
                 }
             }
-        }
+
 
             // Add Epi to Admin role
             var epiUser = await userManager.FindByEmailAsync("epituo@gmail.com");
