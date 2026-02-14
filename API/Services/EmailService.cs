@@ -75,14 +75,17 @@ Mökkilan Invoices Team
             return await SendEmailAsync(email, displayName, subject, plainTextContent, htmlContent);
         }
 
-        public async Task<bool> SendPasswordResetEmailAsync(string email, string displayName, string temporaryPassword)
+        public async Task<bool> SendPasswordResetEmailAsync(string email, string displayName, string username, string temporaryPassword)
         {
             var subject = "Password Reset - Mökkilan Invoices";
             var htmlContent = $@"
                 <h2>Password Reset</h2>
                 <p>Hi {displayName},</p>
-                <p>Your administrator has reset your password. Here is your new temporary password:</p>
-                <p><strong>Temporary Password:</strong> {temporaryPassword}</p>
+                <p>Your administrator has reset your password. Here are your login credentials:</p>
+                <ul>
+                    <li><strong>Username:</strong> {username}</li>
+                    <li><strong>Temporary Password:</strong> {temporaryPassword}</li>
+                </ul>
                 <p><strong>Important:</strong> You will be required to change this password upon your next login for security reasons.</p>
                 <p>Please log in at: <a href=""{_appUrl}"">{_appUrl}</a></p>
                 <p>If you did not request this change, please contact your administrator immediately.</p>
@@ -95,8 +98,9 @@ Password Reset
 
 Hi {displayName},
 
-Your administrator has reset your password. Here is your new temporary password:
+Your administrator has reset your password. Here are your login credentials:
 
+Username: {username}
 Temporary Password: {temporaryPassword}
 
 Important: You will be required to change this password upon your next login for security reasons.

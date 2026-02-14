@@ -6,12 +6,13 @@ using Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence
 {
     public class Seed
     {
-        public static async Task SeedData(DataContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IHostEnvironment environment)
+        public static async Task SeedData(DataContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IHostEnvironment environment, ILogger logger)
         {
             // Create roles if they don't exist
             if (!await roleManager.RoleExistsAsync("Admin"))
@@ -51,9 +52,13 @@ namespace Persistence
                         // PhoneNumber and BankAccount are null by default - users set these in their profile
                     };
 
-                    // Generate random password (length 20) - no need to log as it will be reset via admin
-                    var randomPassword = Guid.NewGuid().ToString("N").Substring(0, 20);
-                    await userManager.CreateAsync(newUser, randomPassword);
+                    // Generate random password (length 20) with mix of chars to satisfy default Identity requirements
+                    var randomPassword = Guid.NewGuid().ToString("N").Substring(0, 10) + Guid.NewGuid().ToString("N").Substring(0, 5).ToUpper() + "!1a";
+                    var result = await userManager.CreateAsync(newUser, randomPassword);
+                    if (!result.Succeeded)
+                    {
+                        logger.LogError($"Failed to create user {email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
                 }
                 else
                 {

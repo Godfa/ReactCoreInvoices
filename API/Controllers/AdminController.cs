@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Persistence;
 
 namespace API.Controllers
@@ -25,14 +26,15 @@ namespace API.Controllers
         private readonly DataContext _context;
         private readonly IHostEnvironment _environment;
         private readonly IEmailService _emailService;
-
-        public AdminController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, DataContext context, IHostEnvironment environment, IEmailService emailService)
+        private readonly ILogger<AdminController> _logger;
+        public AdminController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, DataContext context, IHostEnvironment environment, IEmailService emailService, ILogger<AdminController> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _context = context;
             _environment = environment;
             _emailService = emailService;
+            _logger = logger;
         }
 
         [HttpGet("users")]
@@ -165,6 +167,7 @@ namespace API.Controllers
             var emailSent = await _emailService.SendPasswordResetEmailAsync(
                 user.Email,
                 user.DisplayName,
+                user.UserName,
                 newPassword
             );
 
@@ -298,7 +301,7 @@ namespace API.Controllers
                 await _context.SaveChangesAsync();
 
                 // Run seed data
-                await Seed.SeedData(_context, _userManager, _roleManager, _environment);
+                await Seed.SeedData(_context, _userManager, _roleManager, _environment, _logger);
 
                 return Ok(new { message = "Database reseeded successfully" });
             }
