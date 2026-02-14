@@ -42,20 +42,26 @@ namespace API.Extensions
             {
                 opt.AddPolicy("CorsPolicy", policy =>
                 {
-                    var allowedOrigins = config.GetSection("AllowedOrigins").Get<string[]>();
+                    var allowedOrigins = new List<string>();
+                    
+                    var configOrigins = config.GetSection("AllowedOrigins").Get<string[]>();
+                    if (configOrigins != null) allowedOrigins.AddRange(configOrigins);
 
-                    // Fallback to environment variable if config section is empty
-                    if (allowedOrigins == null || allowedOrigins.Length == 0)
+                    var envOrigin = config["ALLOWED_ORIGINS"];
+                    if (!string.IsNullOrEmpty(envOrigin))
                     {
-                        var envOrigin = config["ALLOWED_ORIGINS"];
-                        allowedOrigins = !string.IsNullOrEmpty(envOrigin)
-                            ? envOrigin.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                            : new[] { "http://localhost:3000" };
+                        allowedOrigins.AddRange(envOrigin.Split(',', StringSplitOptions.RemoveEmptyEntries));
+                    }
+
+                    if (allowedOrigins.Count == 0)
+                    {
+                        allowedOrigins.Add("http://localhost:3000");
                     }
 
                     policy.AllowAnyMethod()
                           .AllowAnyHeader()
-                          .WithOrigins(allowedOrigins);
+                          .AllowCredentials()
+                          .WithOrigins(allowedOrigins.Distinct().ToArray());
                 });
             });
             services.AddMediatR(typeof(Application.Invoices.List.Handler).Assembly);
