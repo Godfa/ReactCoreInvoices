@@ -96,21 +96,30 @@ namespace Persistence
                 context.ChangeTracker.Clear();
             }
 
+            // Resolve actual IDs from the database. Handles both fresh installs and existing
+            // databases where users may have been created with different GUIDs previously.
+            var userIds = new Dictionary<string, string>();
+            foreach (var (seedId, _, userName, _) in expectedUsers)
+            {
+                var user = await userManager.FindByNameAsync(userName);
+                userIds[userName] = user?.Id ?? seedId;
+            }
+
             // Only seed invoices if none exist
             if (context.Invoices.Any()) return;
 
-            // Mökkilan 80 osallistujat (8 henkilöä) — GUIDit suoraan, ei tarvetta hakea User-objekteja
-            var mokkila80ParticipantIds = new List<string>
-            {
-                "bfef42ed-04b5-4639-aa2a-788784ccad02", // Jaapu
-                "c5a33cd2-85bc-4687-9cdb-9b9f38512e0f", // Leivo
-                "9f8e7d6c-5b4a-3f2e-1d0c-9b8a7f6e5d4c", // Timo
-                "4b5c6d7e-8f9a-0b1c-2d3e-4f5a6b7c8d9e", // JHattu
-                "1c2d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f", // Urpi
-                "354c7990-0574-4da4-8659-58b28113eb79",  // Epi
-                "6f7a8b9c-0d1e-2f3a-4b5c-6d7e8f9a0b1c", // Sakke
-                "7d8e9f0a-1b2c-3d4e-5f6a-7b8c9d0e1f2a", // Zeip
-            };
+            // Convenience variables for readability in the invoice initializer below
+            var idJHattu = userIds["jhattu"];
+            var idZeip   = userIds["zeip"];
+            var idEpi    = userIds["epi"];
+            var idLeivo  = userIds["leivo"];
+            var idUrpi   = userIds["urpi"];
+            var idJaapu  = userIds["jaapu"];
+            var idSakke  = userIds["sakke"];
+            var idTimo   = userIds["timo"];
+
+            // Mökkilan 80 osallistujat (8 henkilöä)
+            var mokkila80ParticipantIds = new List<string> { idJaapu, idLeivo, idTimo, idJHattu, idUrpi, idEpi, idSakke, idZeip };
 
             var invoices = new List<Invoice>
             {
@@ -128,7 +137,7 @@ namespace Persistence
                         {
                             ExpenseType = ExpenseType.Personal,
                             Name = "Mökin ennakkomaksu",
-                            OrganizerId = "4b5c6d7e-8f9a-0b1c-2d3e-4f5a6b7c8d9e", // JHattu
+                            OrganizerId = idJHattu, // JHattu
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Mökin ennakkomaksu", Quantity = 1, UnitPrice = 325.00m }
@@ -140,7 +149,7 @@ namespace Persistence
                         {
                             ExpenseType = ExpenseType.Personal,
                             Name = "Mökin loppulasku",
-                            OrganizerId = "4b5c6d7e-8f9a-0b1c-2d3e-4f5a6b7c8d9e", // JHattu
+                            OrganizerId = idJHattu, // JHattu
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Mökin loppulasku", Quantity = 1, UnitPrice = 760.00m }
@@ -152,7 +161,7 @@ namespace Persistence
                         {
                             ExpenseType = ExpenseType.ShoppingList,
                             Name = "Alko",
-                            OrganizerId = "7d8e9f0a-1b2c-3d4e-5f6a-7b8c9d0e1f2a", // Zeip
+                            OrganizerId = idZeip, // Zeip
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Alkoholijuomat", Quantity = 1, UnitPrice = 117.69m }
@@ -164,7 +173,7 @@ namespace Persistence
                         {
                             ExpenseType = ExpenseType.ShoppingList,
                             Name = "Ruoat pl. burgerit",
-                            OrganizerId = "7d8e9f0a-1b2c-3d4e-5f6a-7b8c9d0e1f2a", // Zeip
+                            OrganizerId = idZeip, // Zeip
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Ruokaostokset", Quantity = 1, UnitPrice = 190.79m }
@@ -176,7 +185,7 @@ namespace Persistence
                         {
                             ExpenseType = ExpenseType.Personal,
                             Name = "Lucifer sytytyspalat",
-                            OrganizerId = "354c7990-0574-4da4-8659-58b28113eb79", // Epi
+                            OrganizerId = idEpi, // Epi
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Sytytyspalat", Quantity = 1, UnitPrice = 5.90m }
@@ -188,7 +197,7 @@ namespace Persistence
                         {
                             ExpenseType = ExpenseType.Personal,
                             Name = "Taksi ravintolasta",
-                            OrganizerId = "c5a33cd2-85bc-4687-9cdb-9b9f38512e0f", // Leivo
+                            OrganizerId = idLeivo, // Leivo
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Taksimatka", Quantity = 1, UnitPrice = 64.50m }
@@ -200,15 +209,15 @@ namespace Persistence
                         {
                             ExpenseType = ExpenseType.Gasoline,
                             Name = "Jumperin bensat (610 km)",
-                            OrganizerId = "c5a33cd2-85bc-4687-9cdb-9b9f38512e0f", // Leivo
+                            OrganizerId = idLeivo, // Leivo
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Bensiini 610 km, 10.6 l/100km, 1.654€/l", Quantity = 1, UnitPrice = 106.95m }
                             },
                             Payers =
                             [
-                                new ExpenseItemPayer { AppUserId = "bfef42ed-04b5-4639-aa2a-788784ccad02" }, // Jaapu
-                                new ExpenseItemPayer { AppUserId = "c5a33cd2-85bc-4687-9cdb-9b9f38512e0f" }  // Leivo
+                                new ExpenseItemPayer { AppUserId = idJaapu }, // Jaapu
+                                new ExpenseItemPayer { AppUserId = idLeivo }  // Leivo
                             ]
                         },
                         // Taksi ravintolaan - 60,40 € - Maksaja: Urpi - Jaetaan kaikille 8:lle
@@ -216,7 +225,7 @@ namespace Persistence
                         {
                             ExpenseType = ExpenseType.Personal,
                             Name = "Taksi ravintolaan",
-                            OrganizerId = "1c2d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f", // Urpi
+                            OrganizerId = idUrpi, // Urpi
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Taksimatka", Quantity = 1, UnitPrice = 60.40m }
@@ -228,7 +237,7 @@ namespace Persistence
                         {
                             ExpenseType = ExpenseType.ShoppingList,
                             Name = "Burgeri / ruoka 1",
-                            OrganizerId = "1c2d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f", // Urpi
+                            OrganizerId = idUrpi, // Urpi
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Burgerit", Quantity = 1, UnitPrice = 59.46m }
@@ -240,7 +249,7 @@ namespace Persistence
                         {
                             ExpenseType = ExpenseType.Personal,
                             Name = "Pyyhkeet, hiilet, jäät",
-                            OrganizerId = "1c2d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f", // Urpi
+                            OrganizerId = idUrpi, // Urpi
                             LineItems = new List<ExpenseLineItem>
                             {
                                 new ExpenseLineItem { Name = "Sekalaiset", Quantity = 1, UnitPrice = 16.96m }

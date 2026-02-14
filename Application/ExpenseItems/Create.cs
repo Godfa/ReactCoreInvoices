@@ -49,13 +49,23 @@ namespace Application.ExpenseItems
                             throw new Exception("Kuluja ei voi lisätä, kun lasku on maksussa tai arkistoitu.");
                         }
 
+                        // Null out navigation properties so EF Core doesn't try to INSERT existing users
+                        request.ExpenseItem.Organizer = null;
+                        if (request.ExpenseItem.Payers != null)
+                            foreach (var payer in request.ExpenseItem.Payers)
+                                payer.AppUser = null;
+
                         _context.ExpenseItems.Add(request.ExpenseItem);
-                        // Set the foreign key directly instead of modifying the collection
-                        _context.Entry(request.ExpenseItem).Property("InvoiceId").CurrentValue = request.InvoiceId;
+                        request.ExpenseItem.InvoiceId = request.InvoiceId;
                     }
                 }
                 else
                 {
+                    request.ExpenseItem.Organizer = null;
+                    if (request.ExpenseItem.Payers != null)
+                        foreach (var payer in request.ExpenseItem.Payers)
+                            payer.AppUser = null;
+
                     _context.ExpenseItems.Add(request.ExpenseItem);
                 }
 
