@@ -61,9 +61,6 @@ namespace API
 
             // app.UseHttpsRedirection();
 
-            // API Key authentication middleware (before routing)
-            app.UseMiddleware<ApiKeyMiddleware>();
-
             app.UseRouting();
 
             app.UseCors("CorsPolicy");

@@ -10,17 +10,9 @@ const sleep = (delay: number) => {
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// API Key for external access (optional, used when API key is configured)
-const apiKey = import.meta.env.VITE_API_KEY;
-
 axios.interceptors.request.use(config => {
-    // Add JWT token if available
     const token = window.localStorage.getItem('jwt');
     if (token) config.headers.Authorization = `Bearer ${token}`;
-
-    // Add API key if configured
-    if (apiKey) config.headers['X-API-Key'] = apiKey;
-
     return config;
 })
 
