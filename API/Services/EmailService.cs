@@ -37,39 +37,39 @@ namespace API.Services
 
         public async Task<bool> SendNewUserEmailAsync(string email, string displayName, string username, string temporaryPassword)
         {
-            var subject = "Welcome to Mökkilan Invoices - Your Account Details";
+            var subject = "Tervetuloa lanittajien laskutuspalveluun Mökkilan Invoices - Käyttäjätunnuksesi";
             var htmlContent = $@"
-                <h2>Welcome to Mökkilan Invoices!</h2>
-                <p>Hi {displayName},</p>
-                <p>Your account has been created successfully. Here are your login credentials:</p>
+                <h2>Tervetuloa lanittajien laskutuspalveluun Mökkilan Invoices!</h2>
+                <p>Hei {displayName},</p>
+                <p>Käyttäjätilisi on luotu onnistuneesti. Tässä kirjautumistietosi:</p>
                 <ul>
-                    <li><strong>Username:</strong> {username}</li>
-                    <li><strong>Email:</strong> {email}</li>
-                    <li><strong>Temporary Password:</strong> {temporaryPassword}</li>
+                    <li><strong>Käyttäjätunnus:</strong> {username}</li>
+                    <li><strong>Sähköposti:</strong> {email}</li>
+                    <li><strong>Väliaikainen salasana:</strong> {temporaryPassword}</li>
                 </ul>
-                <p><strong>Important:</strong> You will be required to change your password upon first login for security reasons.</p>
-                <p>Please log in at: <a href=""{_appUrl}"">{_appUrl}</a></p>
+                <p><strong>Tärkeää:</strong> Sinua pyydetään vaihtamaan salasana ensimmäisen kirjautumisen yhteydessä tietoturvasyistä.</p>
+                <p>Kirjaudu sisään osoitteessa: <a href=""{_appUrl}"">{_appUrl}</a></p>
                 <br>
-                <p>Best regards,<br>Mökkilan Invoices Team</p>
+                <p>Terveisin,<br>Mökkilan Invoices</p>
             ";
 
             var plainTextContent = $@"
-Welcome to Mökkilan Invoices!
+Tervetuloa lanittajien laskutuspalveluun Mökkilan Invoices!
 
-Hi {displayName},
+Hei {displayName},
 
-Your account has been created successfully. Here are your login credentials:
+Käyttäjätilisi on luotu onnistuneesti. Tässä kirjautumistietosi:
 
-Username: {username}
-Email: {email}
-Temporary Password: {temporaryPassword}
+Käyttäjätunnus: {username}
+Sähköposti: {email}
+Väliaikainen salasana: {temporaryPassword}
 
-Important: You will be required to change your password upon first login for security reasons.
+Tärkeää: Sinua pyydetään vaihtamaan salasana ensimmäisen kirjautumisen yhteydessä tietoturvasyistä.
 
-Please log in at: {_appUrl}
+Kirjaudu sisään osoitteessa: {_appUrl}
 
-Best regards,
-Mökkilan Invoices Team
+Terveisin,
+Mökkilan Invoices
             ";
 
             return await SendEmailAsync(email, displayName, subject, plainTextContent, htmlContent);
@@ -77,40 +77,40 @@ Mökkilan Invoices Team
 
         public async Task<bool> SendPasswordResetEmailAsync(string email, string displayName, string username, string temporaryPassword)
         {
-            var subject = "Password Reset - Mökkilan Invoices";
+            var subject = "Salasanan nollaus - Mökkilan Invoices";
             var htmlContent = $@"
-                <h2>Password Reset</h2>
-                <p>Hi {displayName},</p>
-                <p>Your administrator has reset your password. Here are your login credentials:</p>
+                <h2>Salasanan nollaus</h2>
+                <p>Hei {displayName},</p>
+                <p>Ylläpitäjä on nollannut salasanasi. Tässä kirjautumistietosi:</p>
                 <ul>
-                    <li><strong>Username:</strong> {username}</li>
-                    <li><strong>Temporary Password:</strong> {temporaryPassword}</li>
+                    <li><strong>Käyttäjätunnus:</strong> {username}</li>
+                    <li><strong>Väliaikainen salasana:</strong> {temporaryPassword}</li>
                 </ul>
-                <p><strong>Important:</strong> You will be required to change this password upon your next login for security reasons.</p>
-                <p>Please log in at: <a href=""{_appUrl}"">{_appUrl}</a></p>
-                <p>If you did not request this change, please contact your administrator immediately.</p>
+                <p><strong>Tärkeää:</strong> Sinua pyydetään vaihtamaan tämä salasana seuraavan kirjautumisen yhteydessä tietoturvasyistä.</p>
+                <p>Kirjaudu sisään osoitteessa: <a href=""{_appUrl}"">{_appUrl}</a></p>
+                <p>Jos et pyytänyt tätä muutosta, ota välittömästi yhteyttä ylläpitäjään.</p>
                 <br>
-                <p>Best regards,<br>Mökkilan Invoices Team</p>
+                <p>Terveisin,<br>Mökkilan Invoices</p>
             ";
 
             var plainTextContent = $@"
-Password Reset
+Salasanan nollaus
 
-Hi {displayName},
+Hei {displayName},
 
-Your administrator has reset your password. Here are your login credentials:
+Ylläpitäjä on nollannut salasanasi. Tässä kirjautumistietosi:
 
-Username: {username}
-Temporary Password: {temporaryPassword}
+Käyttäjätunnus: {username}
+Väliaikainen salasana: {temporaryPassword}
 
-Important: You will be required to change this password upon your next login for security reasons.
+Tärkeää: Sinua pyydetään vaihtamaan tämä salasana seuraavan kirjautumisen yhteydessä tietoturvasyistä.
 
-Please log in at: {_appUrl}
+Kirjaudu sisään osoitteessa: {_appUrl}
 
-If you did not request this change, please contact your administrator immediately.
+Jos et pyytänyt tätä muutosta, ota välittömästi yhteyttä ylläpitäjään.
 
-Best regards,
-Mökkilan Invoices Team
+Terveisin,
+Mökkilan Invoices
             ";
 
             return await SendEmailAsync(email, displayName, subject, plainTextContent, htmlContent);
@@ -118,35 +118,35 @@ Mökkilan Invoices Team
 
         public async Task<bool> SendPasswordResetLinkAsync(string email, string displayName, string resetLink)
         {
-            var subject = "Password Reset Request - Mökkilan Invoices";
+            var subject = "Salasanan nollauspyyntö - Mökkilan Invoices";
             var htmlContent = $@"
-                <h2>Password Reset Request</h2>
-                <p>Hi {displayName},</p>
-                <p>We received a request to reset your password. Click the link below to reset your password:</p>
-                <p><a href=""{resetLink}"" style=""display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;"">Reset Password</a></p>
-                <p>Or copy and paste this link into your browser:</p>
+                <h2>Salasanan nollauspyyntö</h2>
+                <p>Hei {displayName},</p>
+                <p>Olemme vastaanottaneet pyynnön nollata salasanasi. Nollaa salasanasi klikkaamalla alla olevaa linkkiä:</p>
+                <p><a href=""{resetLink}"" style=""display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;"">Nollaa salasana</a></p>
+                <p>Tai kopioi linkki selaimeesi:</p>
                 <p>{resetLink}</p>
-                <p><strong>This link will expire in 24 hours.</strong></p>
-                <p>If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
+                <p><strong>Linkki vanhenee 24 tunnin kuluttua.</strong></p>
+                <p>Jos et pyytänyt salasanan nollausta, voit jättää tämän viestin huomiotta tai ottaa yhteyttä tukeen, jos sinulla on huolia.</p>
                 <br>
-                <p>Best regards,<br>Mökkilan Invoices Team</p>
+                <p>Terveisin,<br>Mökkilan Invoices</p>
             ";
 
             var plainTextContent = $@"
-Password Reset Request
+Salasanan nollauspyyntö
 
-Hi {displayName},
+Hei {displayName},
 
-We received a request to reset your password. Click the link below to reset your password:
+Olemme vastaanottaneet pyynnön nollata salasanasi. Nollaa salasanasi alla olevan linkin kautta:
 
 {resetLink}
 
-This link will expire in 24 hours.
+Linkki vanhenee 24 tunnin kuluttua.
 
-If you did not request a password reset, please ignore this email or contact support if you have concerns.
+Jos et pyytänyt salasanan nollausta, voit jättää tämän viestin huomiotta tai ottaa yhteyttä tukeen, jos sinulla on huolia.
 
-Best regards,
-Mökkilan Invoices Team
+Terveisin,
+Mökkilan Invoices
             ";
 
             return await SendEmailAsync(email, displayName, subject, plainTextContent, htmlContent);
