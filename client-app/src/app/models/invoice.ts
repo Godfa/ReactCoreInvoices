@@ -18,6 +18,9 @@ export interface AppUser {
     userName: string;
     displayName: string;
     email: string;
+    phoneNumber?: string;
+    bankAccount?: string;
+    preferredPaymentMethod?: string;
 }
 
 export interface ExpenseItemPayer {
@@ -66,5 +69,22 @@ export interface Invoice {
     expenseItems: ExpenseItem[];
     participants: InvoiceParticipant[];
     approvals: InvoiceApproval[];
+}
+
+export interface ParticipantBalance {
+    userId: string;
+    displayName: string;
+    totalPaid: number;
+    totalOwed: number;
+    netBalance: number;
+}
+
+export interface PaymentTransaction {
+    fromUserId: string;
+    fromUserName: string;
+    toUserId: string;
+    toUserName: string;
+    amount: number;
+    toUser?: AppUser;
 }
 

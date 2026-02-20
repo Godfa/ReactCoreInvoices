@@ -290,7 +290,7 @@ namespace API.Services
                                     {
                                         column.Item().PaddingTop(10).Column(infoColumn =>
                                         {
-                                            infoColumn.Item().Text($"Maksettava (osuutesi - jo maksamasi): {transaction.Amount:F2} €").FontSize(12).Bold();
+                                            infoColumn.Item().Text($"Maksettava (osuutesi miinus jo maksamasi): {transaction.Amount:F2} €").FontSize(12).Bold();
                                             infoColumn.Item().PaddingTop(2).Text($"Maksa {transaction.ToUserName}:lle").FontSize(12).Bold();
 
                                             if (transaction.ToUser != null)
