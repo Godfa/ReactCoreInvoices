@@ -219,7 +219,15 @@ export default observer(function ParticipantInvoicePrintView() {
                 `}
             </style>
 
-            <div className="no-print" style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+            <div className="no-print" style={{ marginBottom: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <Button
+                    icon
+                    labelPosition='left'
+                    onClick={() => navigate(`/invoices/${invoice.id}/print`)}
+                >
+                    <Icon name='arrow left' />
+                    Takaisin päätulostussivulle
+                </Button>
                 <Button
                     icon
                     labelPosition='left'
