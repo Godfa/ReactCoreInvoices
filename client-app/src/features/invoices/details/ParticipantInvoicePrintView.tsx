@@ -30,7 +30,8 @@ function calculateParticipantBalances(invoice: Invoice): ParticipantBalance[] {
         const totalAmount = expenseItem.amount;
         const payerCount = expenseItem.payers?.length || 0;
 
-        if (payerCount === 0) return;
+        // Skip if amount is invalid or no payers
+        if (payerCount === 0 || totalAmount == null || isNaN(totalAmount)) return;
 
         const sharePerPerson = totalAmount / payerCount;
 
@@ -134,6 +135,7 @@ export default observer(function ParticipantInvoicePrintView() {
 
         const expenses = invoice.expenseItems
             .filter(item => item.payers && item.payers.some(p => p.appUserId === participantId))
+            .filter(item => item.amount != null && !isNaN(item.amount))
             .map(item => {
                 const payerCount = item.payers.length;
                 const shareAmount = item.amount / payerCount;
@@ -144,7 +146,7 @@ export default observer(function ParticipantInvoicePrintView() {
                 };
             });
 
-        const total = expenses.reduce((sum, item) => sum + item.shareAmount, 0);
+        const total = expenses.reduce((sum, item) => sum + (item.shareAmount || 0), 0);
 
         return { expenses, total, participantName };
     }, [invoice, participantId]);
@@ -264,7 +266,7 @@ export default observer(function ParticipantInvoicePrintView() {
                     </div>
                     <div style={{ textAlign: 'right' }}>
                         <Header as='h2' color='blue' style={{ fontSize: '2em', margin: '0 0 5px 0' }}>
-                            {participantShare.total.toFixed(2)} €
+                            {(participantShare.total ?? 0).toFixed(2)} €
                         </Header>
                         <Label size='large'>
                             Yhteensä
@@ -291,14 +293,14 @@ export default observer(function ParticipantInvoicePrintView() {
                                     <Table.Row key={item.id}>
                                         <Table.Cell>{item.name}</Table.Cell>
                                         <Table.Cell>{getExpenseTypeName(item.expenseType)}</Table.Cell>
-                                        <Table.Cell>{item.amount.toFixed(2)} €</Table.Cell>
+                                        <Table.Cell>{(item.amount ?? 0).toFixed(2)} €</Table.Cell>
                                         <Table.Cell>1 / {item.payerCount}</Table.Cell>
-                                        <Table.Cell style={{ fontWeight: 'bold' }}>{item.shareAmount.toFixed(2)} €</Table.Cell>
+                                        <Table.Cell style={{ fontWeight: 'bold' }}>{(item.shareAmount ?? 0).toFixed(2)} €</Table.Cell>
                                     </Table.Row>
                                 ))}
                                 <Table.Row>
                                     <Table.Cell colSpan='4' textAlign='right' style={{ fontWeight: 'bold' }}>Yhteensä:</Table.Cell>
-                                    <Table.Cell style={{ fontWeight: 'bold', fontSize: '1.2em' }}>{participantShare.total.toFixed(2)} €</Table.Cell>
+                                    <Table.Cell style={{ fontWeight: 'bold', fontSize: '1.2em' }}>{(participantShare.total ?? 0).toFixed(2)} €</Table.Cell>
                                 </Table.Row>
                             </Table.Body>
                         </Table>
@@ -314,7 +316,7 @@ export default observer(function ParticipantInvoicePrintView() {
                         {participantPayments.map((transaction, index) => (
                             <Segment key={index} style={{ padding: '15px', marginBottom: '15px', backgroundColor: '#f9fafb', border: '1px solid #d4d4d5' }}>
                                 <div style={{ marginBottom: '10px' }}>
-                                    <strong style={{ fontSize: '1.1em' }}>Maksettava (osuutesi miinus jo maksamasi): {transaction.amount.toFixed(2)} €</strong>
+                                    <strong style={{ fontSize: '1.1em' }}>Maksettava (osuutesi miinus jo maksamasi): {(transaction.amount ?? 0).toFixed(2)} €</strong>
                                 </div>
                                 <div style={{ marginBottom: '10px' }}>
                                     <strong style={{ fontSize: '1.1em' }}>Maksa {transaction.toUserName}:lle</strong>
