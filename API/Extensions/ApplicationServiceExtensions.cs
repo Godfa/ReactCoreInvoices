@@ -71,6 +71,7 @@ namespace API.Extensions
             services.AddValidatorsFromAssemblyContaining<ExpenseItemValidator>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IPdfService, PdfService>();
+            services.AddScoped<VirtualBarcodeService>();
             services.AddHttpClient<IReceiptScannerService, ReceiptScannerService>();
             services.AddHostedService<InvoiceReminderBackgroundService>();
 
