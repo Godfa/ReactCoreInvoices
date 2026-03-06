@@ -391,7 +391,7 @@ export default observer(function ParticipantInvoicePrintView() {
                                         })()}
 
                                         {/* Virtual Barcode Section */}
-                                        {virtualBarcode && transaction.toUser?.bankAccount && (
+                                        {virtualBarcode && virtualBarcode.barcode && transaction.toUser?.bankAccount && (
                                             <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #e0e0e0' }}>
                                                 <Header as='h4' style={{ marginBottom: '10px', color: '#2185d0' }}>
                                                     <Icon name='barcode' />
