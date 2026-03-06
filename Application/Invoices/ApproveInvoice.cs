@@ -86,6 +86,17 @@ namespace Application.Invoices
                         .ThenInclude(ei => ei.LineItems)
                     .FirstOrDefaultAsync(i => i.Id == request.InvoiceId, cancellationToken);
 
+                // Check if all participants have approved and update status to "In Payment"
+                var participantCount = invoice.Participants?.Count ?? 0;
+                var approvalCount = invoice.Approvals?.Count ?? 0;
+
+                if (participantCount > 0 && approvalCount >= participantCount)
+                {
+                    // All participants have approved - move to payment status
+                    invoice.Status = InvoiceStatus.Maksussa;
+                    await _context.SaveChangesAsync(cancellationToken);
+                }
+
                 return invoice;
             }
         }
