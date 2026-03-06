@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Interfaces;
+using Application.Services;
 using Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -641,7 +642,7 @@ namespace API.Services
                                         });
 
                                         // Virtual barcode section (if available)
-                                        if (virtualBarcode != null && barcodeImageBytes != null)
+                                        if (virtualBarcode != null)
                                         {
                                             col.Item().PaddingTop(10).LineHorizontal(1).LineColor("#EEEEEE");
                                             col.Item().PaddingTop(8).Column(barcodeCol =>
@@ -649,8 +650,13 @@ namespace API.Services
                                                 barcodeCol.Item().Text("VIRTUAALIVIIVAKOODI").FontSize(8).Bold().FontColor("#666666");
                                                 barcodeCol.Item().PaddingTop(2).Text(virtualBarcode)
                                                     .FontSize(7).FontFamily("Courier New").FontColor("#333333");
-                                                barcodeCol.Item().PaddingTop(3).Height(50)
-                                                    .Image(barcodeImageBytes);
+
+                                                // Only show barcode image if it was successfully generated
+                                                if (barcodeImageBytes != null)
+                                                {
+                                                    barcodeCol.Item().PaddingTop(3).Height(50)
+                                                        .Image(barcodeImageBytes);
+                                                }
                                             });
                                         }
                                     });
