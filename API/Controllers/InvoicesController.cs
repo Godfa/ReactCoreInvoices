@@ -120,5 +120,16 @@ namespace API.Controllers
             });
             return Ok();
         }
+
+        [HttpGet("{invoiceId}/participants/{userId}/virtual-barcode")]
+        public async Task<ActionResult> GetVirtualBarcodeForParticipant(Guid invoiceId, string userId)
+        {
+            var result = await Mediator.Send(new GetVirtualBarcodeForParticipant.Query
+            {
+                InvoiceId = invoiceId,
+                UserId = userId
+            });
+            return Ok(result);
+        }
     }
 }

@@ -6,6 +6,7 @@ using API.Services;
 using Application.Core;
 using Application.ExpenseItems;
 using Application.Interfaces;
+using Application.Services;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MediatR;

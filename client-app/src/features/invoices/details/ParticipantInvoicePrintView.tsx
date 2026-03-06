@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 import { Button, Header, Table, Icon, Label, Segment } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import LoadingComponent from "../../../app/layout/LoadingComponent";
-import { ParticipantBalance, PaymentTransaction, Invoice, AppUser } from "../../../app/models/invoice";
+import { ParticipantBalance, PaymentTransaction, Invoice, AppUser, VirtualBarcodeDto } from "../../../app/models/invoice";
+import agent from "../../../app/api/agent";
 
 // Helper functions for payment optimization
 function calculateParticipantBalances(invoice: Invoice): ParticipantBalance[] {
@@ -119,6 +120,8 @@ export default observer(function ParticipantInvoicePrintView() {
     const { selectedInvoice: invoice, loadInvoice, loadingInitial, getExpenseTypeName, loadExpenseTypes } = invoiceStore;
     const { id, participantId } = useParams<{ id: string; participantId: string }>();
     const navigate = useNavigate();
+    const [virtualBarcode, setVirtualBarcode] = useState<VirtualBarcodeDto | null>(null);
+    const [barcodeLoading, setBarcodeLoading] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -126,6 +129,16 @@ export default observer(function ParticipantInvoicePrintView() {
             loadExpenseTypes();
         }
     }, [id, loadInvoice, loadExpenseTypes]);
+
+    useEffect(() => {
+        if (id && participantId) {
+            setBarcodeLoading(true);
+            agent.Invoices.getVirtualBarcode(id, participantId)
+                .then(barcode => setVirtualBarcode(barcode))
+                .catch(error => console.error('Failed to load virtual barcode:', error))
+                .finally(() => setBarcodeLoading(false));
+        }
+    }, [id, participantId]);
 
     const participantShare = useMemo(() => {
         if (!invoice || !participantId) return { expenses: [], total: 0, participantName: '' };
@@ -376,6 +389,28 @@ export default observer(function ParticipantInvoicePrintView() {
                                                 );
                                             }
                                         })()}
+
+                                        {/* Virtual Barcode Section */}
+                                        {virtualBarcode && transaction.toUser?.bankAccount && (
+                                            <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #e0e0e0' }}>
+                                                <Header as='h4' style={{ marginBottom: '10px', color: '#2185d0' }}>
+                                                    <Icon name='barcode' />
+                                                    Virtuaaliviivakoodi (pankkimaksuun)
+                                                </Header>
+                                                <div style={{ marginBottom: '8px' }}>
+                                                    <strong>Viitenumero:</strong> {virtualBarcode.formattedReference}
+                                                </div>
+                                                <div style={{ marginBottom: '8px' }}>
+                                                    <strong>Eräpäivä:</strong> {new Date(virtualBarcode.dueDate).toLocaleDateString('fi-FI')}
+                                                </div>
+                                                <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f0f0f0', borderRadius: '4px', fontFamily: 'monospace', fontSize: '11px', wordBreak: 'break-all' }}>
+                                                    {virtualBarcode.barcode}
+                                                </div>
+                                                <div style={{ marginTop: '5px', fontSize: '0.9em', color: '#666', fontStyle: 'italic' }}>
+                                                    Voit kopioida viivakoodin verkkopankkiisi tai skannata sen mobiilipankissa
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <div style={{ marginTop: '10px', fontStyle: 'italic' }}>

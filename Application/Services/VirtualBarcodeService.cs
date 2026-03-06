@@ -1,6 +1,6 @@
 using System;
 
-namespace API.Services
+namespace Application.Services
 {
     /// <summary>
     /// Service for generating Finnish virtual barcodes and reference numbers

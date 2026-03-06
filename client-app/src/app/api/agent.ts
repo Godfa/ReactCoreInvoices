@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { Invoice, ExpenseItem, ExpenseTypeOption, ExpenseLineItem, InvoiceStatus } from "../models/invoice";
+import { Invoice, ExpenseItem, ExpenseTypeOption, ExpenseLineItem, InvoiceStatus, VirtualBarcodeDto } from "../models/invoice";
 import { toast } from 'react-toastify';
 
 const sleep = (delay: number) => {
@@ -82,7 +82,8 @@ const Invoices = {
     approveInvoice: (invoiceId: string, userId: string) => requests.post<Invoice>(`/invoices/${invoiceId}/approve/${userId}`, {}),
     unapproveInvoice: (invoiceId: string, userId: string) => requests.del<Invoice>(`/invoices/${invoiceId}/approve/${userId}`),
     sendPaymentNotifications: (invoiceId: string) => requests.post<void>(`/invoices/${invoiceId}/send-payment-notifications`, {}),
-    togglePaymentStatus: (invoiceId: string, userId: string) => requests.post<void>(`/invoices/${invoiceId}/participants/${userId}/toggle-payment`, {})
+    togglePaymentStatus: (invoiceId: string, userId: string) => requests.post<void>(`/invoices/${invoiceId}/participants/${userId}/toggle-payment`, {}),
+    getVirtualBarcode: (invoiceId: string, userId: string) => requests.get<VirtualBarcodeDto>(`/invoices/${invoiceId}/participants/${userId}/virtual-barcode`)
 }
 
 const ExpenseItems = {

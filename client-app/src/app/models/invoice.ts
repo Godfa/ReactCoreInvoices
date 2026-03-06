@@ -90,3 +90,13 @@ export interface PaymentTransaction {
     toUser?: AppUser;
 }
 
+export interface VirtualBarcodeDto {
+    barcode: string;
+    referenceNumber: string;
+    formattedReference: string;
+    recipientName: string;
+    recipientBankAccount: string;
+    amount: number;
+    dueDate: string;
+}
+
