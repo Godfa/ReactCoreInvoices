@@ -103,6 +103,13 @@ namespace Application.Invoices
                 {
                     // All participants have approved - move to payment status
                     invoice.Status = InvoiceStatus.Maksussa;
+
+                    // Generate payment tokens for all participants
+                    foreach (var p in invoice.Participants ?? new List<InvoiceParticipant>())
+                    {
+                        p.PaymentToken = Guid.NewGuid();
+                    }
+
                     await _context.SaveChangesAsync(cancellationToken);
 
                     // Send email notifications to all participants
@@ -149,6 +156,11 @@ namespace Application.Invoices
                                     Console.WriteLine($"Error generating participant PDF for {participant.AppUserId}: {ex.Message}");
                                 }
 
+                                // Generate payment URL
+                                var paymentUrl = participant.PaymentToken.HasValue
+                                    ? $"{appUrl}/api/invoices/pay-via-token/{participant.PaymentToken.Value}"
+                                    : null;
+
                                 try
                                 {
                                     await _emailService.SendInvoicePaymentNotificationAsync(
@@ -156,6 +168,7 @@ namespace Application.Invoices
                                         participant.AppUser.DisplayName,
                                         invoice.Title,
                                         invoiceUrl,
+                                        paymentUrl,
                                         participantAttachments
                                     );
                                 }

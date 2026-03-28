@@ -3,6 +3,7 @@ using Application.Invoices;
 using Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace API.Controllers
 {
@@ -130,6 +131,131 @@ namespace API.Controllers
                 UserId = userId
             });
             return Ok(result);
+        }
+
+        [AllowAnonymous]
+        [EnableRateLimiting("PaymentTokenPolicy")]
+        [HttpGet("pay-via-token/{token}")]
+        public async Task<IActionResult> PayViaToken(Guid token)
+        {
+            try
+            {
+                await Mediator.Send(new PayViaToken.Command { Token = token });
+
+                var html = @"<!DOCTYPE html>
+<html lang='fi'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Maksu vahvistettu - Mökkilan Invoices</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            text-align: center;
+        }
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2d3748;
+            margin-bottom: 16px;
+            font-size: 28px;
+        }
+        p {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        .success {
+            color: #38a169;
+        }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='icon'>✅</div>
+        <h1 class='success'>Kiitos!</h1>
+        <p>Maksusi on merkitty onnistuneesti maksetuksi.</p>
+        <p>Voit nyt sulkea tämän sivun.</p>
+    </div>
+</body>
+</html>";
+
+                return Content(html, "text/html");
+            }
+            catch (Exception ex)
+            {
+                var errorHtml = $@"<!DOCTYPE html>
+<html lang='fi'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Virhe - Mökkilan Invoices</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }}
+        .container {{
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            text-align: center;
+        }}
+        .icon {{
+            font-size: 64px;
+            margin-bottom: 20px;
+        }}
+        h1 {{
+            color: #2d3748;
+            margin-bottom: 16px;
+            font-size: 28px;
+        }}
+        p {{
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }}
+        .error {{
+            color: #e53e3e;
+        }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='icon'>⚠️</div>
+        <h1 class='error'>Virhe</h1>
+        <p>{ex.Message}</p>
+        <p>Jos ongelma jatkuu, ota yhteyttä laskun luojaan.</p>
+    </div>
+</body>
+</html>";
+
+                return Content(errorHtml, "text/html");
+            }
         }
     }
 }

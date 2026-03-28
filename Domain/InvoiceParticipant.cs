@@ -17,5 +17,7 @@ namespace Domain
 
         public bool HasPaid { get; set; }
         public DateTime? PaidAt { get; set; }
+
+        public Guid? PaymentToken { get; set; }
     }
 }

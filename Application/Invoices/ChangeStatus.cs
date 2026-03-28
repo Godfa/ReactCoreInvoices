@@ -52,6 +52,15 @@ namespace Application.Invoices
                 var oldStatus = invoice.Status;
                 invoice.Status = request.NewStatus;
 
+                // Generate payment tokens when status changes to Maksussa
+                if (request.NewStatus == InvoiceStatus.Maksussa && oldStatus != InvoiceStatus.Maksussa)
+                {
+                    foreach (var p in invoice.Participants ?? new List<InvoiceParticipant>())
+                    {
+                        p.PaymentToken = Guid.NewGuid();
+                    }
+                }
+
                 await _context.SaveChangesAsync(cancellationToken);
 
                 // Send email notifications when status changes to Maksussa (In Payment)
@@ -100,11 +109,17 @@ namespace Application.Invoices
                                     Console.WriteLine($"Error generating participant PDF for {participant.AppUserId}: {ex.Message}");
                                 }
 
+                                // Generate payment URL
+                                var paymentUrl = participant.PaymentToken.HasValue
+                                    ? $"{appUrl}/api/invoices/pay-via-token/{participant.PaymentToken.Value}"
+                                    : null;
+
                                 await _emailService.SendInvoicePaymentNotificationAsync(
                                     participant.AppUser.Email,
                                     participant.AppUser.DisplayName,
                                     invoice.Title,
                                     invoiceUrl,
+                                    paymentUrl,
                                     participantAttachments
                                 );
                             }

@@ -66,6 +66,13 @@ namespace Application.Invoices
 
                 // Update invoice status to Maksussa
                 invoice.Status = InvoiceStatus.Maksussa;
+
+                // Generate payment tokens for all participants
+                foreach (var participant in invoice.Participants ?? new List<InvoiceParticipant>())
+                {
+                    participant.PaymentToken = Guid.NewGuid();
+                }
+
                 await _context.SaveChangesAsync(cancellationToken);
 
                 // Send email notifications with PDFs to all participants
@@ -124,7 +131,11 @@ namespace Application.Invoices
                         Console.WriteLine($"Error generating participant PDF for {participant.AppUserId}: {ex.Message}");
                     }
 
-                    // Send email
+                    // Send email with payment link
+                    var paymentUrl = participant.PaymentToken.HasValue
+                        ? $"{baseUrl}/api/invoices/pay-via-token/{participant.PaymentToken.Value}"
+                        : null;
+
                     try
                     {
                         await _emailService.SendInvoicePaymentNotificationAsync(
@@ -132,6 +143,7 @@ namespace Application.Invoices
                             participant.AppUser.DisplayName,
                             invoice.Title,
                             invoiceUrl,
+                            paymentUrl,
                             participantAttachments
                         );
                     }

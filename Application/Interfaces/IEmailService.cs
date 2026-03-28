@@ -17,7 +17,7 @@ namespace Application.Interfaces
         Task<bool> SendPasswordResetEmailAsync(string email, string displayName, string username, string temporaryPassword);
         Task<bool> SendPasswordResetLinkAsync(string email, string displayName, string resetLink);
         Task<bool> SendInvoiceReviewNotificationAsync(string email, string displayName, string invoiceTitle, string invoiceUrl);
-        Task<bool> SendInvoicePaymentNotificationAsync(string email, string displayName, string invoiceTitle, string invoiceUrl, List<EmailAttachment> attachments);
+        Task<bool> SendInvoicePaymentNotificationAsync(string email, string displayName, string invoiceTitle, string invoiceUrl, string paymentUrl, List<EmailAttachment> attachments);
         Task<bool> SendInvoiceReminderEmailAsync(string email, string displayName, string invoiceTitle, string invoiceUrl);
     }
 }

@@ -194,9 +194,22 @@ Mökkilan Invoices
             return await SendEmailAsync(email, displayName, subject, plainTextContent, htmlContent);
         }
 
-        public async Task<bool> SendInvoicePaymentNotificationAsync(string email, string displayName, string invoiceTitle, string invoiceUrl, List<EmailAttachment> attachments)
+        public async Task<bool> SendInvoicePaymentNotificationAsync(string email, string displayName, string invoiceTitle, string invoiceUrl, string paymentUrl, List<EmailAttachment> attachments)
         {
             var subject = "Lasku siirtynyt maksuun - Mökkilan Invoices";
+
+            var paymentButtonHtml = !string.IsNullOrEmpty(paymentUrl)
+                ? $@"<p style=""margin-top: 20px;""><a href=""{paymentUrl}"" style=""display: inline-block; padding: 12px 24px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;"">Merkitse maksetuksi</a></p>
+                <p style=""font-size: 12px; color: #666;"">Tai kopioi linkki selaimeesi: {paymentUrl}</p>"
+                : "";
+
+            var paymentLinkText = !string.IsNullOrEmpty(paymentUrl)
+                ? $@"
+
+Merkitse maksu maksetuksi klikkaamalla alla olevaa linkkiä, kun olet maksanut osuutesi:
+{paymentUrl}"
+                : "";
+
             var htmlContent = $@"
                 <h2>Lasku on siirtynyt maksuun</h2>
                 <p>Hei {displayName},</p>
@@ -206,6 +219,7 @@ Mökkilan Invoices
                     <li>Henkilökohtainen laskusi maksuosuuksineen</li>
                     <li>Kokonaiserittely kaikista kuluista</li>
                 </ul>
+                {paymentButtonHtml}
                 <p>Voit myös tarkastella laskua verkossa:</p>
                 <p><a href=""{invoiceUrl}"" style=""display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;"">Avaa lasku</a></p>
                 <p>Tai kopioi linkki selaimeesi:</p>
@@ -224,6 +238,7 @@ Lasku {invoiceTitle} on hyväksytty ja siirtynyt maksuun.
 Liitteenä löydät:
 - Henkilökohtainen laskusi maksuosuuksineen
 - Kokonaiserittely kaikista kuluista
+{paymentLinkText}
 
 Voit myös tarkastella laskua verkossa:
 {invoiceUrl}
