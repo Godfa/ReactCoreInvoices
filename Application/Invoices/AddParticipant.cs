@@ -1,9 +1,12 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Interfaces;
 using Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Persistence;
 
 namespace Application.Invoices
@@ -19,10 +22,14 @@ namespace Application.Invoices
         public class Handler : IRequestHandler<Command>
         {
             private readonly DataContext _context;
+            private readonly IEmailService _emailService;
+            private readonly IConfiguration _config;
 
-            public Handler(DataContext context)
+            public Handler(DataContext context, IEmailService emailService, IConfiguration config)
             {
                 _context = context;
+                _emailService = emailService;
+                _config = config;
             }
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
@@ -59,6 +66,31 @@ namespace Application.Invoices
 
                 _context.InvoiceParticipants.Add(participant);
                 await _context.SaveChangesAsync(cancellationToken);
+
+                if (invoice.Status == InvoiceStatus.Aktiivinen && !string.IsNullOrEmpty(user.Email))
+                {
+                    var usualSuspects = new[] { "Epi", "JHattu", "Leivo", "Timo", "Jaapu", "Urpi", "Zeip" };
+                    bool isUsualSuspect = usualSuspects.Any(us => string.Equals(us, user.DisplayName, StringComparison.OrdinalIgnoreCase));
+                    if (!isUsualSuspect)
+                    {
+                        try
+                        {
+                            var appUrl = _config["Email:AppUrl"];
+                            var invoiceUrl = $"{appUrl}/invoices/{invoice.Id}";
+                            
+                            await _emailService.SendInvoiceReviewNotificationAsync(
+                                user.Email,
+                                user.DisplayName,
+                                invoice.Title,
+                                invoiceUrl
+                            );
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Failed to send review notification to new participant {user.Email}: {ex.Message}");
+                        }
+                    }
+                }
 
                 return Unit.Value;
             }

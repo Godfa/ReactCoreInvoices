@@ -560,7 +560,7 @@ export default class InvoiceStore {
             const participantIds = invoice?.participants?.map(p => p.appUserId) || [];
 
             const suspectsToAdd = this.PotentialParticipants.filter(c =>
-                usualSuspects.some(suspect => c.value.includes(suspect)) && !participantIds.includes(c.key)
+                usualSuspects.some(suspect => c.value.toLowerCase().includes(suspect.toLowerCase())) && !participantIds.includes(c.key)
             );
 
             // Add all suspects in parallel for better performance

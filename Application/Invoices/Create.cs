@@ -72,9 +72,12 @@ namespace Application.Invoices
                 var invoiceUrl = $"{appUrl}/invoices/{request.Invoice.Id}";
                 var usualSuspects = new[] { "Epi", "JHattu", "Leivo", "Timo", "Jaapu", "Urpi", "Zeip" };
 
+                var lowerSuspects = usualSuspects.Select(s => s.ToLower()).ToList();
                 var recipients = await _context.Users
-                    .Where(u => usualSuspects.Contains(u.DisplayName) && u.Email != null && u.Email != "")
+                    .Where(u => u.Email != null && u.Email != "")
                     .ToListAsync(cancellationToken);
+
+                recipients = recipients.Where(u => lowerSuspects.Contains(u.DisplayName?.ToLower())).ToList();
 
                 foreach (var user in recipients)
                 {
