@@ -69,26 +69,21 @@ namespace Application.Invoices
 
                 if (invoice.Status == InvoiceStatus.Aktiivinen && !string.IsNullOrEmpty(user.Email))
                 {
-                    var usualSuspects = new[] { "Epi", "JHattu", "Leivo", "Timo", "Jaapu", "Urpi", "Zeip" };
-                    bool isUsualSuspect = usualSuspects.Any(us => string.Equals(us, user.DisplayName, StringComparison.OrdinalIgnoreCase));
-                    if (!isUsualSuspect)
+                    try
                     {
-                        try
-                        {
-                            var appUrl = _config["Email:AppUrl"];
-                            var invoiceUrl = $"{appUrl}/invoices/{invoice.Id}";
-                            
-                            await _emailService.SendInvoiceReviewNotificationAsync(
-                                user.Email,
-                                user.DisplayName,
-                                invoice.Title,
-                                invoiceUrl
-                            );
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Failed to send review notification to new participant {user.Email}: {ex.Message}");
-                        }
+                        var appUrl = _config["Email:AppUrl"];
+                        var invoiceUrl = $"{appUrl}/invoices/{invoice.Id}";
+
+                        await _emailService.SendInvoiceReviewNotificationAsync(
+                            user.Email,
+                            user.DisplayName,
+                            invoice.Title,
+                            invoiceUrl
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed to send review notification to new participant {user.Email}: {ex.Message}");
                     }
                 }
 
