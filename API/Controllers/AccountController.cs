@@ -187,8 +187,10 @@ namespace API.Controllers
 
             if (result.Succeeded)
             {
-                // Clear MustChangePassword flag when user resets their password
+                // Clear MustChangePassword flag and unlock account when user resets their password
                 user.MustChangePassword = false;
+                await _userManager.SetLockoutEndDateAsync(user, null);
+                await _userManager.ResetAccessFailedCountAsync(user);
                 await _userManager.UpdateAsync(user);
                 return Ok(new { message = "Password has been reset successfully" });
             }
